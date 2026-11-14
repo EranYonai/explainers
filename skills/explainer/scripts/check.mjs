@@ -4,7 +4,7 @@
 //   node check.mjs page.html [--sheet contact-sheet.png] [--click "<selector>"]
 //
 // Renders the page at phone width (390 px, light) and desktop width (1100 px, dark), walks every step of
-// every scene, then plays the reader: clicks the reader buttons (--click, default ".choices button, .pick button") and
+// every scene, then plays the reader: clicks the reader buttons (--click, default ".choices button") and
 // walks the steps they produce. Reports:
 //   - JS errors and console errors
 //   - player errors: captions asking for a {value} that compute() does not provide, draw() failures
@@ -30,7 +30,7 @@ if (!page || !existsSync(page)) {
   console.error('usage: node check.mjs <page.html> [--sheet out.png] [--click "<selector>"]');
   process.exit(2);
 }
-const clickSel = args.includes("--click") ? args[args.indexOf("--click") + 1] : ".choices button, .pick button";
+const clickSel = args.includes("--click") ? args[args.indexOf("--click") + 1] : ".choices button";
 // The page parts, in their fixed order. Required ones must be present.
 const SLOTS = ["masthead", "intro", "summary", "scene", "payoff", "prose", "glossary", "sources", "next"];
 const REQUIRED = ["intro", "scene", "payoff"];
@@ -79,7 +79,7 @@ const PAGE_HELPERS = `(() => {
     const cites = [...document.querySelectorAll("a.cite")].map((a) => a.getAttribute("href") || "");
     const brokenCites = cites.filter((h) => !h.startsWith("#") || !src || !src.querySelector(h.replace(/([^#\w-])/g, "\\$1")));
     const bareSources = src ? [...src.querySelectorAll("li")].filter((li) => !li.querySelector('a[href^="http"]')).map((li) => li.textContent.trim().slice(0, 40)) : [];
-    const outside = [...document.querySelectorAll('a[href^="http"]')].filter((a) => !(src && src.contains(a)) && !a.closest("nav.next")).length;
+    const outside = [...document.querySelectorAll('a[href^="http"]')].filter((a) => !(src && src.contains(a)) && !a.closest('[data-slot="next"]')).length;
     let words = 0;
     for (const sl of document.querySelectorAll("[data-slot]")) if (sl.getAttribute("data-slot") !== "scene") words += sl.innerText.split(/\s+/).filter(Boolean).length;
     return { slots, h1: document.querySelectorAll("h1").length, hook: !!(intro && intro.querySelector("h1.hook")), dek: !!(intro && intro.querySelector(".dek")),

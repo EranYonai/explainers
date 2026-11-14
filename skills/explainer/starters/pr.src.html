@@ -10,21 +10,14 @@
 <link rel="stylesheet" href="explainer:theme/transit">
 <style>
   /* Page-specific styles only. Theme tokens, never hard-coded colors. */
-  .path{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:10px}
-  .stop{border:var(--border-width,1px) solid var(--line);border-radius:var(--radius,8px);background:var(--paper);padding:10px 12px;transition:opacity .3s}
-  .stop h3{font-size:1rem;margin:0 0 4px}
-  .stop p{font-size:.9rem;color:var(--muted)}
-  .stop.on{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--hl)}
-  .stop.changed h3::after{content:" \2731 changed";font-family:var(--font-mono);font-size:.72rem;color:var(--accent)}
-  .stop.dim{opacity:.4}
+  .card.changed h3::after{content:" \2731 changed";font-family:var(--font-mono);font-size:.72rem;color:var(--accent)}
   .result{margin-top:12px;font-family:var(--font-mono);font-size:.9rem;min-height:1.5em}
-  .choices{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 </style>
 </head>
 <!-- Starter: PULL REQUEST. What a change does and why, shown as the same request on the old and the new path.
      Read the diff first; draw the brief from it. No internal names, hosts or customers: teach the pattern.
      Page parts keep a fixed order (data-slot). Delete what you do not need, never reorder. -->
-<body data-kind="pr">
+<body>
 <main>
   <header class="masthead col" data-slot="masthead">
     <span class="kind">Pull request</span>
@@ -50,11 +43,11 @@
     <figure class="scene" id="main">
       <div class="stage">
         <section data-scene="before" data-title="Before this change">
-          <div class="path" data-path="before"></div>
+          <div class="cards" data-path="before"></div>
           <p class="result" data-result="before"></p>
         </section>
         <section data-scene="after" data-title="After this change">
-          <div class="path" data-path="after"></div>
+          <div class="cards" data-path="after"></div>
           <p class="result" data-result="after"></p>
         </section>
         <section data-scene="try" data-title="Your turn">
@@ -82,7 +75,7 @@
     </ul>
   </section>
 
-  <nav class="next col" data-slot="next" aria-label="Next">
+  <nav class="col" data-slot="next" aria-label="Next">
     <a href="https://example.com/pull/1">Open the pull request</a>
   </nav>
 </main>
@@ -122,7 +115,7 @@
       setup: function (el, api) {
         var box = el.querySelector("[data-path]");
         views[side] = { stops: PATHS[side].map(function (s) {
-          var c = api.h("article", { class: "stop" + (s.changed ? " changed" : "") }, box);
+          var c = api.h("article", { class: "card" + (s.changed ? " changed" : "") }, box);
           api.h("h3", { text: s.name }, c);
           api.h("p", { text: s.note }, c);
           return c;
@@ -130,7 +123,7 @@
       },
       draw: function (s) {
         var v = views[side], here = s.side === side ? s.at : -1;
-        v.stops.forEach(function (c, i) { c.classList.toggle("on", i === here); c.classList.toggle("dim", here >= 0 && i > here); });
+        v.stops.forEach(function (c, i) { c.classList.toggle("lit", i === here); c.classList.toggle("dim", here >= 0 && i > here); });
         v.result.textContent = here >= 0 ? "total: " + total(side, here) + " " + UNIT : "";
       }
     };

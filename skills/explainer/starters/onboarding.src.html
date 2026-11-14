@@ -10,20 +10,13 @@
 <link rel="stylesheet" href="explainer:theme/inkwell">
 <style>
   /* Page-specific styles only. Theme tokens, never hard-coded colors. */
-  .map{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:10px}
-  .node{border:var(--border-width,1px) solid var(--line);border-radius:var(--radius,8px);background:var(--paper);padding:10px 12px;transition:opacity .3s}
-  .node h3{font-size:1rem;margin:0 0 4px}
-  .node p{font-size:.9rem;color:var(--muted)}
-  .node.on{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--hl)}
-  .node.dim{opacity:.4}
-  .node .hop{font-family:var(--font-mono);font-size:.75rem;color:var(--accent);min-height:1.2em;display:block}
-  .choices{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .card .hop{font-family:var(--font-mono);font-size:.75rem;color:var(--accent);min-height:1.2em;display:block}
 </style>
 </head>
 <!-- Starter: ONBOARDING. One system, one part per step, then the newcomer tries a route through it.
      One topic per page: a series is several pages linked with the "next" part.
      Page parts keep a fixed order (data-slot). Delete what you do not need, never reorder. -->
-<body data-kind="onboarding">
+<body>
 <main>
   <header class="masthead col" data-slot="masthead">
     <span class="kind">Onboarding · part 1 of N</span>
@@ -45,7 +38,7 @@
     <figure class="scene" id="main">
       <div class="stage">
         <section data-scene="map" data-title="The parts">
-          <div class="map" id="map"></div>
+          <div class="cards" id="map"></div>
         </section>
         <section data-scene="route" data-title="Try a route">
           <p>Where does your first task start?</p>
@@ -81,7 +74,7 @@
     </ol>
   </section>
 
-  <nav class="next col" data-slot="next" aria-label="Next">
+  <nav class="col" data-slot="next" aria-label="Next">
     <a href="https://example.com/part-2">Next: PART 2 TITLE</a>
   </nav>
 </main>
@@ -121,7 +114,7 @@
         setup: function (el, api) {
           var box = el.querySelector("#map");
           PARTS.forEach(function (p) {
-            var c = api.h("article", { class: "node" }, box);
+            var c = api.h("article", { class: "card" }, box);
             api.h("span", { class: "hop" }, c);
             api.h("h3", { text: p.name }, c);
             api.h("p", { text: p.note }, c);
@@ -130,7 +123,7 @@
         },
         draw: function (s) {
           nodes.forEach(function (c, i) {
-            c.classList.toggle("on", i === s.at);
+            c.classList.toggle("lit", i === s.at);
             c.classList.toggle("dim", s.from >= 0 && i < s.from);
             c.querySelector(".hop").textContent = s.from >= 0 && i >= s.from && i <= s.at ? "stop " + (i - s.from + 1) : "";
           });
