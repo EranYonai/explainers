@@ -1,15 +1,17 @@
 # explainers
 
-A skill for Claude Code and Pi that turns a topic into an interactive HTML explainer you can share as a link.
+A skill for Claude Code and Pi that turns a topic into an interactive explainer: one HTML file that anyone can open on a phone.
 
-You ask for an explainer of a concept, a PR, an incident or an onboarding topic. The agent asks a few short questions, then writes one self-contained page: prose, step-through scenes
-(Back / Next / Play), captions that carry the teaching, and something the reader controls, like picking an
-input, dragging a slider or approving a step.
+<p align="center"><img src="docs/media/explainer.gif" width="320" alt="An explainer page building itself step by step on a phone: a question, a picture, a caption, a choice for the reader, and a one-line answer."></p>
 
-Explainers are **silent by design**: captions, motion and drawings do the explaining, so they work on a
-phone, in a PR description, and later as a short video without a voice.
+You ask for an explainer of a concept, a pull request, an incident or an onboarding topic. The agent asks up to four short questions, then writes the page:
 
-> Status: early. The repo is being scaffolded. The skill's workflow, shared player and self-check land next.
+- a question the reader can't answer yet,
+- a picture that changes with every step (Back, Next, Play, and a speed control),
+- one choice the reader makes, with real logic behind it,
+- and a one-line answer.
+
+Explainers are **silent by design**. Captions and pictures do the teaching, so a page works on a phone, in a PR description, or as a link in chat.
 
 ## Install
 
@@ -26,13 +28,26 @@ Pi:
 pi install git:github.com/EranYonai/explainers
 ```
 
+## Use
+
+Ask in plain words:
+
+```text
+Make an explainer of how a database index speeds up a query.
+Explain this PR visually for the team.
+```
+
+You get `<slug>.html`, a single file with no server and no build step. Open it in a browser, send it in a chat, or drop it on any static host.
+
+The agent checks its own page before handing it over. It walks every step at phone and desktop width and fixes what breaks.
+
 ## Building a page
 
 The skill writes a source page that references the shared player and a theme by placeholder, then inlines them:
 
 ```bash
-node skills/explainer/scripts/build.mjs page.src.html            # writes page.html, one self-contained file
-node skills/explainer/scripts/build.mjs page.src.html --theme flight-deck
+node skills/explainer/scripts/build.mjs page.src.html -o page.html   # one self-contained file
+node skills/explainer/scripts/check.mjs page.html                    # walks every step, prints PASS or FAIL
 ```
 
 Start from [`templates/page.src.html`](skills/explainer/templates/page.src.html). The player API is documented at
@@ -45,8 +60,7 @@ the top of [`player.js`](skills/explainer/templates/player.js).
 3. **Scenes describe states, not animations.** Each step says what is true; the player animates the change.
 4. **Numbers come from code.** Every number on screen is computed by a function in the page, never typed by hand.
 5. **Random things are seeded,** so captions can quote results and a video renders the same every time.
-6. **Cheap to make.** Every run is logged in [`runs.csv`](runs.csv). Targets for v0: under 60K tokens, at most
-   10 tool calls, under 5 minutes, at most 1 fix pass.
+6. **Readable cold.** One topic per page, a picture from the first step, and no word the reader hasn't been given.
 
 ## Layout
 
@@ -55,7 +69,7 @@ skills/explainer/      the skill: SKILL.md, player (templates/), themes, build a
 examples/              explainers made with the skill or its drafts
 docs/themes/           gallery of 25 themes and the generator (the skill ships 8)
 docs/findings/         field notes from the first drafts
-runs.csv               cost of every explainer made with the skill
+runs.csv               a log of explainers made with the skill
 ```
 
 ## License
