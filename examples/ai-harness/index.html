@@ -373,15 +373,16 @@ h1{font-family:var(--font-display);font-weight:900;text-transform:uppercase;font
  * One shared stepper for every explainer: Back / Next / Play, captions, dots, keys, reduced motion.
  * A scene is data plus two small functions:
  *
- *   Explainer.scene("#bisect", {
- *     title: "Binary search over 16 commits",      // used for the stage's aria-label
- *     initial: { lo: 0, hi: 15 },                  // state before step 1
+ *   Explainer.scene("#queue", {
+ *     title: "Requests waiting in a queue",        // used for the stage's aria-label
+ *     initial: { waiting: 0, served: 0 },          // state before step 1
  *     steps: [                                     // or a function (api) -> steps, see setSteps
- *       { say: "Test the middle commit, c{mid}.", set: { mid: 7 }, mark: { probe: 7 } },
+ *       { say: "Three requests arrive at once.", set: { waiting: 3 } },
+ *       { say: "The worker takes one. {left} still wait.", set: { waiting: 2, served: 1 }, mark: { busy: true } },
  *     ],
  *     setup(stage, api) { ... },                   // build the DOM once
  *     draw(state, api)  { ... },                   // make the DOM match `state`; api.animate is false on first paint
- *     compute(state)    { return { left: state.hi - state.lo + 1 }; }  // numbers for {name} in captions
+ *     compute(state)    { return { left: state.waiting }; }  // numbers for {name} in captions
  *   });
  *
  * Deck mode (one stepper drives several sections, like a manual): put <section data-scene="loop" data-title="The loop">

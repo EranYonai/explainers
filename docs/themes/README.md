@@ -1,7 +1,9 @@
 # Theme gallery
 
-`index.html` shows all 25 themes. `themes/*.css` are drop-in token files. Only three ship with the skill
-(`skills/explainer/themes/`: Inkwell, Whiteprint, Two-Ink); the rest live here as the pool new ones come from.
+`index.html` shows all 25 themes. `themes/*.css` are drop-in token files. The skill ships
+eight (`skills/explainer/themes/`): Inkwell, plus Flight Deck and Transit (taken from two drafts, not in this
+gallery), plus five editor palettes: Gruvbox, Kanagawa, One Half, Dracula and Rose Pine. The rest live here as
+the pool new ones come from.
 
 - `build.py` generates `index.html` and `themes/*.css`. Edit it and rerun `python3 build.py`. Do not hand-edit the outputs.
 - `verify_schemes.py` checks the 12 editor schemes against their upstream palettes. It expects those repos cloned

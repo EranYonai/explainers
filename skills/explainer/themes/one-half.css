@@ -1,0 +1,69 @@
+/* One Half (one-half)
+   Atom-style gray with bright, friendly accents. Light and dark pair.
+   Best for: General dev explainers. A familiar look for readers coming from Atom or VS Code One Dark.
+   Fonts: Space Grotesk / Figtree / JetBrains Mono
+   Google Fonts: https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&family=Figtree:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap
+   Source: https://github.com/sonph/onehalf
+   File: onehalf/vim/colors/onehalfdark.vim, onehalf/vim/colors/onehalflight.vim
+   License: MIT (LICENSE.txt, Copyright (c) 2019 Son A. Pham)
+   Mode: light and dark
+   --sketch is the feDisplacementMap scale for hand-drawn wobble (0 = off).
+*/
+:root {
+  --font-display: "Space Grotesk","Segoe UI",sans-serif;
+  --font-body: "Figtree","Segoe UI",sans-serif;
+  --font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --radius: 6px;
+  --stroke-width: 2.4;
+  --sketch: 0;
+  --texture: none;
+  --display-scale: 1.1;
+  --display-weight: 600;
+  --display-transform: none;
+  --display-tracking: -.01em;
+  --border-width: 1.5px;
+  --linecap: round;
+  --node-rx: 6px;
+  --paper: #f0f0f0;
+  --surface: #fafafa;
+  --ink: #383a42;
+  --muted: #0184bc;
+  --line: #d4d4d4;
+  --accent: #a626a4;
+  --hl: #bfceff;
+  --good: #50a14f;
+  --bad: #e45649;
+  --accent-ink: #fafafa;
+  --hl-ink: #383a42;
+  --texture-size: auto;
+  --shadow: none;
+  --body-scale: 1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #282c34;
+    --surface: #282c34;
+    --ink: #dcdfe4;
+    --muted: #919baa;
+    --line: #474e5d;
+    --accent: #61afef;
+    --hl: #e5c07b;
+    --good: #98c379;
+    --bad: #e06c75;
+    --accent-ink: #282c34;
+    --hl-ink: #282c34;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #282c34;
+  --surface: #282c34;
+  --ink: #dcdfe4;
+  --muted: #919baa;
+  --line: #474e5d;
+  --accent: #61afef;
+  --hl: #e5c07b;
+  --good: #98c379;
+  --bad: #e06c75;
+  --accent-ink: #282c34;
+  --hl-ink: #282c34;
+}

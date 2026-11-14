@@ -1,0 +1,67 @@
+/* Transit (transit)
+   A city transit map: cream paper, colored lines, round stations, condensed signage.
+   Best for: Flows and architectures, request paths, state machines, graphs a reader can route through.
+   Fonts: Barlow Condensed / Barlow / Overpass Mono
+   Google Fonts: https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&family=Overpass+Mono:wght@400;600&display=swap
+   Mode: light and dark
+   Extracted from the "LangChain and LangGraph, explained" draft.
+   Optional tokens: --line-1 .. --line-4 (route colors), --rule (heavy lines).
+*/
+:root {
+  --font-display: "Barlow Condensed","Arial Narrow",sans-serif;
+  --font-body: "Barlow",system-ui,sans-serif;
+  --font-mono: "Overpass Mono",ui-monospace,Menlo,monospace;
+  --radius: 6px;
+  --stroke-width: 3;
+  --sketch: 0;
+  --display-scale: 1.2;
+  --display-weight: 800;
+  --display-transform: uppercase;
+  --display-tracking: .005em;
+  --border-width: 2px;
+  --linecap: round;
+  --body-scale: 1.05;
+  --paper: #f4efe1;
+  --surface: #fffdf6;
+  --ink: #16233b;
+  --muted: #5b6577;
+  --line: #d9d0b8;
+  --rule: #16233b;
+  --accent: #0c8a8a;
+  --hl: #e8a400;
+  --good: #1f9455;
+  --bad: #d6312b;
+  --line-1: #d6312b; --line-2: #0c8a8a; --line-3: #e8a400; --line-4: #6b4bb8;
+  --accent-ink: #ffffff;
+  --hl-ink: #16233b;
+  --shadow: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0d1524; --surface: #152036; --ink: #f2ecdb; --muted: #9aa5b8; --line: #2b3a55; --rule: #f2ecdb;
+    --accent: #2ec4c4; --hl: #ffc531; --good: #3ed07f; --bad: #ff5a4f;
+    --line-1: #ff5a4f; --line-2: #2ec4c4; --line-3: #ffc531; --line-4: #a98bff;
+    --accent-ink: #0d1524; --hl-ink: #16233b;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0d1524; --surface: #152036; --ink: #f2ecdb; --muted: #9aa5b8; --line: #2b3a55; --rule: #f2ecdb;
+  --accent: #2ec4c4; --hl: #ffc531; --good: #3ed07f; --bad: #ff5a4f;
+  --line-1: #ff5a4f; --line-2: #2ec4c4; --line-3: #ffc531; --line-4: #a98bff;
+  --accent-ink: #0d1524; --hl-ink: #16233b;
+}
+
+/* chrome: the scene is a route card with a dark sign plate, controls are signage, choices are amber */
+.scene { border-color: var(--rule); border-radius: 10px; }
+.scene .sec { background: var(--ink); color: var(--paper); border: 0; padding: 7px 14px; }
+.scene .sec .no { color: inherit; opacity: .8; }
+.scene .sec .no::before { content: "STOP "; }
+.caption { font-family: var(--font-body); font-weight: 500; font-size: 1.05rem; line-height: 1.45; }
+.controls { border-top: 2px solid var(--rule); margin-top: 12px; }
+.controls button, .choices button, .pick button { border-color: var(--rule); font-family: var(--font-display); font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase; border-radius: var(--radius); }
+.controls button.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.choices button { background: var(--hl); color: var(--hl-ink); flex: 1 1 130px; }
+.dots i.on { background: var(--hl); }
+.dots i.done { background: var(--ink); }
+:focus-visible { outline-color: var(--hl); }

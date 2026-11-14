@@ -255,10 +255,10 @@ for t in themes:
 # ---- scene
 def scene(slug):
     xs=[30+40*i for i in range(8)]
-    o=[f'<svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6.">']
+    o=[f'<svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight requests in a queue. r1 to r4 were served, r6 to r8 were rejected, r5 is in flight. The worker pointer is on r5.">']
     o.append(f'<defs><filter id="sk-{slug}" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs>')
     o.append(f'<g class="shapes" data-filter="sk-{slug}">')
-    o.append('<rect class="sus" x="169" y="50" width="82" height="60"/>')
+    o.append('<rect class="sus" x="170" y="50" width="40" height="60"/>')
     o.append('<line class="rail" x1="30" y1="72" x2="310" y2="72"/>')
     for i,x in enumerate(xs):
         k='good' if i<4 else ('unk' if i==4 else 'bad')
@@ -266,13 +266,13 @@ def scene(slug):
         if k=='good': o.append(f'<path class="glyph good" d="M{x-6} {72} l4 5 l8 -10"/>')
         elif k=='bad': o.append(f'<path class="glyph bad" d="M{x-5} 67 l10 10 M{x+5} 67 l-10 10"/>')
     o.append('<path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/>')
-    o.append('<path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/>')
+    o.append('<path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M220 116 v5 h100 v-5"/>')
     o.append('</g>')
     o.append('<text class="unkq" x="190" y="77">?</text>')
-    for i,x in enumerate(xs): o.append(f'<text class="lbl" x="{x}" y="102">c{i+1}</text>')
-    o.append('<text class="ptrl" x="190" y="20">test</text>')
-    o.append('<text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text>')
-    o.append('<text class="grp strong" x="210" y="126">suspects</text>')
+    for i,x in enumerate(xs): o.append(f'<text class="lbl" x="{x}" y="102">r{i+1}</text>')
+    o.append('<text class="ptrl" x="190" y="20">worker</text>')
+    o.append('<text class="grp" x="90" y="136">served</text><text class="grp" x="270" y="136">rejected</text>')
+    o.append('<text class="grp strong" x="190" y="126">in flight</text>')
     o.append('</svg>')
     return ''.join(o)
 def card(i,t):
@@ -283,10 +283,10 @@ def card(i,t):
     return f'''<article class="theme" id="{t['slug']}">
 <div class="sample t-{t['slug']}">
   <p class="kicker">Step 3 of 5</p>
-  <h3>Halve the suspects</h3>
-  <figure>{scene(t['slug'])}<figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
-  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
-  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <h3>The queue backs up</h3>
+  <figure>{scene(t['slug'])}<figcaption>r6 is turned away. The worker is still on r5.</figcaption></figure>
+  <p class="prose">A worker serves one request at a time. When the queue is full, new requests get <b>429</b> until a slot frees up.</p>
+  <pre class="code"><code><span class="pr">$</span> curl -i https://api.example.com/orders</code></pre>
   <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
 </div>
 <div class="meta">
@@ -401,7 +401,7 @@ header.top p{{margin:.3rem 0 0;color:var(--g-muted);font-size:.92rem}}
 <body>
 <div class="wrap">
 <header class="top">
-  <div><h1>Explainer themes</h1><p>Twenty-five draft design languages, including three Catppuccin flavors and twelve editor color schemes. Same bisect sample in each.</p></div>
+  <div><h1>Explainer themes</h1><p>Twenty-five draft design languages, including three Catppuccin flavors and twelve editor color schemes. Same sample in each.</p></div>
   <button id="mode" type="button" aria-label="Switch color mode">Mode: auto</button>
 </header>
 <section class="rec">

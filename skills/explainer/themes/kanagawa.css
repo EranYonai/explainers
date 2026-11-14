@@ -1,0 +1,69 @@
+/* Kanagawa (kanagawa)
+   Ink and paper after Hokusai. Wave by night, Lotus by day.
+   Best for: Story-driven explainers with a craft feel. Works well with the serif fonts.
+   Fonts: Marcellus / Spectral / JetBrains Mono
+   Google Fonts: https://fonts.googleapis.com/css2?family=Marcellus&family=Spectral:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap
+   Source: https://github.com/rebelot/kanagawa.nvim
+   File: kanagawa.nvim/lua/kanagawa/colors.lua
+   License: MIT (LICENSE, Copyright (c) 2021 Tommaso Laurenzi)
+   Mode: light and dark
+   --sketch is the feDisplacementMap scale for hand-drawn wobble (0 = off).
+*/
+:root {
+  --font-display: "Marcellus","Trajan Pro",serif;
+  --font-body: "Spectral",Georgia,serif;
+  --font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --radius: 6px;
+  --stroke-width: 2.4;
+  --sketch: 0;
+  --texture: none;
+  --display-scale: 1.2;
+  --display-weight: 400;
+  --display-transform: none;
+  --display-tracking: -.01em;
+  --border-width: 1.5px;
+  --linecap: round;
+  --node-rx: 6px;
+  --paper: #e5ddb0;
+  --surface: #f2ecbc;
+  --ink: #43436c;
+  --muted: #545464;
+  --line: #d5cea3;
+  --accent: #5d57a3;
+  --hl: #f9d791;
+  --good: #6f894e;
+  --bad: #c84053;
+  --accent-ink: #f2ecbc;
+  --hl-ink: #43436c;
+  --texture-size: auto;
+  --shadow: none;
+  --body-scale: 1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #1f1f28;
+    --surface: #2a2a37;
+    --ink: #dcd7ba;
+    --muted: #c8c093;
+    --line: #363646;
+    --accent: #7e9cd8;
+    --hl: #e6c384;
+    --good: #98bb6c;
+    --bad: #e46876;
+    --accent-ink: #1f1f28;
+    --hl-ink: #1f1f28;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #1f1f28;
+  --surface: #2a2a37;
+  --ink: #dcd7ba;
+  --muted: #c8c093;
+  --line: #363646;
+  --accent: #7e9cd8;
+  --hl: #e6c384;
+  --good: #98bb6c;
+  --bad: #e46876;
+  --accent-ink: #1f1f28;
+  --hl-ink: #1f1f28;
+}
