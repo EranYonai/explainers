@@ -1,0 +1,68 @@
+/* Placard (placard)
+   A museum wall label. Quiet, exact, a little ceremonial.
+   Best for: History of an idea, deep dives, reference pieces people return to.
+   Fonts: Marcellus / Spectral / Courier Prime
+   Google Fonts: https://fonts.googleapis.com/css2?family=Marcellus&family=Spectral:ital,wght@0,400;0,600;1,400&family=Courier+Prime:wght@400;700&display=swap
+   Mode: light and dark
+   --sketch is the feDisplacementMap scale for hand-drawn wobble (0 = off).
+*/
+:root {
+  --font-display: "Marcellus","Trajan Pro",serif;
+  --font-body: "Spectral",Georgia,serif;
+  --font-mono: "Courier Prime","Courier New",monospace;
+  --radius: 2px;
+  --stroke-width: 1.4;
+  --sketch: 0;
+  --texture: none;
+  --display-scale: 1.1;
+  --display-weight: 400;
+  --display-transform: uppercase;
+  --display-tracking: .09em;
+  --border-width: 1px;
+  --linecap: butt;
+  --node-rx: 13px;
+  --paper: #e9e8e4;
+  --surface: #f7f6f3;
+  --ink: #22252a;
+  --muted: #595d64;
+  --line: #c6c4bd;
+  --accent: #2b4a7a;
+  --hl: #c79a2b;
+  --good: #2e6e45;
+  --bad: #a8322d;
+  --accent-ink: #ffffff;
+  --hl-ink: #111111;
+  --shadow: 0 10px 24px -14px rgba(0,0,0,.35);
+  --texture-size: auto;
+  --body-scale: 1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #1c1d20;
+    --surface: #26282c;
+    --ink: #e9e6df;
+    --muted: #a9a69e;
+    --line: #43464c;
+    --accent: #9db8e6;
+    --hl: #d9b45a;
+    --good: #7fc494;
+    --bad: #e88a80;
+    --accent-ink: #16171a;
+    --hl-ink: #111111;
+    --shadow: 0 10px 24px -14px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #1c1d20;
+  --surface: #26282c;
+  --ink: #e9e6df;
+  --muted: #a9a69e;
+  --line: #43464c;
+  --accent: #9db8e6;
+  --hl: #d9b45a;
+  --good: #7fc494;
+  --bad: #e88a80;
+  --accent-ink: #16171a;
+  --hl-ink: #111111;
+  --shadow: 0 10px 24px -14px rgba(0,0,0,.8);
+}

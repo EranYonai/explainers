@@ -1,0 +1,68 @@
+/* Catppuccin (catppuccin)
+   Soft pastels from the editor theme many developers already run. Latte by day, Mocha by night.
+   Best for: Developer tooling, agents, editors and terminals. Readers who already use Catppuccin will feel at home.
+   Fonts: Fredoka / Nunito / JetBrains Mono
+   Google Fonts: https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap
+   Mode: light and dark
+   --sketch is the feDisplacementMap scale for hand-drawn wobble (0 = off).
+*/
+:root {
+  --font-display: "Fredoka","Nunito","Segoe UI",sans-serif;
+  --font-body: "Nunito","Segoe UI",sans-serif;
+  --font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --radius: 14px;
+  --stroke-width: 2.6;
+  --sketch: 0;
+  --texture: none;
+  --display-scale: 1.2;
+  --display-weight: 600;
+  --display-transform: none;
+  --display-tracking: -.01em;
+  --border-width: 1.5px;
+  --linecap: round;
+  --node-rx: 13px;
+  --paper: #e6e9ef;
+  --surface: #eff1f5;
+  --ink: #4c4f69;
+  --muted: #5c5f77;
+  --line: #bcc0cc;
+  --accent: #8839ef;
+  --hl: #df8e1d;
+  --good: #179299;
+  --bad: #d20f39;
+  --accent-ink: #eff1f5;
+  --hl-ink: #4c4f69;
+  --shadow: 0 2px 12px rgba(76,79,105,.10);
+  --texture-size: auto;
+  --body-scale: 1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #1e1e2e;
+    --surface: #313244;
+    --ink: #cdd6f4;
+    --muted: #a6adc8;
+    --line: #45475a;
+    --accent: #cba6f7;
+    --hl: #f9e2af;
+    --good: #a6e3a1;
+    --bad: #f38ba8;
+    --accent-ink: #11111b;
+    --hl-ink: #11111b;
+    --shadow: 0 2px 14px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #1e1e2e;
+  --surface: #313244;
+  --ink: #cdd6f4;
+  --muted: #a6adc8;
+  --line: #45475a;
+  --accent: #cba6f7;
+  --hl: #f9e2af;
+  --good: #a6e3a1;
+  --bad: #f38ba8;
+  --accent-ink: #11111b;
+  --hl-ink: #11111b;
+  --shadow: 0 2px 14px rgba(0,0,0,.35);
+}

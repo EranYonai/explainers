@@ -1,0 +1,41 @@
+/* Nord (nord)
+   Arctic blue-gray with frost accents. Calm, cool and low glare.
+   Best for: Long reads and technical docs. Anything that should feel quiet and tidy.
+   Fonts: Space Grotesk / Figtree / JetBrains Mono
+   Google Fonts: https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&family=Figtree:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap
+   Source: https://github.com/nordtheme/nord
+   File: nord/src/nord.css
+   License: MIT (license file, Copyright (c) 2016-present Sven Greb)
+   Mode: single. Dark only. Nord defines only a dark palette; the toggle does not change it.
+   --sketch is the feDisplacementMap scale for hand-drawn wobble (0 = off).
+*/
+:root {
+  --font-display: "Space Grotesk","Segoe UI",sans-serif;
+  --font-body: "Figtree","Segoe UI",sans-serif;
+  --font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --radius: 6px;
+  --stroke-width: 2.4;
+  --sketch: 0;
+  --texture: none;
+  --display-scale: 1.1;
+  --display-weight: 600;
+  --display-transform: none;
+  --display-tracking: -.01em;
+  --border-width: 1.5px;
+  --linecap: round;
+  --node-rx: 6px;
+  --paper: #2e3440;
+  --surface: #2e3440;
+  --ink: #d8dee9;
+  --muted: #81a1c1;
+  --line: #434c5e;
+  --accent: #88c0d0;
+  --hl: #ebcb8b;
+  --good: #a3be8c;
+  --bad: #bf616a;
+  --accent-ink: #2e3440;
+  --hl-ink: #2e3440;
+  --texture-size: auto;
+  --shadow: none;
+  --body-scale: 1;
+}

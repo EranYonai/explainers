@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why a flaky test lies</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Same draftsman's-notebook tokens as the plan page. One reading column; scenes sit in slightly wider cards. */
+:root{
+  --paper:#f3f4f8; --surface:#ffffff; --ink:#171a3b; --muted:#596080; --line:#d8dbe8;
+  --accent:#3341d6; --hl:#ffd84a; --good:#1c946a; --bad:#cf3f37;
+  --font-display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --font-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --step-0:clamp(0.98rem, 0.94rem + 0.15vw, 1.05rem);
+  --step-1:1.2rem;
+  --step-2:clamp(1.4rem, 1.25rem + 0.6vw, 1.7rem);
+  --step-3:clamp(2.1rem, 1.6rem + 2.2vw, 3.1rem);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0e1024; --surface:#171a34; --ink:#e7e8f6; --muted:#9ca1c4; --line:#2b2f55;
+    --accent:#8e98ff; --hl:#ffd84a; --good:#3fcf93; --bad:#ff6d63; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0e1024; --surface:#171a34; --ink:#e7e8f6; --muted:#9ca1c4; --line:#2b2f55;
+  --accent:#8e98ff; --hl:#ffd84a; --good:#3fcf93; --bad:#ff6d63; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--font-body); font-size:var(--step-0); line-height:1.6}
+main{padding:clamp(24px,5vw,64px) 16px 80px; display:grid; grid-template-columns:minmax(0,1fr); gap:28px}
+main > *{min-width:0}
+.col{max-width:66ch; margin:0 auto; width:100%}
+.wide{max-width:780px; margin:0 auto; width:100%}
+h1,h2{font-family:var(--font-display); text-wrap:balance; line-height:1.12; margin:0}
+h1{font-size:var(--step-3); font-weight:700; letter-spacing:-0.015em}
+h2{font-size:var(--step-2); font-weight:700; margin-top:20px}
+p{margin:0}
+.stack{display:grid; gap:14px}
+.kicker{font-family:var(--font-mono); font-size:.8rem; color:var(--accent)}
+.lede{font-size:1.14rem}
+code{font-family:var(--font-mono); font-size:.88em}
+mark{background:color-mix(in srgb, var(--hl) 55%, transparent); color:inherit; padding:0 .15em; border-radius:2px}
+pre.code{margin:0; padding:14px 16px; background:var(--surface); border:1px solid var(--line); border-radius:10px; overflow-x:auto; font-family:var(--font-mono); font-size:.8rem; line-height:1.7}
+pre.code .k{color:var(--accent)} pre.code .c{color:var(--muted)}
+pre.code .guess{background:color-mix(in srgb, var(--hl) 45%, transparent); display:inline-block; border-radius:3px}
+ul.plain{margin:0; padding-left:1.15em; display:grid; gap:8px}
+ul.plain li::marker{color:var(--accent)}
+a:focus-visible, button:focus-visible, input:focus-visible{outline:3px solid var(--accent); outline-offset:2px; border-radius:4px}
+
+/* scene card */
+.scene{background:var(--surface); border:1px solid var(--line); border-radius:14px; overflow:hidden}
+.scene .label{font-family:var(--font-mono); font-size:.75rem; color:var(--muted); padding:10px 16px 0}
+.scene svg{width:100%; height:auto; display:block}
+.caption{padding:8px 16px 0; min-height:5.6em; font-size:1.16rem; font-weight:500; line-height:1.4; text-wrap:pretty}
+.caption .stepno{font-family:var(--font-mono); color:var(--muted); font-size:.78rem; font-weight:400; display:block}
+@media (min-width:620px){ .caption{min-height:4.2em; padding:8px 20px 0; font-size:1.25rem} .scene .label{padding:10px 20px 0} }
+.controls{display:flex; flex-wrap:wrap; gap:8px; padding:12px 16px 16px; align-items:center}
+@media (min-width:620px){ .controls{padding:12px 20px 18px} }
+button{font:inherit; font-size:.9rem; padding:8px 14px; min-height:40px; border-radius:8px; border:1px solid var(--line); background:var(--paper); color:var(--ink); cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent); color:var(--surface); border-color:var(--accent)}
+button:disabled{opacity:.45; cursor:default}
+.dots{display:flex; gap:6px; margin-left:auto}
+.dots i{width:8px; height:8px; border-radius:50%; background:var(--line); display:block}
+.dots i.on{background:var(--accent)}
+.payoff{font-family:var(--font-display); font-weight:700; font-size:clamp(1.6rem, 1.2rem + 2.2vw, 2.4rem); line-height:1.15; text-wrap:balance; margin:14px 0 6px; padding:18px 18px 20px; border:2.5px solid var(--ink); border-radius:12px; background:color-mix(in srgb, var(--hl) 38%, var(--surface)); transform:rotate(-0.6deg)}
+.payoff .k{display:block; font-family:var(--font-mono); font-weight:400; font-size:.78rem; color:var(--muted); margin-bottom:6px}
+
+/* svg text: the viewBox is set to the measured pixel width, so these sizes are real pixels on every screen */
+svg text{font-family:var(--font-mono); font-size:12px; fill:var(--muted)}
+svg text.strong{font-weight:600; fill:var(--ink)}
+svg text.big{font-size:15px; font-weight:600; fill:var(--ink)}
+svg text.run{font-family:var(--font-display); font-size:17px; font-weight:700; fill:var(--ink)}
+
+/* component host: controls and readouts */
+.knobs{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px 24px; padding:14px 16px 4px}
+@media (min-width:620px){ .knobs{padding:16px 20px 4px} }
+.knob label, .knob .lab{display:flex; justify-content:space-between; gap:8px; font-size:.9rem; font-weight:500}
+.knob output{font-family:var(--font-mono); font-size:.85rem; color:var(--accent)}
+input[type=range]{width:100%; accent-color:var(--accent); margin:6px 0 0; height:28px}
+.seg{display:flex; gap:0; margin-top:6px}
+.seg button{flex:1; border-radius:0; padding:8px 8px; font-size:.84rem}
+.seg button:first-child{border-radius:8px 0 0 8px}
+.seg button:last-child{border-radius:0 8px 8px 0; border-left:0}
+.seg button[aria-pressed="true"]{background:var(--accent); color:var(--surface); border-color:var(--accent)}
+.legend{padding:10px 16px 0; font-size:.85rem; color:var(--muted)}
+@media (min-width:620px){ .legend{padding:10px 20px 0} }
+.readouts{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; padding:4px 16px 0}
+@media (min-width:620px){ .readouts{padding:4px 20px 0} }
+.tile{border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:color-mix(in srgb, var(--paper) 55%, var(--surface))}
+.tile .t{font-size:.78rem; color:var(--muted); display:block}
+.tile .v{font-family:var(--font-display); font-weight:700; font-size:1.35rem; line-height:1.2; display:block}
+.tile .s{font-family:var(--font-mono); font-size:.72rem; color:var(--muted); display:block}
+.tile.fail .v{color:var(--bad)} .tile.ok .v{color:var(--good)}
+@media (max-width:520px){
+  .readouts{grid-template-columns:minmax(0,1fr); gap:6px}
+  .tile{display:grid; grid-template-columns:1fr auto; align-items:baseline; column-gap:10px; padding:8px 12px}
+  .tile .v{font-size:1.15rem; text-align:right}
+  .tile .s{grid-column:1 / -1}
+}
+.gridwrap{padding:12px 16px 0}
+@media (min-width:620px){ .gridwrap{padding:12px 20px 0} }
+.gridwrap .t{font-family:var(--font-mono); font-size:.75rem; color:var(--muted); display:block; margin-bottom:6px}
+.rungrid{display:grid; grid-template-columns:repeat(25,minmax(0,1fr)); gap:2px}
+@media (min-width:620px){ .rungrid{grid-template-columns:repeat(50,minmax(0,1fr))} }
+.rungrid i{display:block; aspect-ratio:1; border-radius:2px; background:var(--line)}
+.rungrid i.p{background:color-mix(in srgb, var(--good) 38%, var(--surface))}
+.rungrid i.f{background:var(--bad)}
+
+footer{color:var(--muted); font-size:.85rem; border-top:1px solid var(--line); padding-top:16px}
+</style>
+</head>
+<body>
+<main>
+
+<header class="col stack">
+  <span class="kicker">why a flaky test lies</span>
+  <h1>Why did the same test pass, then fail, with no code change?</h1>
+  <p class="lede">You have seen it. Green yesterday, red this morning, green again on rerun. No commit landed in between. A test is supposed to report on your code, so something else must be deciding the result.</p>
+</header>
+
+<section class="col stack">
+  <h2>One test, one hidden guess</h2>
+  <p>This test saves an order on a worker thread, waits 50 ms, then checks the result.</p>
+<pre class="code"><span class="k">def</span> test_save_marks_order():
+    order = Order()
+    pool.submit(save, order)  <span class="c"># worker</span>
+    <span class="guess">time.sleep(0.050)</span>         <span class="c"># "enough"</span>
+    <span class="k">assert</span> order.saved</pre>
+  <p>The save usually takes about 40 ms. Someone measured it once, added a margin and moved on. The test now carries a guess: <mark>the worker will finish before the sleep does.</mark> Nothing in the code enforces that order. Step through two runs of the same commit.</p>
+</section>
+
+<section class="wide">
+  <div class="scene" id="scene1" tabindex="-1">
+    <div class="label">scene 1 · two runs, same code</div>
+    <svg id="svg1" role="img" aria-label="Timeline with a test thread and a worker thread. The test asserts at 50 milliseconds. In run 1 the worker finishes at 40 milliseconds and the test passes. In run 2 the worker is paused, finishes at 62 milliseconds, and the test fails."></svg>
+    <p class="caption" id="cap1" aria-live="polite"></p>
+    <div class="controls">
+      <button id="prev1" type="button">Back</button>
+      <button id="next1" type="button" class="primary">Next step</button>
+      <button id="play1" type="button">Play</button>
+      <div class="dots" id="dots1" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+<section class="col stack">
+  <p>Both runs executed identical code. The only difference was when the operating system let each thread run. That ordering is the <b>interleaving</b>, and here it decides the verdict. This is a race condition: two threads touch <code>order.saved</code>, and nothing forces the write to come before the read. In run 2 the product code was correct. The test asked too early.</p>
+
+  <h2>Why it fails only sometimes</h2>
+  <p>The pause in run 2 came from the machine: another process, a garbage collection, a noisy neighbour on a shared CI runner. Every run draws a different delay. The simulation below replays the test 200 times. Each dot is one run, placed at the moment its worker finished. Step through it, then drag the sliders yourself.</p>
+</section>
+
+<section class="wide">
+  <div class="scene" id="scene2" tabindex="-1">
+    <div class="label">scene 2 · 200 replays with random jitter</div>
+    <div class="knobs">
+      <div class="knob">
+        <label for="k-jitter"><span>Scheduling jitter</span><output id="o-jitter"></output></label>
+        <input id="k-jitter" type="range" min="0" max="20" step="0.5" value="3">
+      </div>
+      <div class="knob">
+        <label for="k-sleep"><span>Sleep before the assert</span><output id="o-sleep"></output></label>
+        <input id="k-sleep" type="range" min="45" max="100" step="5" value="50">
+      </div>
+      <div class="knob">
+        <div class="lab"><span>How the test waits</span></div>
+        <div class="seg" role="group" aria-label="How the test waits">
+          <button type="button" id="k-wait-sleep" aria-pressed="true">Fixed sleep</button>
+          <button type="button" id="k-wait-join" aria-pressed="false">Wait for worker</button>
+        </div>
+      </div>
+    </div>
+    <p class="legend" id="legend"></p>
+    <div id="replay"></div>
+    <div class="readouts">
+      <div class="tile" id="t-fail"><span class="t">Failed runs</span><span class="v" id="v-fail"></span><span class="s" id="s-fail"></span></div>
+      <div class="tile"><span class="t">Red after 2 retries</span><span class="v" id="v-retry"></span><span class="s">all 3 attempts fail</span></div>
+      <div class="tile"><span class="t">Time per test</span><span class="v" id="v-time"></span><span class="s" id="s-time"></span></div>
+    </div>
+    <div class="gridwrap"><span class="t">the same 200 runs, in the order CI saw them</span><div class="rungrid" id="rungrid" aria-hidden="true"></div></div>
+    <p class="caption" id="cap2" aria-live="polite"></p>
+    <div class="controls">
+      <button id="prev2" type="button">Back</button>
+      <button id="next2" type="button" class="primary">Next step</button>
+      <button id="play2" type="button">Play</button>
+      <button id="again2" type="button">Run 200 more</button>
+      <div class="dots" id="dots2" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+<section class="col stack">
+  <p>Three things show up. The failure rate depends on the machine, which is why the test is green on a laptop and red on a loaded runner. A longer sleep thins the tail and never removes it, while every run pays for the extra wait. Waiting for the worker removes the race, and the test gets faster.</p>
+
+  <p class="payoff" id="payoff"><span class="k">the answer</span>The code never changed. The timing did, and the test was measuring the timing.</p>
+
+  <h2>Other common causes</h2>
+  <p>A race is one cause. The others share its shape: the outcome depends on something the test does not control.</p>
+  <ul class="plain">
+    <li><b>Shared state.</b> One test leaves a row, a file or a global behind, and another test reads it.</li>
+    <li><b>Order dependence.</b> A test passes only when a particular test ran before it. Shuffle or parallelise the suite and it breaks.</li>
+    <li><b>Time and timezones.</b> Code that reads the real clock fails near midnight, at month end, across a daylight-saving change, or on a runner set to UTC.</li>
+    <li><b>Network.</b> A call to a real service inherits that service's latency, rate limits and outages.</li>
+  </ul>
+
+  <h2>Why retries hide the bug</h2>
+  <p>Say the test fails 5% of the time and CI retries it twice. The pipeline goes red only when all three attempts fail: 0.05 × 0.05 × 0.05, about 1 run in 8,000. The dashboard turns green. The race is still there.</p>
+  <p>Two costs follow. If the race lives in product code, users meet it too, and production has no rerun button. And the team learns that red means "run it again", so the next real regression gets rerun as well. The green lies in the same way: a passing run proves that one interleaving worked.</p>
+
+  <h2>What to do</h2>
+  <ul class="plain">
+    <li><b>Make timing deterministic.</b> Wait on the event itself: join the thread, await the future, or poll for the condition with a generous timeout. Replace real sleeps and real clocks with a fake clock the test controls.</li>
+    <li><b>Quarantine with an owner.</b> Move the flaky test out of the blocking gate so it stops costing everyone time. Give it a named owner and a deadline. A quarantine nobody owns is a slow deletion.</li>
+    <li><b>Track flake rate per test.</b> Count every pass-after-retry as a flake. The per-test rate tells you what to fix first and whether a fix worked. For a test that flaked 2% of the time, it takes about 150 green runs in a row to be 95% sure the flake is gone.</li>
+  </ul>
+</section>
+
+<footer class="col">The simulation models extra delay as an exponential distribution whose mean is the jitter setting. Real schedulers are messier; the shape of the lesson is the same.</footer>
+</main>
+
+<script>
+(function(){
+"use strict";
+var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+function widthOf(el){ return Math.max(300, Math.min(780, Math.round(el.clientWidth || 360))); }
+function ease(k){ return 1 - Math.pow(1-k,3); }
+
+/* ---------- shared stepper: what the engine runtime would provide ---------- */
+function stepper(o){
+  var idx = 0, timer = null, n = o.n;
+  for (var i=0;i<n;i++) o.dots.appendChild(document.createElement("i"));
+  function paint(){
+    [].forEach.call(o.dots.children, function(d,i){ d.classList.toggle("on", i===idx && !o.free()); });
+    o.prev.disabled = idx === 0 && !o.free();
+    o.next.textContent = (idx === n-1 && !o.free()) ? "Restart" : "Next step";
+  }
+  function show(i, animate){ var from = idx; idx = i; o.render(idx, from, animate); paint(); }
+  function go(d){
+    if (o.free()){ show(d > 0 ? Math.min(n-1, idx+1) : idx, true); return; }
+    if (d > 0 && idx === n-1) show(0, false); else show(Math.max(0, Math.min(n-1, idx+d)), true);
+  }
+  function stop(){ if (timer){ clearInterval(timer); timer = null; o.play.textContent = "Play"; } }
+  o.prev.addEventListener("click", function(){ stop(); go(-1); });
+  o.next.addEventListener("click", function(){ stop(); go(1); });
+  o.play.addEventListener("click", function(){
+    if (timer){ stop(); return; }
+    if (idx === n-1 || o.free()) show(0, false);
+    o.play.textContent = "Pause";
+    timer = setInterval(function(){ if (idx === n-1){ stop(); return; } go(1); }, o.interval || 2600);
+  });
+  o.root.addEventListener("keydown", function(e){
+    if (e.target && e.target.tagName === "INPUT") return;   // arrows on a slider belong to the slider
+    if (e.key === "ArrowRight"){ stop(); go(1); e.preventDefault(); }
+    if (e.key === "ArrowLeft"){ stop(); go(-1); e.preventDefault(); }
+  });
+  return { show:show, stop:stop, paint:paint, idx:function(){ return idx; } };
+}
+
+/* =====================================================================
+   SCENE 1 (states layer): two runs on a timeline.
+   Every step is a state: which run, and where the "now" cursor is.
+   ===================================================================== */
+(function(){
+  var ASSERT = 50, TMAX = 80;
+  var RUNS = {
+    1:{ title:"Run 1", segs:[[0,40]], pause:null, end:40 },
+    2:{ title:"Run 2 · same code", segs:[[0,15],[37,62]], pause:[15,37], end:62 }
+  };
+  var steps = [
+    {run:1, now:0,  say:"The test hands the save to a worker thread, then sleeps 50 ms. saved is false."},
+    {run:1, now:20, say:"Two threads now run side by side. One sleeps. One saves."},
+    {run:1, now:40, flash:"cell", say:"40 ms: the worker finishes and writes saved = true."},
+    {run:1, now:50, flash:"read", say:"50 ms: the test wakes and reads saved. It sees true. Pass."},
+    {run:2, now:0,  say:"Run 2. Same commit. Same test. Same machine."},
+    {run:2, now:37, say:"This time the scheduler pauses the worker for 22 ms. Something else needed the CPU."},
+    {run:2, now:50, flash:"read", say:"50 ms: the test wakes and reads saved. The worker is still busy. It sees false. Fail."},
+    {run:2, now:62, flash:"cell", say:"12 ms later the worker writes true. The save worked. The test had already said it failed."}
+  ];
+  var svg = $("svg1"), cap = $("cap1");
+  var cur = {run:1, now:0, flash:null}, raf = 0;
+
+  function draw(){
+    var W = widthOf(svg.parentNode), H = 268, L = 16, R = 16;
+    var run = RUNS[cur.run], now = cur.now;
+    var x = function(t){ return L + t/TMAX*(W-L-R); };
+    var saved = now >= run.end, readDone = now >= ASSERT, readVal = ASSERT >= run.end;
+    var h = [];
+    svg.setAttribute("viewBox","0 0 "+W+" "+H);
+    h.push('<defs><filter id="wob1" filterUnits="userSpaceOnUse" x="0" y="0" width="'+W+'" height="'+H+'"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter>'
+      + '<pattern id="hatch1" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="7" stroke="var(--muted)" stroke-width="2"/></pattern></defs>');
+    // header
+    h.push('<text class="run" x="'+L+'" y="26">'+esc(run.title)+'</text>');
+    if (readDone){
+      var col = readVal ? "var(--good)" : "var(--bad)";
+      h.push('<g transform="rotate(-4 '+(W-R-34)+' 20)"><rect x="'+(W-R-68)+'" y="7" width="68" height="26" rx="5" fill="none" stroke="'+col+'" stroke-width="2.5"/><text x="'+(W-R-34)+'" y="25" text-anchor="middle" style="font-size:14px;font-weight:600;fill:'+col+'">'+(readVal?"PASS":"FAIL")+'</text></g>');
+    }
+    h.push('<g filter="url(#wob1)">');
+    // axis
+    h.push('<line x1="'+L+'" y1="182" x2="'+(W-R)+'" y2="182" stroke="var(--line)" stroke-width="2.5"/>');
+    [0,20,40,60,80].forEach(function(t){ h.push('<line x1="'+x(t)+'" y1="178" x2="'+x(t)+'" y2="186" stroke="var(--muted)" stroke-width="1.5"/>'); });
+    // assert deadline
+    h.push('<line x1="'+x(ASSERT)+'" y1="100" x2="'+x(ASSERT)+'" y2="182" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="4 4" opacity=".7"/>');
+    // test lane: planned sleep (ghost), elapsed sleep, assert diamond
+    h.push('<rect x="'+x(0)+'" y="72" width="'+(x(ASSERT)-x(0))+'" height="28" rx="5" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="5 4" opacity=".6"/>');
+    var tw = x(Math.min(now,ASSERT)) - x(0);
+    if (tw > 0) h.push('<rect x="'+x(0)+'" y="72" width="'+tw+'" height="28" rx="5" fill="color-mix(in srgb, var(--accent) 22%, var(--surface))" stroke="var(--accent)" stroke-width="2"/>');
+    var dx = x(ASSERT), dcol = readDone ? (readVal ? "var(--good)" : "var(--bad)") : "var(--surface)";
+    h.push('<path d="M'+dx+' 76 L'+(dx+10)+' 86 L'+dx+' 96 L'+(dx-10)+' 86 Z" fill="'+dcol+'" stroke="'+(readDone?dcol:"var(--ink)")+'" stroke-width="2"/>');
+    // worker lane
+    run.segs.forEach(function(s){
+      var a = s[0], b = Math.min(now, s[1]);
+      if (b > a || (a === 0 && now === 0)) h.push('<rect x="'+x(a)+'" y="132" width="'+Math.max(3, x(b)-x(a))+'" height="28" rx="5" fill="color-mix(in srgb, var(--hl) 60%, var(--surface))" stroke="var(--ink)" stroke-width="2"/>');
+    });
+    if (run.pause && now > run.pause[0]){
+      var pb = Math.min(now, run.pause[1]);
+      h.push('<rect x="'+x(run.pause[0])+'" y="136" width="'+(x(pb)-x(run.pause[0]))+'" height="20" fill="url(#hatch1)" opacity=".45"/>');
+    }
+    if (saved) h.push('<circle cx="'+x(run.end)+'" cy="146" r="6" fill="var(--good)" stroke="var(--surface)" stroke-width="2"/>');
+    // now cursor
+    h.push('<line x1="'+x(now)+'" y1="54" x2="'+x(now)+'" y2="182" stroke="var(--accent)" stroke-width="2.5"/>');
+    h.push('<path d="M'+(x(now)-7)+' 50 L'+(x(now)+7)+' 50 L'+x(now)+' 60 Z" fill="var(--accent)"/>');
+    h.push('</g>');
+    // labels (kept outside the wobble filter so they stay crisp)
+    h.push('<text x="'+(L+10)+'" y="66">test thread</text>');
+    h.push('<text x="'+(L+10)+'" y="126">worker thread</text>');
+    h.push('<text class="strong" x="'+(x(0)+9)+'" y="90">sleep(50 ms)</text>');
+    h.push('<text class="strong" x="'+(dx+16)+'" y="90">assert</text>');
+    run.segs.forEach(function(s){
+      var b = Math.min(now, s[1]), w = x(b) - x(s[0]);
+      var lab = w >= 96 ? "save(order)" : (w >= 46 ? "save" : "");
+      if (lab) h.push('<text class="strong" x="'+(x(s[0])+9)+'" y="150">'+lab+'</text>');
+    });
+    if (run.pause && now >= run.pause[1]) h.push('<text class="strong" x="'+((x(run.pause[0])+x(run.pause[1]))/2)+'" y="150" text-anchor="middle" style="paint-order:stroke;stroke:var(--surface);stroke-width:4px">paused</text>');
+    [0,20,40,60,80].forEach(function(t){
+      h.push('<text x="'+x(t)+'" y="201" text-anchor="'+(t===0?"start":t===80?"end":"middle")+'">'+t+(t===80?" ms":"")+'</text>');
+    });
+    var cx = Math.max(L+38, Math.min(W-R-38, x(now)));
+    h.push('<text x="'+cx+'" y="44" text-anchor="middle" style="fill:var(--accent);font-weight:600">now: '+Math.round(now)+' ms</text>');
+    // shared variable + what the test read
+    var bw = (W-L-R-12)/2, by = 214;
+    function box(bx, label, val, color, halo){
+      if (halo) h.push('<rect x="'+(bx-4)+'" y="'+(by-4)+'" width="'+(bw+8)+'" height="54" rx="11" fill="none" stroke="var(--hl)" stroke-width="4"/>');
+      h.push('<rect x="'+bx+'" y="'+by+'" width="'+bw+'" height="46" rx="8" fill="var(--surface)" stroke="'+color+'" stroke-width="2"/>');
+      h.push('<text x="'+(bx+10)+'" y="'+(by+17)+'" style="font-size:11px">'+label+'</text>');
+      h.push('<text class="big" x="'+(bx+10)+'" y="'+(by+37)+'" style="fill:'+color+'">'+val+'</text>');
+    }
+    box(L, "order.saved", saved ? "true" : "false", saved ? "var(--good)" : "var(--muted)", cur.flash === "cell");
+    box(L+bw+12, "test read at 50 ms", readDone ? (readVal ? "true" : "false") : "not yet", readDone ? (readVal ? "var(--good)" : "var(--bad)") : "var(--muted)", cur.flash === "read");
+    svg.innerHTML = h.join("");
+  }
+
+  function render(i, from, animate){
+    var st = steps[i];
+    cap.innerHTML = '<span class="stepno">step '+(i+1)+' of '+steps.length+'</span>'+esc(st.say);
+    cancelAnimationFrame(raf);
+    var sameRun = st.run === cur.run;
+    if (!animate || reduce || !sameRun){ cur = {run:st.run, now:st.now, flash:st.flash||null}; draw(); return; }
+    var a = cur.now, b = st.now, t0 = null, dur = 750;
+    cur.flash = null;
+    (function frame(ts){
+      if (t0 === null) t0 = ts;
+      var k = Math.min(1,(ts-t0)/dur);
+      cur.now = a + (b-a)*ease(k);
+      if (k >= 1){ cur.now = b; cur.flash = st.flash||null; }
+      draw();
+      if (k < 1) raf = requestAnimationFrame(frame);
+    })(performance.now());
+  }
+  var S = stepper({ root:$("scene1"), n:steps.length, prev:$("prev1"), next:$("next1"), play:$("play1"), dots:$("dots1"), render:render, free:function(){ return false; } });
+  S.show(0, false);
+  window.addEventListener("resize", draw);
+})();
+
+/* =====================================================================
+   SCENE 2 (components layer).
+   JitterReplay is the escape hatch: a pure function of typed params.
+   Everything after it (sliders, readouts, run grid, captions, steps)
+   is what the engine would generate from the YAML wiring.
+   ===================================================================== */
+var JitterReplay = {
+  params: {
+    work_ms:   { type:"number", unit:"ms", min:1 },
+    sleep_ms:  { type:"number", unit:"ms", min:1 },
+    jitter_ms: { type:"number", unit:"ms", min:0 },
+    wait:      { type:"enum", values:["sleep","join"] },
+    runs:      { type:"int", min:1, max:500 },
+    seed:      { type:"int" },
+    progress:  { type:"number", min:0, max:1 }   // how many of the runs have been replayed so far
+  },
+  outputs: ["runs","shown","failed","rate","expected_rate","red_after_retries","avg_test_ms","results"],
+  mount: function(el){
+    var svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    svg.setAttribute("role","img");
+    el.appendChild(svg);
+    var cache = {seed:null, n:0, u:[], v:[]};
+    function draws(seed, n){
+      if (cache.seed === seed && cache.n === n) return cache;
+      var a = seed >>> 0;
+      function rnd(){ a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }
+      cache = {seed:seed, n:n, u:[], v:[]};
+      for (var i=0;i<n;i++){ cache.u.push(rnd()); cache.v.push(rnd()); }
+      return cache;
+    }
+    return { update: function(p){
+      var d = draws(p.seed, p.runs), join = p.wait === "join";
+      var W = widthOf(el), H = 176, L = 14, R = 14, T0 = 30, T1 = 110;
+      var x = function(t){ return L + (Math.max(T0, Math.min(T1, t)) - T0)/(T1-T0)*(W-L-R); };
+      var shown = Math.round(p.runs * p.progress), failed = 0, sumT = 0, results = [], h = [];
+      var rad = W < 480 ? 3.2 : 4;
+      svg.setAttribute("viewBox","0 0 "+W+" "+H);
+      if (!join){
+        h.push('<rect x="'+x(p.sleep_ms)+'" y="26" width="'+(W-R-x(p.sleep_ms))+'" height="118" fill="var(--bad)" opacity=".08"/>');
+      }
+      h.push('<line x1="'+L+'" y1="144" x2="'+(W-R)+'" y2="144" stroke="var(--line)" stroke-width="2.5"/>');
+      [40,60,80,100].forEach(function(t){
+        h.push('<line x1="'+x(t)+'" y1="140" x2="'+x(t)+'" y2="148" stroke="var(--muted)" stroke-width="1.5"/>');
+        h.push('<text x="'+x(t)+'" y="162" text-anchor="middle">'+t+(t===100?" ms":"")+'</text>');
+      });
+      for (var i=0;i<shown;i++){
+        var fin = p.work_ms + (-Math.log(1 - d.u[i]) * p.jitter_ms);   // one-sided delay, exponential, mean = jitter
+        var fail = !join && fin > p.sleep_ms;
+        if (fail) failed++;
+        sumT += join ? fin : p.sleep_ms;
+        results.push(fail ? 0 : 1);
+        h.push('<circle cx="'+x(fin).toFixed(1)+'" cy="'+(34 + d.v[i]*102).toFixed(1)+'" r="'+rad+'" fill="'+(fail?"var(--bad)":"var(--good)")+'" opacity="'+(fail?".9":".6")+'"/>');
+      }
+      if (!join){
+        var sx = x(p.sleep_ms);
+        h.push('<line x1="'+sx+'" y1="22" x2="'+sx+'" y2="144" stroke="var(--ink)" stroke-width="2" stroke-dasharray="5 4"/>');
+        h.push('<text x="'+(sx-7)+'" y="16" text-anchor="end" style="fill:var(--good);font-weight:600">pass</text>');
+        if (W - R - sx > 34) h.push('<text x="'+(sx+7)+'" y="16" style="fill:var(--bad);font-weight:600">fail</text>');
+      } else {
+        h.push('<text x="'+(W/2)+'" y="16" text-anchor="middle" style="fill:var(--good);font-weight:600">assert runs after each worker is done</text>');
+      }
+      svg.innerHTML = h.join("");
+      var rate = shown ? failed/shown : 0;
+      var out = {
+        runs:p.runs, shown:shown, failed:failed, rate:rate,
+        expected_rate: join ? 0 : (p.jitter_ms > 0 ? Math.exp(-(p.sleep_ms-p.work_ms)/p.jitter_ms) : (p.work_ms > p.sleep_ms ? 1 : 0)),
+        red_after_retries: Math.pow(rate, 3),
+        avg_test_ms: shown ? sumT/shown : 0,
+        results: results
+      };
+      svg.setAttribute("aria-label", "Dot plot of "+shown+" simulated runs by worker finish time. "+failed+" failed.");
+      return out;
+    }};
+  }
+};
+
+/* ---------- host wiring: what `component:` in scene.yaml would generate ---------- */
+(function(){
+  var P = { work_ms:40, sleep_ms:50, jitter_ms:3, wait:"sleep", runs:200, seed:11, progress:1 };
+  var steps = [
+    {set:{jitter_ms:3,  sleep_ms:50, wait:"sleep"}, say:"An ordinary machine with about 3 ms of jitter. {failed} of {runs} runs fail. This is the test people rerun and forget."},
+    {set:{jitter_ms:0.5,sleep_ms:50, wait:"sleep"}, say:"A quiet laptop, 0.5 ms of jitter. {failed} of {runs} fail. The race is still in the code. Nothing here is slow enough to expose it."},
+    {set:{jitter_ms:10, sleep_ms:50, wait:"sleep"}, say:"A loaded CI runner, 10 ms of jitter. {failed} of {runs} fail. Every run used the same code."},
+    {set:{jitter_ms:10, sleep_ms:80, wait:"sleep"}, say:"The usual patch is a longer sleep. Still {failed} of {runs} fail, and now every run costs 80 ms."},
+    {set:{jitter_ms:10, sleep_ms:80, wait:"join"},  say:"Wait for the worker itself and the order is fixed. {failed} failures at any jitter, and the test ends as soon as the work does."}
+  ];
+  var FREE_SAY = "Your settings: {failed} of {runs} runs fail.";
+  var inst = JitterReplay.mount($("replay"));
+  var kJ = $("k-jitter"), kS = $("k-sleep"), bSleep = $("k-wait-sleep"), bJoin = $("k-wait-join");
+  var grid = $("rungrid"), cells = [], cap = $("cap2");
+  for (var i=0;i<P.runs;i++){ var c = document.createElement("i"); grid.appendChild(c); cells.push(c); }
+  var free = false, sayTpl = steps[0].say, stepLabel = "", raf = 0, raf2 = 0;
+
+  function oneIn(p){
+    if (p <= 0) return "never";
+    var n = 1/p; if (n < 1.5) return "always";
+    var mag = Math.pow(10, Math.max(0, Math.floor(Math.log10(n)) - 1));
+    return "1 in " + (Math.round(n/mag)*mag).toLocaleString("en-US");
+  }
+  function paint(){
+    var o = inst.update(P), join = P.wait === "join";
+    // controls reflect params
+    kJ.value = P.jitter_ms; kS.value = P.sleep_ms; kS.disabled = join;
+    $("o-jitter").textContent = (Math.round(P.jitter_ms*10)/10) + " ms";
+    $("o-sleep").textContent = join ? "not used" : Math.round(P.sleep_ms) + " ms";
+    bSleep.setAttribute("aria-pressed", String(!join)); bJoin.setAttribute("aria-pressed", String(join));
+    // readouts bound to outputs
+    $("legend").textContent = join ? "Each dot is one run, placed where its worker finished. There is no deadline to miss."
+                                   : "Each dot is one run, placed where its worker finished. Dashed line: the assert at " + Math.round(P.sleep_ms) + " ms.";
+    $("v-fail").textContent = o.failed + " / " + o.shown;
+    $("s-fail").textContent = (o.rate*100).toFixed(o.rate > 0 && o.rate < 0.1 ? 1 : 0) + "% flake rate";
+    $("t-fail").className = "tile " + (o.failed ? "fail" : "ok");
+    $("v-retry").textContent = oneIn(o.red_after_retries);
+    $("v-time").textContent = Math.round(o.avg_test_ms) + " ms";
+    $("s-time").textContent = join ? "average, no fixed wait" : "the full sleep, every run";
+    for (var i=0;i<cells.length;i++) cells[i].className = i < o.results.length ? (o.results[i] ? "p" : "f") : "";
+    // caption: template filled from outputs, because the numbers are not known when the caption is written
+    var txt = sayTpl.replace(/\{(\w+)\}/g, function(m,k){ return o[k] === 0 && k === "failed" && /^\{failed\} failures/.test(sayTpl) ? "Zero" : o[k]; });
+    var html = '<span class="stepno">'+stepLabel+'</span>'+esc(txt);
+    if (cap.innerHTML !== html) cap.innerHTML = html;
+  }
+  function tweenTo(target, animate){
+    cancelAnimationFrame(raf);
+    P.wait = target.wait;
+    var a = {j:P.jitter_ms, s:P.sleep_ms}, t0 = null, dur = 800;
+    if (!animate || reduce){ P.jitter_ms = target.jitter_ms; P.sleep_ms = target.sleep_ms; paint(); return; }
+    (function frame(ts){
+      if (t0 === null) t0 = ts;
+      var k = Math.min(1,(ts-t0)/dur), e = ease(k);
+      P.jitter_ms = a.j + (target.jitter_ms-a.j)*e; P.sleep_ms = a.s + (target.sleep_ms-a.s)*e;
+      if (k >= 1){ P.jitter_ms = target.jitter_ms; P.sleep_ms = target.sleep_ms; }
+      paint();
+      if (k < 1) raf = requestAnimationFrame(frame);
+    })(performance.now());
+  }
+  function render(i, from, animate){
+    free = false; sayTpl = steps[i].say; stepLabel = "step "+(i+1)+" of "+steps.length;
+    tweenTo(steps[i].set, animate);
+  }
+  var S = stepper({ root:$("scene2"), n:steps.length, prev:$("prev2"), next:$("next2"), play:$("play2"), dots:$("dots2"), render:render, free:function(){ return free; }, interval:3600 });
+  function goFree(){ S.stop(); cancelAnimationFrame(raf); free = true; sayTpl = FREE_SAY; stepLabel = "free play"; S.paint(); }
+  kJ.addEventListener("input", function(){ goFree(); P.jitter_ms = +kJ.value; paint(); });
+  kS.addEventListener("input", function(){ goFree(); P.sleep_ms = +kS.value; paint(); });
+  bSleep.addEventListener("click", function(){ goFree(); P.wait = "sleep"; paint(); });
+  bJoin.addEventListener("click", function(){ goFree(); P.wait = "join"; paint(); });
+  $("again2").addEventListener("click", function(){
+    S.stop(); cancelAnimationFrame(raf2);
+    P.seed += 1;
+    if (reduce){ P.progress = 1; paint(); return; }
+    var t0 = null, dur = 2600;
+    (function frame(ts){
+      if (t0 === null) t0 = ts;
+      P.progress = Math.min(1,(ts-t0)/dur);
+      paint();
+      if (P.progress < 1) raf2 = requestAnimationFrame(frame);
+    })(performance.now());
+  });
+  S.show(0, false);
+  window.addEventListener("resize", paint);
+})();
+})();
+</script>
+</body>
+</html>

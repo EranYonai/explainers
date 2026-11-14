@@ -1,0 +1,9 @@
+{
+  "name": "explainers",
+  "description": "Turn a topic, a PR or an incident into an interactive, silent, mobile-first HTML explainer: step-through scenes, captions that carry the teaching, and something the reader controls.",
+  "author": { "name": "Eran Yonai" },
+  "homepage": "https://github.com/EranYonai/explainers#readme",
+  "repository": "https://github.com/EranYonai/explainers",
+  "license": "Apache-2.0",
+  "keywords": ["explainer", "teaching", "html", "animation", "documentation"]
+}

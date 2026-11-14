@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How an explainer gets made, with git bisect as the worked example</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Same draftsman's notebook as the plan page: cool paper, indigo ink, one highlighter yellow for "the step you're on".
+   Signature device: the seven authoring steps are drawn as commits on a line, the same shape the lesson is about. */
+:root{
+  --paper:#f3f4f8; --surface:#ffffff; --ink:#171a3b; --muted:#596080; --line:#d8dbe8;
+  --accent:#3341d6; --hl:#ffd84a; --good:#1c946a; --bad:#cf3f37;
+  --font-display:"Bricolage Grotesque","Avenir Next",system-ui,sans-serif;
+  --font-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --step-0:clamp(1rem,.96rem + .15vw,1.06rem);
+  --step-2:clamp(1.45rem,1.3rem + .6vw,1.75rem);
+  --step-3:clamp(2.1rem,1.6rem + 2.4vw,3.2rem);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0e1024; --surface:#171a34; --ink:#e7e8f6; --muted:#9ca1c4; --line:#2b2f55;
+    --accent:#8e98ff; --hl:#ffd84a; --good:#3fcf93; --bad:#ff6d63; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0e1024; --surface:#171a34; --ink:#e7e8f6; --muted:#9ca1c4; --line:#2b2f55;
+  --accent:#8e98ff; --hl:#ffd84a; --good:#3fcf93; --bad:#ff6d63; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--font-body); font-size:var(--step-0); line-height:1.6}
+main{padding:clamp(24px,4vw,64px) 16px 80px; display:grid; grid-template-columns:minmax(0,1fr); gap:64px}
+main > *{min-width:0}
+.col{max-width:66ch; margin:0 auto; width:100%}
+.wide{max-width:1040px; margin:0 auto; width:100%}
+h1,h2,h3{font-family:var(--font-display); text-wrap:balance; line-height:1.12; margin:0}
+h1{font-size:var(--step-3); font-weight:700; letter-spacing:-.015em}
+h2{font-size:var(--step-2); font-weight:700}
+p{margin:0}
+.stack{display:grid; gap:14px}
+.prose{display:grid; gap:12px; margin-bottom:20px}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,input:focus-visible,.scene:focus-visible{outline:3px solid var(--accent); outline-offset:2px; border-radius:6px}
+code{font-family:var(--font-mono); font-size:.88em; background:color-mix(in srgb,var(--line) 45%,transparent); padding:.05em .3em; border-radius:4px}
+.lede{font-size:1.14rem}
+.pill{display:inline-block; padding:2px 10px; border:1px solid var(--accent); border-radius:99px; background:var(--surface); font-size:.82rem; color:var(--accent); justify-self:start}
+.honest{border-left:4px solid var(--hl); padding:2px 0 2px 14px; color:var(--muted); font-size:.95rem}
+.who{display:inline-block; font-family:var(--font-mono); font-size:.72rem; font-weight:400; letter-spacing:0; padding:2px 8px; border-radius:4px; margin-left:8px; vertical-align:.3em; white-space:nowrap}
+.who.ai{background:color-mix(in srgb,var(--accent) 14%,transparent); color:var(--accent)}
+.who.you{background:color-mix(in srgb,var(--hl) 50%,transparent); color:var(--ink)}
+.note{color:var(--muted); font-size:.88rem; margin-top:12px}
+
+/* hero: the process drawn as a commit line */
+.flowline{list-style:none; margin:8px 0 0; padding:0; display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); position:relative}
+.flowline::before{content:""; position:absolute; left:7%; right:7%; top:10px; height:3px; background:var(--line)}
+.flowline li{position:relative; text-align:center}
+.flowline a{display:grid; gap:2px; justify-items:center; text-decoration:none; color:var(--ink); padding-top:0}
+.flowline a::before{content:""; width:22px; height:22px; border-radius:50%; border:2.5px solid var(--accent); background:var(--accent); margin-bottom:8px; position:relative}
+.flowline .you a::before{background:var(--hl); border-color:var(--ink)}
+.flowline b{font-family:var(--font-display); font-weight:600; font-size:.98rem}
+.flowline span{font-family:var(--font-mono); font-size:.72rem; color:var(--muted)}
+.flowline a:hover b{color:var(--accent)}
+@media (max-width:700px){
+  .flowline{grid-template-columns:minmax(0,1fr); gap:0}
+  .flowline::before{left:10px; right:auto; top:14px; bottom:14px; width:3px; height:auto}
+  .flowline li{text-align:left}
+  .flowline a{grid-template-columns:22px auto 1fr; justify-items:start; align-items:center; gap:12px; padding:5px 0}
+  .flowline a::before{margin:0}
+}
+
+/* scene frame */
+.scene{background:var(--surface); border:1px solid var(--line); border-radius:14px; overflow:hidden}
+.tabs{font-family:var(--font-mono); font-size:.75rem; color:var(--muted); padding:10px 16px 0}
+.caption{padding:12px 20px 0; min-height:4.9em; font-family:var(--font-display); font-weight:500; font-size:clamp(1.25rem,1.1rem + .7vw,1.5rem); line-height:1.25; text-wrap:balance}
+.caption .stepno{font-family:var(--font-mono); font-weight:400; color:var(--muted); font-size:.76rem; display:block; margin-bottom:4px}
+.hookq{font-size:var(--step-3); letter-spacing:-.015em}
+.stamp{font-family:var(--font-display); font-weight:700; font-size:clamp(2rem,1.4rem + 3.4vw,3.6rem); line-height:1.05; letter-spacing:-.02em; text-wrap:balance; margin:28px 0 8px}
+.stamp mark{background:color-mix(in srgb,var(--hl) 60%,transparent); color:inherit; padding:0 .12em; border-radius:3px}
+.stampsub{font-size:1.08rem; margin-bottom:24px}
+.controls{display:flex; flex-wrap:wrap; gap:8px; padding:10px 20px 18px; align-items:center}
+button{font:inherit; font-size:.92rem; padding:9px 15px; min-height:42px; border-radius:8px; border:1px solid var(--line); background:var(--paper); color:var(--ink); cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent); color:var(--surface); border-color:var(--accent)}
+button:disabled{opacity:.45; cursor:default}
+.dots{display:flex; gap:6px; margin-left:auto}
+.dots i{width:8px; height:8px; border-radius:50%; background:var(--line); display:block}
+.dots i.on{background:var(--accent)}
+@media (max-width:600px){ .caption{padding:12px 16px 0; min-height:6.6em} .controls{padding:10px 16px 16px} }
+
+/* scene 1: interview */
+.iv{display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
+.chat{padding:18px 20px; display:grid; gap:10px; align-content:start; min-height:12em}
+.bub{max-width:88%; padding:10px 14px; border-radius:14px; font-size:.98rem; line-height:1.45}
+.bub small{display:block; font-family:var(--font-mono); font-size:.7rem; color:var(--muted); margin-bottom:2px}
+.bub.q{background:color-mix(in srgb,var(--accent) 12%,var(--surface)); border-bottom-left-radius:4px; justify-self:start}
+.bub.a{background:color-mix(in srgb,var(--hl) 38%,var(--surface)); border-bottom-right-radius:4px; justify-self:end}
+.bub.pop{animation:pop .35s cubic-bezier(.3,.7,.2,1) both}
+.bub.a.pop{animation-delay:.25s}
+@keyframes pop{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none}}
+.brief{border-left:1px solid var(--line); background:color-mix(in srgb,var(--paper) 60%,var(--surface)); padding:0 0 14px}
+.brief dl{margin:8px 16px 0; display:grid; gap:8px}
+.brief div.row{border:1px dashed var(--line); border-radius:8px; padding:7px 10px; transition:background .3s,border-color .3s}
+.brief dt{font-family:var(--font-mono); font-size:.72rem; color:var(--accent)}
+.brief dd{margin:0; font-size:.92rem; color:var(--muted)}
+.brief .row.in{border-style:solid; background:var(--surface)}
+.brief .row.in dd{color:var(--ink)}
+.brief .row.new{border-color:var(--hl); box-shadow:inset 3px 0 0 var(--hl)}
+@media (max-width:760px){ .iv{grid-template-columns:minmax(0,1fr)} .brief{border-left:0; border-top:1px solid var(--line)} .chat{padding:16px; min-height:14.5em} }
+
+/* scene 2: beats and storyboard */
+.beats{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; padding:16px 20px 0}
+.beat{border:1px dashed var(--line); border-radius:10px; padding:10px; display:grid; gap:8px; align-content:start; transition:border-color .3s, background .3s}
+.beat.in{border-style:solid}
+.beat.flag{border-color:var(--hl); box-shadow:0 0 0 2px var(--hl)}
+.beat h3{font-family:var(--font-mono); font-size:.76rem; font-weight:600; color:var(--accent)}
+.beat p{font-size:.9rem; line-height:1.4; min-height:5.6em; opacity:0; transition:opacity .35s}
+.beat.in p{opacity:1}
+.beat svg{width:100%; height:auto; display:block; aspect-ratio:16/9; background:color-mix(in srgb,var(--paper) 60%,var(--surface)); border-radius:6px}
+.beat svg g{opacity:0; transition:opacity .4s}
+.beat svg g.on{opacity:1}
+.sk{fill:none; stroke:var(--ink); stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+.sk-fill{fill:var(--ink); stroke:var(--ink); stroke-width:1}
+.sk-bad{stroke:var(--bad)} .sk-good{stroke:var(--good)} .sk-acc{stroke:var(--accent)}
+.react{margin:10px 20px 0; min-height:2.9em; font-size:.92rem; visibility:hidden}
+.react.on{visibility:visible}
+.react b{font-family:var(--font-mono); font-size:.72rem; background:color-mix(in srgb,var(--hl) 50%,transparent); padding:2px 8px; border-radius:4px; margin-right:6px}
+@media (max-width:760px){ .beats{grid-template-columns:repeat(2,minmax(0,1fr)); padding:14px 12px 0; gap:8px} .beat p{min-height:7em} .react{margin:10px 16px 0; min-height:4.4em} }
+
+/* scenes 3-5: bisect */
+.split{display:grid; grid-template-columns:minmax(0,.85fr) minmax(0,1.3fr)}
+.src{border-right:1px solid var(--line); background:color-mix(in srgb,var(--paper) 60%,var(--surface)); overflow:auto}
+pre.dsl{margin:0; padding:8px 0 14px; font-family:var(--font-mono); font-size:.78rem; line-height:1.6}
+pre.dsl > span{display:block; padding:0 14px; border-left:3px solid transparent; transition:background .25s; white-space:pre}
+pre.dsl > span.on{background:color-mix(in srgb,var(--hl) 42%,transparent); border-left-color:var(--hl)}
+pre.dsl .k{color:var(--accent)}
+@media (max-width:820px){
+  .split{grid-template-columns:minmax(0,1fr)}
+  .src{border-right:0; border-bottom:1px solid var(--line); max-height:11.2em}
+  pre.dsl{font-size:.74rem}
+}
+svg.bis{width:100%; max-width:700px; margin:0 auto; height:auto; display:block}
+.bis text{font-family:var(--font-mono); font-size:13px; fill:var(--muted)}
+.bis text.strong{font-weight:600; fill:var(--ink)}
+@media (max-width:600px){ .bis text{font-size:22px} }
+.bis .commit{transition:fill .35s,stroke .35s,opacity .35s}
+.bis .glyph{fill:none; stroke:var(--surface); stroke-width:3; stroke-linecap:round; stroke-linejoin:round; opacity:0; transition:opacity .35s}
+.bis .glyph.on{opacity:1}
+.bis .probe{transition:transform .5s cubic-bezier(.3,.7,.2,1),opacity .3s}
+.bis .rng{transition:transform .45s cubic-bezier(.3,.7,.2,1)}
+.bis .cul{transition:opacity .35s}
+.bis .box{fill:none; stroke-width:1.5; stroke-dasharray:4 3}
+.term{margin:0 20px; padding:8px 12px; font-family:var(--font-mono); font-size:.8rem; background:var(--paper); border-radius:8px; min-height:2.5em; overflow-x:auto; white-space:nowrap}
+.term::before{content:"$ "; color:var(--muted)}
+.term.out::before{content:""}
+.pick{display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:14px 20px 4px; font-size:.92rem}
+.pick span{margin-right:4px}
+.pick button{font-family:var(--font-mono); padding:6px 0; width:42px; min-height:42px}
+.pick button[aria-pressed="true"]{background:var(--ink); color:var(--surface); border-color:var(--ink)}
+.report{margin:0; padding:12px 20px 0; font-family:var(--font-mono); font-size:.78rem; line-height:1.7; white-space:pre-wrap; overflow-wrap:anywhere}
+.report span{display:block; visibility:hidden}
+.report span.on{visibility:visible}
+.report .err{color:var(--bad)} .report .ok{color:var(--good)} .report .cmd{color:var(--muted)}
+.report .del{background:color-mix(in srgb,var(--bad) 14%,transparent)} .report .add{background:color-mix(in srgb,var(--good) 16%,transparent)}
+@media (max-width:600px){ .term{margin:0 16px} .pick{padding:12px 16px 4px} .report{padding:10px 16px 0; font-size:.72rem} }
+
+/* component: cost of the search */
+.cost{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; display:grid; gap:12px; margin:20px 0}
+.cost label{font-weight:500}
+.cost output{font-family:var(--font-mono); font-weight:600}
+.cost input{width:100%; accent-color:var(--accent); height:32px; margin:0}
+.bar{display:grid; grid-template-columns:7.5em minmax(0,1fr); gap:4px 12px; align-items:center; font-size:.92rem}
+.bar .track{height:14px; background:var(--paper); border-radius:3px; overflow:hidden}
+.bar .fill{height:100%; min-width:3px; border-radius:3px; transition:width .3s}
+.bar .num{grid-column:2; font-family:var(--font-mono); font-size:.86rem}
+@media (max-width:480px){ .bar{grid-template-columns:minmax(0,1fr)} .bar .num{grid-column:1} }
+
+.invite{border-top:3px solid var(--ink); padding-top:24px}
+footer{color:var(--muted); font-size:.85rem}
+
+@media (prefers-reduced-motion: reduce){
+  *{transition:none !important; animation:none !important}
+}
+</style>
+</head>
+<body>
+<!-- hand-drawn wobble for storyboard stills only: rough means "cheap to throw away" -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</defs></svg>
+
+<main>
+<header class="col stack">
+  <span class="pill">Prototype, hand-written HTML</span>
+  <h1>How does an explainer get made in one evening, with no camera and no voice?</h1>
+  <p class="lede">This page was planned in one evening by one engineer and an AI, mostly from a phone. It answers two questions. For engineers: how does git find the one commit that broke the build? For creators: what process turns that answer into a lesson? The process has seven steps.</p>
+  <ol class="flowline" aria-label="The seven authoring steps">
+    <li class="ai"><a href="#interview"><b>Interview</b><span>AI asks</span></a></li>
+    <li class="you"><a href="#beats"><b>Beats</b><span>you approve</span></a></li>
+    <li class="you"><a href="#beats"><b>Storyboard</b><span>you react</span></a></li>
+    <li class="ai"><a href="#states"><b>Generate</b><span>AI writes</span></a></li>
+    <li class="ai"><a href="#check"><b>Self-check</b><span>AI checks</span></a></li>
+    <li class="you"><a href="#check"><b>Iterate</b><span>you steer</span></a></li>
+    <li class="you"><a href="#bisect"><b>Publish</b><span>you ship</span></a></li>
+  </ol>
+  <p class="honest">The engine described here does not exist yet. An AI wrote this page as plain HTML to test the idea. The dialogue below is reconstructed to show the process, and a real session is longer and messier.</p>
+</header>
+
+<section class="wide" id="interview">
+  <div class="col prose">
+    <h2>The interview <span class="who ai">AI asks</span></h2>
+    <p>Before anything is drawn, the AI asks questions. The answers become a brief of four lines. A weak brief gives a pretty animation that teaches nothing, so this step comes first.</p>
+  </div>
+  <div class="scene" id="s1" tabindex="0" role="group" aria-label="Scene: the interview">
+    <div class="iv">
+      <div class="chat">
+        <div class="bub q"><small>AI</small><span id="ivq"></span></div>
+        <div class="bub a"><small>you</small><span id="iva"></span></div>
+      </div>
+      <div class="brief">
+        <div class="tabs">brief</div>
+        <dl id="brief">
+          <div class="row"><dt>reader</dt><dd>Uses git daily. Has never run bisect.</dd></div>
+          <div class="row"><dt>the aha</dt><dd>Each test clears half of the suspects.</dd></div>
+          <div class="row"><dt>misconception to break</dt><dd>Finding a regression means reading diffs.</dd></div>
+          <div class="row"><dt>leave out</dt><dd>Merges and bisect internals.</dd></div>
+        </dl>
+      </div>
+    </div>
+    <p class="caption" aria-live="polite"></p><div class="controls"></div>
+  </div>
+</section>
+
+<section class="wide" id="beats">
+  <div class="col prose">
+    <h2>Beats, then a storyboard <span class="who you">you approve</span></h2>
+    <p>The brief turns into four beats: hook, intuition, mechanism, payoff. You approve the outline in words. Then each beat gets one rough still. Stills are cheap to throw away, so this is the moment to object.</p>
+  </div>
+  <div class="scene" id="s2" tabindex="0" role="group" aria-label="Scene: story beats and storyboard">
+    <div class="beats" id="beatgrid"></div>
+    <p class="react" id="react"></p>
+    <p class="caption" aria-live="polite"></p><div class="controls"></div>
+  </div>
+</section>
+
+<section class="wide" id="states">
+  <div class="col prose">
+    <h2>States, not animations <span class="who ai">AI writes</span></h2>
+    <p>Now the AI writes the scene. The file lists objects and numbered steps. Each step says what is true: c4 is good, the suspects are c5 to c8. It never says how things move. The engine would own timing and easing, because an AI is reliable with facts and unreliable with motion curves. Step through and watch which lines are active.</p>
+  </div>
+  <div class="scene" id="s3" tabindex="0" role="group" aria-label="Scene: the scene file next to its rendered steps">
+    <div class="split">
+      <div class="src" id="srcpane">
+        <div class="tabs">bisect.scene.yaml</div>
+<pre class="dsl" id="dsl"><span data-s="-1"><span class="k">scene</span>: git-bisect</span><span data-s="-1"><span class="k">objects</span>:</span><span data-s="-1">  - commits: { id: log, count: 8 }</span><span data-s="-1">  - pointer: { id: probe, label: test }</span><span data-s="-1">  - range:   { id: suspects }</span><span data-s="-1"><span class="k">steps</span>:</span><span data-s="0">  - say: Green at c1, red at c8.</span><span data-s="0">    do: [good c1, bad c8, suspects c2..c8]</span><span data-s="1">  - say: Test the middle commit.</span><span data-s="1">    do: [move probe c4]</span><span data-s="2">  - say: c4 passes. The bug came later.</span><span data-s="2">    do: [good c2..c4, suspects c5..c8]</span><span data-s="3">  - say: Test the middle of the rest.</span><span data-s="3">    do: [move probe c6]</span><span data-s="4">  - say: c6 fails. It is c5 or c6.</span><span data-s="4">    do: [bad c6..c7, suspects c5..c6]</span><span data-s="5">  - say: One more test.</span><span data-s="5">    do: [move probe c5]</span><span data-s="6">  - say: c5 fails. First bad commit.</span><span data-s="6">    do: [bad c5, culprit c5, hide probe]</span></pre>
+      </div>
+      <div>
+        <div class="tabs">rendered</div>
+        <svg class="bis" role="img" aria-label="Eight commits in a row. A test pointer narrows the suspects down to c5."></svg>
+        <p class="caption" aria-live="polite"></p><div class="controls"></div>
+      </div>
+    </div>
+  </div>
+  <p class="note col">On this page the rendered side is hand-written JavaScript. The planned compiler would produce it from the file.</p>
+</section>
+
+<section class="wide" id="check">
+  <div class="col prose">
+    <h2>The AI catches itself <span class="who ai">AI checks</span></h2>
+    <p>Generated scenes contain mistakes. The plan is for the AI to render every step to an image and inspect its own frames before you see them. Here is a typical mistake: the last step forgot to hide the test pointer, so two labels collide.</p>
+  </div>
+  <div class="scene" id="s4" tabindex="0" role="group" aria-label="Scene: a broken frame is flagged and fixed">
+    <div class="tabs">frame 7 of 7</div>
+    <svg class="bis" role="img" aria-label="The final frame of the bisect scene, with the test label overlapping the first bad label until it is fixed."></svg>
+    <div class="report" id="report"><span class="cmd" data-from="0">$ ex frames bisect.scene.yaml</span><span data-from="0">7 frames written</span><span class="err" data-from="1" id="ovl">step 7: "test" overlaps "first bad"</span><span class="del" data-from="2">-   do: [bad c5, culprit c5]</span><span class="add" data-from="2">+   do: [bad c5, culprit c5, hide probe]</span><span class="ok" data-from="3">7 frames written, 0 overlaps</span></div>
+    <p class="caption" aria-live="polite"></p><div class="controls"></div>
+  </div>
+  <p class="note col">Staged for this page. The overlap figure is measured live in your browser from the two label boxes. The <code>ex</code> commands are the planned tool and do not exist yet.</p>
+  <p class="col" style="margin-top:20px">After the self-check you steer in plain words, such as "slow down step 3", or you edit the file yourself. Then you publish. Here is the result.</p>
+</section>
+
+<section class="wide" id="bisect">
+  <div class="col prose">
+    <h2 class="hookq">One commit in 1,000 broke the build. How does git find it in ten tests?</h2>
+    <p>Start small. Your nightly build was green at c1 and is red at c8. One of the seven commits after c1 introduced the bug.</p>
+    <p><code>git bisect</code> tests the commit in the middle of the suspects. If the middle passes, the bug came later and everything up to that commit is cleared. If it fails, the bug is there or earlier. Either way, one test removes about half of the suspects.</p>
+    <p>Choose where the bug hides, then step through. These steps are generated by running the search, so they cannot disagree with the algorithm.</p>
+  </div>
+  <div class="scene" id="s5" tabindex="0" role="group" aria-label="Scene: git bisect, with a culprit you choose">
+    <div class="pick" id="pick" role="group" aria-label="Commit that introduced the bug"><span>Hide the bug in</span></div>
+    <svg class="bis" role="img" aria-label="Eight commits in a row. A test pointer halves the suspect range until one commit is left."></svg>
+    <div class="term" id="term"></div>
+    <p class="caption" aria-live="polite"></p><div class="controls"></div>
+  </div>
+  <div class="col">
+    <p style="margin-top:24px">Now scale it up. Doubling the history adds one test.</p>
+    <div class="cost" id="cost">
+      <label for="nr">Suspect commits: <output id="nv" for="nr"></output></label>
+      <input type="range" id="nr" min="1" max="20" value="3" step="1">
+      <div class="bar"><span>One by one</span><div class="track"><div class="fill" id="f1" style="background:var(--muted); width:100%"></div></div><span class="num" id="n1"></span></div>
+      <div class="bar"><span>Bisect</span><div class="track"><div class="fill" id="f2" style="background:var(--accent)"></div></div><span class="num" id="n2"></span></div>
+    </div>
+    <p class="stamp">Every test <mark>halves</mark> what is left. 1,000 commits, 10 tests.</p>
+    <p class="stampsub">That is log<sub>2</sub>(n): the number of times you can halve n suspects before one remains.</p>
+    <div class="prose">
+      <p>Bisect rests on one assumption: once the bug appears, every later commit has it. A flaky test breaks that assumption and sends the search to the wrong commit. If a commit cannot be built, <code>git bisect skip</code> moves to a neighbour. Given a script that exits 0 on a pass, <code>git bisect run ./test.sh</code> does the whole search unattended.</p>
+    </div>
+  </div>
+</section>
+
+<section class="col stack invite">
+  <h2>Make your own</h2>
+  <p>You just watched one lesson pass through seven steps: interview, beats, storyboard, scene file, self-check, steering, publish. The compiler for scene files is still a plan. The first real piece is a skill that runs this process and writes plain HTML, which is how this page was made.</p>
+  <p>If you teach something technical and would sooner draw than talk, this is being built for you.</p>
+</section>
+
+<footer class="col">Prototype for the explainer engine plan. Nothing here is published.</footer>
+</main>
+
+<script>
+(function(){
+"use strict";
+var NS="http://www.w3.org/2000/svg";
+var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function el(n,a,p){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
+
+/* ---- step player: Back / Next / Play, caption, dots, arrow keys ---- */
+function player(root,count,render){
+  var idx=0,timer=null,cap=root.querySelector(".caption"),c=root.querySelector(".controls");
+  c.innerHTML='<button type="button" class="b">Back</button><button type="button" class="primary n">Next step</button><button type="button" class="p">Play</button><div class="dots" aria-hidden="true"></div>';
+  var prev=c.querySelector(".b"),next=c.querySelector(".n"),play=c.querySelector(".p"),dots=c.querySelector(".dots");
+  function n(){return typeof count==="function"?count():count;}
+  function show(){
+    var say=render(idx),t=n();
+    cap.innerHTML='<span class="stepno">step '+(idx+1)+' of '+t+'</span>'+say;
+    if(dots.children.length!==t){dots.innerHTML="";for(var i=0;i<t;i++)dots.appendChild(document.createElement("i"));}
+    [].forEach.call(dots.children,function(d,i){d.classList.toggle("on",i===idx);});
+    prev.disabled=idx===0; next.textContent=idx===t-1?"Restart":"Next step";
+  }
+  function go(d){var t=n(); if(d>0&&idx===t-1)idx=0; else idx=Math.max(0,Math.min(t-1,idx+d)); show();}
+  function stop(){if(timer){clearInterval(timer);timer=null;play.textContent="Play";}}
+  prev.addEventListener("click",function(){stop();go(-1);});
+  next.addEventListener("click",function(){stop();go(1);});
+  play.addEventListener("click",function(){
+    if(timer){stop();return;}
+    if(idx===n()-1){idx=0;show();}
+    play.textContent="Pause";
+    timer=setInterval(function(){if(idx===n()-1){stop();return;}go(1);},2400);
+  });
+  root.addEventListener("keydown",function(e){
+    if(e.target.tagName==="INPUT")return;
+    if(e.key==="ArrowRight"){stop();go(1);e.preventDefault();}
+    if(e.key==="ArrowLeft"){stop();go(-1);e.preventDefault();}
+  });
+  show();
+  return {reset:function(){stop();idx=0;show();},refresh:show};
+}
+
+/* ---- scene 1: interview ---- */
+(function(){
+  var qa=[
+    ["Who is the reader, and what do they already know?","Engineers who use git every day and have never run bisect.","The reader goes into the brief first. It decides what can be skipped."],
+    ["What should click for them by the end?","Each test throws away half of the suspects. A thousand commits takes about ten tests.","One aha per explainer. Every later choice serves it."],
+    ["Which wrong idea should break?","That finding a regression means reading diffs, or checking commits one at a time.","Naming the misconception tells the AI what the hook must contradict."],
+    ["What can I leave out?","Merges and how git picks the midpoint in a branching history. One line on flaky tests is enough.","Scope is the last line. It keeps the piece short."],
+    ["That is the brief. I have not drawn anything yet. Next I will propose the story in four beats.","","Four answers, four lines. Only now does the AI start on the story."]
+  ];
+  var q=document.getElementById("ivq"),a=document.getElementById("iva"),rows=document.querySelectorAll("#brief .row");
+  var bq=q.parentNode,ba=a.parentNode;
+  player(document.getElementById("s1"),qa.length,function(i){
+    q.textContent=qa[i][0]; a.textContent=qa[i][1];
+    ba.style.visibility=qa[i][1]?"visible":"hidden";
+    [bq,ba].forEach(function(b){b.classList.remove("pop");void b.offsetWidth;b.classList.add("pop");});
+    [].forEach.call(rows,function(r,k){r.classList.toggle("in",k<=i);r.classList.toggle("new",k===i);});
+    return qa[i][2];
+  });
+})();
+
+/* ---- scene 2: beats and storyboard ---- */
+(function(){
+  function dots(n,y,r,fn){var s="",w=140/(n-1);for(var i=0;i<n;i++){s+='<circle cx="'+(10+i*w)+'" cy="'+y+'" r="'+r+'" class="'+((fn&&fn(i))||"sk")+'"/>';}return '<path class="sk" d="M10 '+y+' H150"/>'+s;}
+  function tri(x,y){return '<path class="sk sk-acc" d="M'+(x-6)+' '+(y-10)+' L'+(x+6)+' '+(y-10)+' L'+x+' '+y+' Z"/>';}
+  var beats=[
+    {k:"hook",t:"Nightly is red. It was green last week. Which commit did it?",
+     a:dots(8,58,6,function(i){return i===0?"sk sk-good":i===7?"sk-fill":"sk";})+'<path class="sk sk-bad" d="M72 30 q0 -12 9 -12 q9 0 9 9 q0 7 -9 11 v4 M81 46 v1" />'},
+    {k:"intuition",t:"Each test can clear half of the suspects.",
+     a:'<path class="sk" d="M12 16 h136 v12 h-136 z M12 40 h68 v12 h-68 z M12 64 h34 v12 h-34 z"/><path class="sk sk-bad" d="M88 44 l56 0 M56 70 l22 0"/><path class="sk sk-acc" d="M80 10 v24 M46 36 v22"/>'},
+    {k:"mechanism",t:"Test the middle. Keep the half that still hides the bug. Repeat.",
+     a:dots(16,56,3.2)+tri(80,46), b:dots(8,56,6)+tri(70,44)},
+    {k:"payoff",t:"Three tests for seven suspects. About ten for a thousand.",
+     a:dots(8,58,6,function(i){return i<4?"sk sk-good":"sk-fill";})+'<circle class="sk sk-bad" cx="90" cy="58" r="12" stroke-dasharray="4 4"/>'+tri(70,24)+tri(90,24)+tri(110,24)}
+  ];
+  var grid=document.getElementById("beatgrid"),react=document.getElementById("react");
+  beats.forEach(function(b){
+    var d=document.createElement("div");d.className="beat";
+    d.innerHTML='<h3>'+b.k+'</h3><p>'+b.t+'</p><svg viewBox="0 0 160 90" role="img" aria-label="Rough still for the '+b.k+' beat"><g class="A" filter="url(#rough)">'+b.a+'</g>'+(b.b?'<g class="B" filter="url(#rough)">'+b.b+'</g>':'')+'</svg>';
+    grid.appendChild(d);b.el=d;
+  });
+  var say=[
+    "Hook: a situation the reader has lived through.",
+    "Intuition: the idea in one sentence, before any mechanics.",
+    "Mechanism: the procedure, small enough to follow by eye.",
+    "Payoff: the number that makes it worth learning. You approve the outline here.",
+    "Storyboard: one rough still per beat. Wobbly on purpose, so nobody gets attached.",
+    "You react. Sixteen commits will be unreadable on a phone.",
+    "The still is redrawn with eight. Changing it cost one sentence."
+  ];
+  player(document.getElementById("s2"),say.length,function(i){
+    beats.forEach(function(b,k){
+      b.el.classList.toggle("in",k<=i);
+      b.el.classList.toggle("flag",k===2&&i>=5);
+      var A=b.el.querySelector(".A"),B=b.el.querySelector(".B");
+      A.classList.toggle("on",i>=4&&!(B&&i>=6)); if(B)B.classList.toggle("on",i>=6);
+    });
+    react.classList.toggle("on",i>=5);
+    react.innerHTML=i>=6?'<b>AI</b>Redrawn with 8 commits. The other three stills are unchanged.':'<b>you</b>Too many dots in the mechanism still. Use 8 commits so it reads on a phone.';
+    return say[i];
+  });
+})();
+
+/* ---- bisect view shared by scenes 3, 4, 5 ---- */
+var N=8,X0=60,DX=74,CY=120,R=18;
+function xOf(i){return X0+(i-1)*DX;}
+var mq=window.matchMedia("(max-width:600px)"),views=[];
+function fit(){views.forEach(function(s){s.setAttribute("viewBox",mq.matches?"28 30 584 188":"0 0 640 230");});}
+if(mq.addEventListener)mq.addEventListener("change",fit);
+function bisectView(svg){
+  views.push(svg);
+  el("line",{x1:50,y1:CY,x2:590,y2:CY,stroke:"var(--line)","stroke-width":3},svg);
+  var cs=[],ok=[],no=[];
+  for(var i=1;i<=N;i++){
+    cs.push(el("circle",{cx:xOf(i),cy:CY,r:R,"class":"commit","stroke-width":2.5},svg));
+    ok.push(el("path",{"class":"glyph",d:"M-7 0 L-2 5 L7 -5",transform:"translate("+xOf(i)+","+CY+")"},svg));
+    no.push(el("path",{"class":"glyph",d:"M-5 -5 L5 5 M5 -5 L-5 5",transform:"translate("+xOf(i)+","+CY+")"},svg));
+    el("text",{x:xOf(i),y:CY+40,"text-anchor":"middle"},svg).textContent="c"+i;
+  }
+  var rng=el("rect",{"class":"rng",x:0,y:168,width:1,height:10,fill:"var(--hl)",opacity:.8},svg);
+  var rl=el("g",{"class":"rng"},svg); var rlt=el("text",{"class":"strong",x:0,y:200,"text-anchor":"middle"},rl); rlt.textContent="suspects";
+  var probe=el("g",{"class":"probe"},svg);
+  var pt=el("text",{"class":"strong",x:0,y:52,"text-anchor":"middle",style:"fill:var(--accent)"},probe); pt.textContent="test";
+  el("path",{d:"M-11 62 L11 62 L0 80 Z",fill:"var(--accent)"},probe);
+  var cul=el("g",{"class":"cul",opacity:0},svg);
+  var ring=el("circle",{cx:0,cy:CY,r:29,fill:"none",stroke:"var(--bad)","stroke-width":2.5,"stroke-dasharray":"5 5"},cul);
+  var ct=el("text",{"class":"strong",x:0,y:62,"text-anchor":"middle",style:"fill:var(--bad)"},cul); ct.textContent="first bad";
+  var boxes=el("g",{},svg);
+  var px=xOf(4); probe.style.transform="translate("+px+"px,0px)";
+  function draw(st){
+    for(var i=0;i<N;i++){
+      var s=st.s[i],c=cs[i],inR=st.range&&(i+1)>=st.range[0]&&(i+1)<=st.range[1];
+      var col=s==="g"?"var(--good)":s==="b"?"var(--bad)":null;
+      c.style.fill=col||"var(--surface)"; c.style.stroke=col||"var(--ink)";
+      c.style.opacity=(!col||inR||i===0||i===N-1)?1:.5;
+      ok[i].classList.toggle("on",s==="g"); no[i].classList.toggle("on",s==="b");
+    }
+    if(st.probe){px=xOf(st.probe);probe.style.opacity=1;probe.style.transform="translate("+px+"px,0px)";}
+    else probe.style.opacity=0;
+    var x1=xOf(st.range[0])-26,x2=xOf(st.range[1])+26;
+    rng.style.transform="translate("+x1+"px,0px) scaleX("+(x2-x1)+")";
+    rl.style.transform="translate("+Math.max(96,Math.min(544,(x1+x2)/2))+"px,0px)";
+    rl.style.opacity=st.culprit?0:1;
+    if(st.culprit){cul.setAttribute("opacity",1);ring.setAttribute("cx",xOf(st.culprit));ct.setAttribute("x",Math.max(96,Math.min(544,xOf(st.culprit))));}
+    else cul.setAttribute("opacity",0);
+  }
+  /* label boxes for the self-check scene, in svg coordinates */
+  function labelBoxes(){
+    var a=pt.getBBox(),b=ct.getBBox();
+    return [{x:a.x+px,y:a.y,w:a.width,h:a.height},{x:b.x,y:b.y,w:b.width,h:b.height}];
+  }
+  return {draw:draw,labelBoxes:labelBoxes,boxes:boxes};
+}
+
+/* ---- scene 3: the file next to the render ---- */
+(function(){
+  var root=document.getElementById("s3"),v=bisectView(root.querySelector("svg"));
+  var lines=document.querySelectorAll("#dsl > span"),pane=document.getElementById("srcpane");
+  var steps=[
+    {say:"Green at c1, red at c8. The file states three facts and nothing about motion.",s:"guuuuuub",probe:0,range:[2,8]},
+    {say:"Test the middle commit. One fact changed: where the pointer is.",s:"guuuuuub",probe:4,range:[2,8]},
+    {say:"c4 passes. The bug came later, so the suspects shrink to c5..c8.",s:"gggguuub",probe:4,range:[5,8]},
+    {say:"Test the middle of the rest.",s:"gggguuub",probe:6,range:[5,8]},
+    {say:"c6 fails. It is c5 or c6.",s:"ggggubbb",probe:6,range:[5,6]},
+    {say:"One more test.",s:"ggggubbb",probe:5,range:[5,6]},
+    {say:"c5 fails. It is the first bad commit. Seven steps, fourteen lines, no timing code.",s:"ggggbbbb",probe:0,range:[5,5],culprit:5}
+  ];
+  player(root,steps.length,function(i){
+    v.draw(steps[i]);
+    var first=null;
+    [].forEach.call(lines,function(l){var on=+l.dataset.s===i;l.classList.toggle("on",on);if(on&&!first)first=l;});
+    if(first&&pane.scrollHeight>pane.clientHeight){
+      var top=first.offsetTop-pane.offsetTop-pane.clientHeight/2+first.offsetHeight;
+      if(pane.scrollTo&&!reduce)pane.scrollTo({top:top,behavior:"smooth"});else pane.scrollTop=top;
+    }
+    return steps[i].say;
+  });
+})();
+
+/* ---- scene 4: self-check ---- */
+(function(){
+  var root=document.getElementById("s4"),v=bisectView(root.querySelector("svg"));
+  var rep=document.querySelectorAll("#report span"),ovl=document.getElementById("ovl");
+  var say=[
+    "The last frame as first generated. The pointer is still on c5, under the new label.",
+    "The check measures every label's box and flags any two that intersect.",
+    "The cause is in the file. The last step never hid the pointer. One state was missing.",
+    "Re-rendered. The frame is clean and the check passes. You never saw the broken version."
+  ];
+  var p=player(root,say.length,function(i){
+    v.draw({s:"ggggbbbb",probe:i<3?5:0,range:[5,5],culprit:5});
+    v.boxes.innerHTML="";
+    var b=v.labelBoxes(),A=b[0],B=b[1];
+    var w=Math.max(0,Math.min(A.x+A.w,B.x+B.w)-Math.max(A.x,B.x)),h=Math.max(0,Math.min(A.y+A.h,B.y+B.h)-Math.max(A.y,B.y));
+    var pct=Math.round(100*w*h/Math.min(A.w*A.h,B.w*B.h));
+    ovl.textContent='step 7: "test" overlaps "first bad" ('+pct+'% of the smaller box)';
+    if(i===1||i===2){
+      el("rect",{"class":"box",x:A.x-2,y:A.y-1,width:A.w+4,height:A.h+2,stroke:"var(--accent)"},v.boxes);
+      el("rect",{"class":"box",x:B.x-2,y:B.y-1,width:B.w+4,height:B.h+2,stroke:"var(--bad)"},v.boxes);
+      el("rect",{x:Math.max(A.x,B.x),y:Math.max(A.y,B.y),width:w,height:h,fill:"var(--bad)",opacity:.35},v.boxes);
+    }
+    [].forEach.call(rep,function(r){r.classList.toggle("on",+r.dataset.from<=i);});
+    return say[i];
+  });
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(p.refresh);
+})();
+
+/* ---- scene 5: bisect as a trace of the real search ---- */
+(function(){
+  var root=document.getElementById("s5"),v=bisectView(root.querySelector("svg"));
+  var term=document.getElementById("term"),pick=document.getElementById("pick"),steps=[];
+  function trace(culprit){
+    var lo=1,hi=N,out=[],tests=0;
+    function snap(o){
+      var s="";for(var i=1;i<=N;i++)s+=i<=lo?"g":i>=hi?"b":"u";
+      o.s=s;o.range=[lo+1,hi];out.push(o);
+    }
+    snap({say:"Green at c1, red at c8. One of c2 to c8 introduced the bug.",cmd:"git bisect start c8 c1",probe:0});
+    snap({say:"The obvious way: test c2, then c3, then c4. That could take six runs.",cmd:"# one by one: up to 6 test runs",probe:2});
+    while(hi-lo>1){
+      var mid=(lo+hi)>>1; tests++;
+      snap({say:(tests===1?"Bisect jumps to the middle instead. Test c":"Test c")+mid+(tests===1?".":", the middle of what is left."),cmd:"./test.sh   # checked out at c"+mid,probe:mid});
+      if(mid>=culprit){hi=mid;snap({say:"c"+mid+" fails. The bug is in c"+mid+(mid-lo>1?" or earlier. Later commits are no longer suspects.":"."),cmd:"git bisect bad",probe:mid});}
+      else{lo=mid;snap({say:"c"+mid+" passes. Everything up to c"+mid+" is cleared.",cmd:"git bisect good",probe:mid});}
+    }
+    snap({say:"c"+hi+" is the first bad commit, found in "+tests+" tests."+(hi===N?" c8 itself was never tested. It was already known bad.":" One by one could have taken six."),cmd:"c"+hi+" is the first bad commit",outp:true,probe:0,culprit:hi});
+    return out;
+  }
+  var p;
+  for(var i=2;i<=N;i++)(function(i){
+    var b=document.createElement("button");b.type="button";b.textContent="c"+i;b.setAttribute("aria-pressed",i===5);
+    b.addEventListener("click",function(){
+      [].forEach.call(pick.querySelectorAll("button"),function(x){x.setAttribute("aria-pressed",x===b);});
+      steps=trace(i);p.reset();
+    });
+    pick.appendChild(b);
+  })(i);
+  steps=trace(5);
+  p=player(root,function(){return steps.length;},function(k){
+    var st=steps[k];v.draw(st);term.textContent=st.cmd;term.classList.toggle("out",!!st.outp);return st.say;
+  });
+})();
+fit();
+
+/* ---- component: cost of the search ---- */
+(function(){
+  var r=document.getElementById("nr"),nv=document.getElementById("nv"),n1=document.getElementById("n1"),n2=document.getElementById("n2"),f2=document.getElementById("f2");
+  function upd(){
+    var k=+r.value,n=Math.pow(2,k),lin=Math.max(1,n-1);
+    nv.textContent=n.toLocaleString("en-US");
+    n1.textContent="up to "+lin.toLocaleString("en-US")+(lin===1?" test":" tests");
+    n2.textContent=k+(k===1?" test":" tests")+" (log2 of "+n.toLocaleString("en-US")+")";
+    f2.style.width=(100*k/lin)+"%";
+  }
+  r.addEventListener("input",upd);upd();
+})();
+})();
+</script>
+</body>
+</html>
