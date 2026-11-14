@@ -29,15 +29,28 @@ pi install git:github.com/EranYonai/explainers
 
 ## Examples
 
-The five drafts that shaped the format, each one self-contained HTML (open in a browser):
+Self-contained HTML, open in a browser. The first three set the reference style: scenes made of HTML
+(chat, cards, panels), one stepper driving them, and the reader taking part.
 
 | Explainer | What the reader does |
 |---|---|
-| [How an explainer gets made](examples/how-an-explainer-gets-made/index.html) | Picks the bad commit; a real binary search builds the steps |
+| [What is an AI coding harness?](examples/ai-harness/index.html) | Plays the permission check and approves or denies tool calls. Built on the shared player ([source](examples/ai-harness/page.src.html)) |
+| [LangChain and LangGraph, explained](examples/langgraph/index.html) | Chooses the route at a graph junction |
+| [How an explainer gets made](examples/how-an-explainer-gets-made/index.html) | Watches the process: interview, beats, storyboard, self-check |
 | [Hash tables and collisions](examples/hash-table/index.html) | Steps through hashing, chaining, resizing and probing |
 | [Why a flaky test lies](examples/flaky-test/index.html) | Drags timing sliders over 200 seeded runs |
-| [What is an AI coding harness?](examples/ai-harness/index.html) | Plays the harness and approves a tool call |
-| [LangChain and LangGraph, explained](examples/langgraph/index.html) | Chooses the route at a graph junction |
+
+## Building a page
+
+The skill writes a source page that references the shared player and a theme by placeholder, then inlines them:
+
+```bash
+node skills/explainer/scripts/build.mjs page.src.html            # writes page.html, one self-contained file
+node skills/explainer/scripts/build.mjs page.src.html --theme flight-deck
+```
+
+Start from [`templates/page.src.html`](skills/explainer/templates/page.src.html). The player API is documented at
+the top of [`player.js`](skills/explainer/templates/player.js).
 
 ## Principles
 
@@ -52,7 +65,7 @@ The five drafts that shaped the format, each one self-contained HTML (open in a 
 ## Layout
 
 ```
-skills/explainer/      the skill: SKILL.md, references, player template, themes, check script
+skills/explainer/      the skill: SKILL.md, player (templates/), themes, build and check scripts
 examples/              finished explainers
 docs/themes/           gallery of 25 themes and the generator (3 ship with the skill)
 docs/findings/         field notes from the first drafts

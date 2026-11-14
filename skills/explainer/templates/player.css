@@ -1,0 +1,69 @@
+/* explainer player v0: page base and scene chrome. Colors and fonts come from a theme file (themes/*.css). */
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);background-image:var(--texture,none);background-size:var(--texture-size,auto);color:var(--ink);
+  font-family:var(--font-body);font-size:calc(clamp(1rem,.96rem + .15vw,1.06rem) * var(--body-scale,1));line-height:1.6}
+main{padding:clamp(24px,4vw,64px) 16px 80px;display:grid;grid-template-columns:minmax(0,1fr);gap:56px}
+main>*{min-width:0}
+.col{max-width:66ch;margin:0 auto;width:100%}
+.wide{max-width:1040px;margin:0 auto;width:100%}
+.stack{display:grid;gap:14px}
+h1,h2,h3{font-family:var(--font-display);font-weight:var(--display-weight,700);text-transform:var(--display-transform,none);
+  letter-spacing:var(--display-tracking,0);line-height:1.12;margin:0;text-wrap:balance}
+h1{font-size:calc(clamp(2rem,1.5rem + 2.4vw,3rem) * var(--display-scale,1))}
+h2{font-size:calc(clamp(1.4rem,1.25rem + .6vw,1.7rem) * var(--display-scale,1))}
+p{margin:0}
+a{color:var(--accent)}
+code{font-family:var(--font-mono);font-size:.88em;background:color-mix(in srgb,var(--line) 45%,transparent);padding:.05em .3em;border-radius:4px}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius:3px}
+
+/* story beats: hook question in big type, payoff stamped large */
+.hook{font-size:calc(clamp(2.1rem,1.6rem + 2.4vw,3.2rem) * var(--display-scale,1));letter-spacing:-.015em}
+.payoff{font-family:var(--font-display);font-weight:var(--display-weight,700);line-height:1.05;letter-spacing:-.02em;text-wrap:balance;
+  font-size:calc(clamp(2rem,1.4rem + 3.4vw,3.6rem) * var(--display-scale,1));margin:8px 0}
+.note{color:var(--muted);font-size:.9rem}
+
+/* scene frame: stage, caption, controls */
+.scene{margin:0;background:var(--surface);border:var(--border-width,1px) solid var(--line);border-radius:calc(var(--radius,8px) + 6px);overflow:hidden;box-shadow:var(--shadow,none)}
+.scene .stage{padding:16px 20px 0;min-width:0}
+.scene .stage svg{display:block;width:100%;height:auto;max-width:100%}
+.scene svg text{font-family:var(--font-mono);fill:var(--ink)}
+.caption{padding:12px 20px 0;min-height:4.9em;font-family:var(--font-display);font-weight:500;font-size:clamp(1.2rem,1.08rem + .6vw,1.45rem);line-height:1.28;text-wrap:balance}
+.caption .stepno{display:block;font-family:var(--font-mono);font-weight:400;font-size:.74rem;color:var(--muted);margin-bottom:4px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 20px 18px}
+.controls button,.pick button,.choices button{font:inherit;font-size:.92rem;padding:9px 15px;min-height:44px;border-radius:var(--radius,8px);
+  border:var(--border-width,1px) solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.controls button:hover,.pick button:hover,.choices button:hover{border-color:var(--accent)}
+.controls button.primary{background:var(--accent);color:var(--accent-ink,#fff);border-color:var(--accent)}
+.pick button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.controls button:disabled{opacity:.45;cursor:default}
+.dots{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--line);display:block}
+.dots i.on{background:var(--accent)}
+.pick{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:12px 20px 0}
+@media (max-width:600px){
+  .scene .stage{padding:12px 12px 0}
+  .caption{padding:12px 16px 0;min-height:6.4em}
+  .controls,.pick{padding-left:16px;padding-right:16px}
+}
+
+/* shared drawing classes for SVG stages */
+.rough{filter:url(#rough)}
+.ink{stroke:var(--ink);fill:none;stroke-width:var(--stroke-width,2);stroke-linecap:var(--linecap,round);stroke-linejoin:round}
+.fill-surface{fill:var(--surface)} .fill-accent{fill:var(--accent)} .fill-hl{fill:var(--hl)} .fill-good{fill:var(--good)} .fill-bad{fill:var(--bad)} .fill-line{fill:var(--line)}
+.muted{fill:var(--muted);color:var(--muted)}
+.scene .stage *{transition:fill .35s,stroke .35s,opacity .35s,transform .45s cubic-bezier(.3,.7,.2,1)}
+.reduce-motion *,.reduce-motion *::before,.reduce-motion *::after{transition:none!important;animation:none!important}
+
+/* deck mode: one stepper, several sections, only the active one shown */
+.scene.deck [data-scene]{display:none}
+.scene.deck [data-scene].on{display:block;animation:pagein .35s ease both}
+@keyframes pagein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.scene .sec{display:flex;align-items:baseline;gap:10px;padding:12px 20px 6px;border-bottom:var(--border-width,1px) solid var(--line)}
+.scene .sec .no{font-family:var(--font-mono);font-size:.68rem;color:var(--muted);white-space:nowrap}
+.scene .sec .ttl{font-family:var(--font-display);font-weight:var(--display-weight,700);text-transform:var(--display-transform,none);font-size:1.15rem;line-height:1.1}
+.dots.many{flex:1 1 100%;order:9;gap:2px;margin:4px 0 0;flex-wrap:nowrap}
+.dots.many i{flex:1;width:auto;height:5px;border-radius:1px}
+.dots i.done{background:color-mix(in srgb,var(--accent) 45%,var(--line))}
+[data-theme-toggle]{font:inherit;font-size:.8rem;padding:6px 10px;min-height:36px;border:var(--border-width,1px) solid var(--line);border-radius:var(--radius,8px);background:transparent;color:var(--ink);cursor:pointer}
