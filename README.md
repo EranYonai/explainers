@@ -26,6 +26,18 @@ Pi:
 pi install git:github.com/EranYonai/explainers
 ```
 
+## Building a page
+
+The skill writes a source page that references the shared player and a theme by placeholder, then inlines them:
+
+```bash
+node skills/explainer/scripts/build.mjs page.src.html            # writes page.html, one self-contained file
+node skills/explainer/scripts/build.mjs page.src.html --theme flight-deck
+```
+
+Start from [`templates/page.src.html`](skills/explainer/templates/page.src.html). The player API is documented at
+the top of [`player.js`](skills/explainer/templates/player.js).
+
 ## Principles
 
 1. **Content first, engine second, platform last.** Each layer is pulled out of real use of the one before.
@@ -39,7 +51,7 @@ pi install git:github.com/EranYonai/explainers
 ## Layout
 
 ```
-skills/explainer/      the skill: SKILL.md, references, player template, themes, check script
+skills/explainer/      the skill: SKILL.md, player (templates/), themes, build and check scripts
 examples/              explainers made with the skill or its drafts
 docs/themes/           gallery of 25 themes and the generator (3 ship with the skill)
 docs/findings/         field notes from the first drafts

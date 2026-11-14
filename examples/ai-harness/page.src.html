@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What is an AI coding harness? Claude Code, Codex and Pi on the flight deck</title>
+<link rel="stylesheet" href="explainer:player.css">
+<link rel="stylesheet" href="explainer:theme/flight-deck">
+<style>
+.wrap{max-width:1040px;margin:0 auto;padding:12px 16px 48px}
+/* manual header strip */
+.strip{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:4px solid var(--rule,var(--ink));border-bottom:1px solid var(--rule,var(--ink));padding:6px 0;font-family:var(--font-mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.08em}
+.strip b{font-weight:600}
+.daynight{border:1.5px solid var(--rule,var(--ink));background:transparent;padding:4px 8px;font-family:var(--font-mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border-radius:2px}
+h1{font-family:var(--font-display);font-weight:900;text-transform:uppercase;font-size:clamp(2rem,9vw,3.6rem);line-height:.92;margin:16px 0 8px;letter-spacing:.005em}
+.lede{max-width:62ch;margin:0 0 14px;color:var(--muted)}
+
+.prose{max-width:64ch;margin:0 0 12px;font-size:.95rem}
+/* hook */
+.big{font-family:var(--font-display);font-weight:900;text-transform:uppercase;font-size:clamp(2.6rem,13vw,6rem);line-height:.88;margin:8px 0 14px}
+.big em{font-style:normal;color:var(--accent)}
+.lamps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 12px}
+.lamp{border:2px solid var(--rule,var(--ink));border-radius:3px;padding:8px 6px;text-align:center;font-family:var(--font-mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;background:var(--paper)}
+.lamp b{display:block;font-family:var(--font-display);font-size:1.15rem;font-weight:800;letter-spacing:.03em;line-height:1.1}
+.lamp i{display:block;font-style:normal;margin-top:4px;padding:2px;border-radius:2px;color:#14160f;font-weight:600}
+.lamp:nth-child(1) i{background:var(--good-fill,var(--good))}.lamp:nth-child(2) i{background:var(--hl)}.lamp:nth-child(3) i{background:var(--bad-fill,var(--bad))}
+
+/* bare model */
+.io{display:grid;grid-template-columns:1fr;gap:8px;align-items:stretch}
+.box{border:1.5px solid var(--rule,var(--ink));border-radius:3px;padding:8px 10px;background:var(--paper);font-family:var(--font-mono);font-size:.72rem;line-height:1.55;overflow-wrap:anywhere}
+.box .tag{display:block;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+.core{text-align:center;font-family:var(--font-display);font-weight:900;font-size:1.5rem;text-transform:uppercase;letter-spacing:.06em;border:2px solid var(--rule,var(--ink));background:var(--ink);color:var(--surface);border-radius:3px;padding:10px}
+.core small{display:block;font-family:var(--font-mono);font-size:.58rem;font-weight:400;letter-spacing:.08em}
+.arrow{text-align:center;font-family:var(--font-mono);font-size:.8rem;line-height:1;color:var(--muted)}
+.noacc{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;opacity:.25;transition:opacity .4s}
+.noacc.on{opacity:1}
+.inop{border:2px solid var(--bad);color:var(--bad);border-radius:3px;padding:8px;text-align:center;font-family:var(--font-mono);font-size:.64rem;text-transform:uppercase;letter-spacing:.06em}
+.inop b{display:block;font-family:var(--font-display);font-size:1.3rem;font-weight:800;letter-spacing:.06em}
+@media(min-width:760px){.io{grid-template-columns:1fr auto 190px auto 1fr;align-items:center}.arrow{transform:rotate(-90deg)}}
+
+/* loop */
+.loop{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:760px){.loop{grid-template-columns:1.05fr 1fr}}
+.stations{list-style:none;margin:0;padding:0 0 0 22px;position:relative}
+.stations::before{content:"";position:absolute;left:6px;top:14px;bottom:14px;width:10px;border:2px solid var(--rule,var(--ink));border-right:0;border-radius:8px 0 0 8px}
+.stations::after{content:"";position:absolute;left:11px;top:9px;border:6px solid transparent;border-left-color:var(--rule,var(--ink))}
+.st{display:flex;gap:8px;align-items:center;border:1.5px solid var(--line);border-radius:3px;padding:6px 8px;margin:0 0 5px;transition:background .3s,border-color .3s,color .3s}
+.st .n{font-family:var(--font-mono);font-size:.62rem;width:1.6em;flex:none}
+.st .t{font-family:var(--font-display);font-weight:800;font-size:1.05rem;text-transform:uppercase;letter-spacing:.04em;line-height:1.1}
+.st .d{display:block;font-family:var(--font-body);font-weight:400;font-size:.76rem;text-transform:none;letter-spacing:0;color:var(--muted);line-height:1.25}
+.st.on{background:var(--hl);border-color:var(--rule,var(--ink));color:#14160f}
+.st.on .d{color:#2c2a1c}
+.tape{border:1.5px solid var(--rule,var(--ink));border-radius:3px;background:var(--paper);padding:8px}
+.tape h3,.log h3{margin:0 0 6px;font-family:var(--font-mono);font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;display:flex;justify-content:space-between;gap:8px}
+.slot{font-family:var(--font-mono);font-size:.66rem;line-height:1.4;border-left:4px solid var(--muted);padding:3px 6px;margin:0 0 4px;background:var(--surface);overflow-wrap:anywhere;transition:opacity .35s,transform .35s}
+.slot.hide{display:none}
+.slot.call{border-left-color:var(--hl)}.slot.res{border-left-color:var(--good-fill,var(--good))}.slot.bad{border-left-color:var(--bad-fill,var(--bad))}.slot.fin{border-left-color:var(--ink)}
+.slot.new{animation:slotin .4s ease both}
+@keyframes slotin{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+
+/* you have control */
+.hazard{height:10px;border-radius:2px;margin:0 0 10px;background:repeating-linear-gradient(135deg,var(--hl) 0 10px,#15170f 10px 20px)}
+.modes{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;align-items:center}
+.modes span{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;width:100%}
+.mode{border:1.5px solid var(--rule,var(--ink));background:var(--paper);border-radius:2px;padding:7px 9px;font-family:var(--font-mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;min-height:36px}
+.mode[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.prop{border:2px solid var(--rule,var(--ink));border-radius:3px;padding:10px;background:var(--paper);margin-bottom:10px}
+.prop .who{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.prop .cmd{font-family:var(--font-mono);font-weight:600;font-size:.86rem;margin:4px 0 2px;overflow-wrap:anywhere}
+.prop .risk{font-family:var(--font-mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.06em}
+.risk.lo{color:var(--good)}.risk.mid{color:var(--accent)}.risk.hi{color:var(--bad)}
+.acts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.act{flex:1 1 120px;min-height:46px;border:2px solid var(--rule,var(--ink));border-radius:3px;font-family:var(--font-display);font-weight:800;font-size:1.15rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;color:#14160f}
+.act.ok{background:var(--good-fill,var(--good))}.act.no{background:var(--bad-fill,var(--bad))}.act.re{background:var(--paper);color:var(--ink);font-size:.95rem}
+.act:active{transform:translateY(1px)}
+.log{border:1.5px solid var(--rule,var(--ink));border-radius:3px;background:var(--paper);padding:8px}
+.debrief{font-size:.9rem;margin:8px 0 0;font-weight:500}
+
+/* overhead panel */
+.ovh{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:10px}
+@media(min-width:760px){.ovh{grid-template-columns:repeat(4,1fr)}}
+.sw{position:relative;text-align:left;border:2px solid var(--rule,var(--ink));background:var(--paper);border-radius:3px;padding:8px 8px 8px 30px;min-height:52px;cursor:pointer;font-family:var(--font-display);font-weight:800;font-size:1rem;text-transform:uppercase;letter-spacing:.04em;line-height:1.05}
+.sw::before{content:"";position:absolute;left:8px;top:50%;width:13px;height:13px;margin-top:-7px;border-radius:50%;border:1.5px solid var(--rule,var(--ink));background:var(--good-fill,var(--good))}
+.sw small{display:block;font-family:var(--font-mono);font-weight:400;font-size:.56rem;letter-spacing:.08em;color:var(--muted)}
+.sw[aria-pressed="false"]::before{background:var(--line)}
+.sw[aria-pressed="false"]{border-style:dashed;color:var(--muted)}
+.sw.focus{outline:3px solid var(--hl);outline-offset:1px}
+.master{font-family:var(--font-mono);font-size:.64rem;text-transform:uppercase;letter-spacing:.06em;margin:0 0 8px;padding:5px 8px;border-radius:2px;border:1.5px solid var(--rule,var(--ink))}
+.master.warn{background:var(--hl);color:#14160f}
+.master.fail{background:var(--bad-fill,var(--bad));color:#14160f}
+.readout{border:1.5px solid var(--rule,var(--ink));border-radius:3px;background:var(--paper);padding:9px 10px;font-size:.9rem;min-height:92px}
+.readout .tag{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:3px}
+.readout.fault{border-color:var(--bad);border-width:2px}
+.readout.fault .tag{color:var(--bad)}
+
+/* three aircraft */
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+.tab{border:2px solid var(--rule,var(--ink));background:var(--paper);border-radius:3px 3px 0 0;padding:7px 4px;font-family:var(--font-display);font-weight:800;font-size:1rem;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;min-height:40px}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--surface)}
+.cards{display:grid;grid-template-columns:1fr;gap:10px}
+.card{display:none;border:2px solid var(--rule,var(--ink));border-radius:3px;background:var(--paper);padding:10px}
+.card.on{display:block}
+@media(min-width:900px){.cards{grid-template-columns:repeat(3,1fr)}.card{display:block;opacity:.55;transition:opacity .3s}.card.on{opacity:1;outline:3px solid var(--hl)}}
+.card h3{margin:0;font-family:var(--font-display);font-weight:900;font-size:1.6rem;text-transform:uppercase;line-height:1}
+.card .doc{font-family:var(--font-mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:3px 0 8px}
+.chk{list-style:none;margin:0;padding:0;font-family:var(--font-mono);font-size:.64rem;line-height:1.35}
+.chk li{display:flex;align-items:baseline;gap:4px;padding:3px 0}
+.chk .k{text-transform:uppercase;letter-spacing:.04em;flex:none}
+.chk .dots{flex:1 1 12px;min-width:12px;border-bottom:1.5px dotted var(--muted);transform:translateY(-3px)}
+.chk .v{text-align:right;max-width:62%;overflow-wrap:anywhere;font-weight:600}
+.chk .v.nf{color:var(--bad)}
+.card p{font-size:.86rem;margin:8px 0 0}
+
+/* payoff */
+.stampwrap{display:grid;place-items:center;padding:18px 0 8px}
+.stamp{max-width:560px;border:5px double var(--bad);color:var(--bad);padding:14px 16px;transform:rotate(-2.5deg);font-family:var(--font-display);font-weight:900;text-transform:uppercase;font-size:clamp(1.5rem,6.6vw,2.5rem);line-height:1;letter-spacing:.01em;filter:url(#rough);animation:thump .5s cubic-bezier(.2,1.6,.4,1) both}
+.stamp small{display:block;font-family:var(--font-mono);font-size:.6rem;font-weight:600;letter-spacing:.14em;margin-bottom:8px}
+@keyframes thump{from{opacity:0;transform:rotate(-2.5deg) scale(1.5)}to{opacity:1;transform:rotate(-2.5deg) scale(1)}}
+
+.src{margin-top:26px;border-top:4px solid var(--rule,var(--ink));padding-top:8px}
+.src h2{font-family:var(--font-display);font-weight:800;font-size:1.2rem;text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px}
+.src ol{margin:0;padding-left:1.3em;font-size:.84rem}
+.src li{margin:0 0 5px;overflow-wrap:anywhere}
+.src a{color:inherit}
+.src p{font-size:.8rem;color:var(--muted);margin:8px 0 0;max-width:70ch}
+#manual .stage{min-height:460px;padding:14px 20px 4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="strip"><span><b>Harness operating manual</b> / draft</span><button class="daynight" data-theme-toggle type="button" aria-label="Switch between day and night theme">Day / Night</button></div>
+  <h1>What is an AI coding harness?</h1>
+  <p class="lede">A step-through briefing. The model is the pilot. Everything else in the cockpit is the harness. Use Next, the arrow keys, or Play.</p>
+
+  <figure id="manual">
+    <div class="stage">
+
+    <section data-scene="hook" data-title="The puzzle">
+      <p class="big">Same model.<br>Different tool.<br>Different <em>result.</em><br>Why?</p>
+      <div class="lamps" aria-label="Three tools">
+        <div class="lamp"><b>Claude Code</b>same pilot<i>result A</i></div>
+        <div class="lamp"><b>Codex</b>same pilot<i>result B</i></div>
+        <div class="lamp"><b>Pi</b>same pilot<i>result C</i></div>
+      </div>
+      <p class="prose">Pi can run the same Claude or GPT models that Claude Code and Codex run. Give each tool the same task and you get different edits, different questions, different speed. The weights did not change. Something around them did.</p>
+    </section>
+
+    <section data-scene="bare" data-title="Pilot without an aircraft">
+      <p class="prose">Start with the pilot alone. A language model takes text and predicts more text. That is the whole interface.</p>
+      <div class="io">
+        <div class="box"><span class="tag">Text in</span>Fix the failing test in parse.test.js</div>
+        <div class="arrow" aria-hidden="true">&#9660;</div>
+        <div class="core">Model<small>predicts next tokens</small></div>
+        <div class="arrow" aria-hidden="true">&#9660;</div>
+        <div class="box"><span class="tag">Text out</span>"I would open the file and run the tests. Could you paste parse.js?"</div>
+      </div>
+      <div class="noacc" id="noacc">
+        <div class="inop"><b>Files</b>no access</div>
+        <div class="inop"><b>Shell</b>no access</div>
+      </div>
+    </section>
+
+    <section data-scene="loop" data-title="The agent loop">
+      <p class="prose">A harness is a program that wraps the model in a loop and acts on its behalf. One lap looks like this.</p>
+      <div class="loop">
+        <ol class="stations" id="stations">
+          <li class="st"><span class="n">1</span><span class="t">Context<span class="d">system prompt, instructions, your request, history</span></span></li>
+          <li class="st"><span class="n">2</span><span class="t">Model<span class="d">reads all of it, writes a tool call as text</span></span></li>
+          <li class="st"><span class="n">3</span><span class="t">Permission check<span class="d">harness decides: run, ask you, or refuse</span></span></li>
+          <li class="st"><span class="n">4</span><span class="t">Execute<span class="d">harness runs the tool on your machine</span></span></li>
+          <li class="st"><span class="n">5</span><span class="t">Result<span class="d">output is appended to the context</span></span></li>
+          <li class="st"><span class="n">6</span><span class="t">Repeat or stop<span class="d">no tool call in the reply means done</span></span></li>
+        </ol>
+        <div class="tape" aria-label="Context window contents">
+          <h3><span>Context window</span><span id="lap">lap 1</span></h3>
+          <div id="tape"></div>
+        </div>
+      </div>
+    </section>
+
+    <section data-scene="you" data-title="You have control">
+      <div class="hazard" aria-hidden="true"></div>
+      <p class="prose">Your turn. You are the permission check. The model proposes, you decide, and your answer goes back into its context.</p>
+      <div class="modes" role="group" aria-label="Approval mode"><span>Approval mode</span>
+        <button class="mode" type="button" data-mode="ask" aria-pressed="true">Ask every call</button>
+        <button class="mode" type="button" data-mode="reads" aria-pressed="false">Auto-allow reads</button>
+        <button class="mode" type="button" data-mode="all" aria-pressed="false">Allow everything</button>
+      </div>
+      <div class="prop" id="prop"></div>
+      <div class="log"><h3><span>What the model sees next</span><span id="ylap"></span></h3><div id="ylog"></div><p class="debrief" id="debrief"></p></div>
+    </section>
+
+    <section data-scene="panel" data-title="Overhead panel">
+      <p class="prose">The loop is twenty lines of code. The rest of a harness is the equipment bolted around it. Tap a switch to pull that system and read the fault.</p>
+      <div class="master" id="master"></div>
+      <div class="ovh" id="ovh"></div>
+      <div class="readout" id="readout"></div>
+    </section>
+
+    <section data-scene="three" data-title="Three aircraft">
+      <p class="prose">All three run the same loop. They disagree about how much of the panel should ship fitted.</p>
+      <div class="tabs" role="tablist" aria-label="Tool">
+        <button class="tab" role="tab" type="button" data-t="0">Claude Code</button>
+        <button class="tab" role="tab" type="button" data-t="1">Codex</button>
+        <button class="tab" role="tab" type="button" data-t="2">Pi</button>
+      </div>
+      <div class="cards" id="cards"></div>
+    </section>
+
+    <section data-scene="payoff" data-title="Answer">
+      <div class="stampwrap"><div class="stamp"><small>ANSWER / CLEARED</small>The harness decides what the model sees, what it may touch and what comes back, so the same pilot flies a different aircraft in each tool.</div></div>
+      <p class="prose">When two tools behave differently on one model, compare the instructions they loaded, the tools they exposed, what they let run without asking, and what they kept in context. The difference is in that list.</p>
+    </section>
+
+    </div>
+  </figure>
+
+  <section class="src">
+    <h2>Sources</h2>
+    <ol>
+      <li><a href="https://code.claude.com/docs/en/how-claude-code-works">Claude Code docs: How Claude Code works</a> (agentic loop, "agentic harness", tools, compaction)</li>
+      <li><a href="https://code.claude.com/docs/en/features-overview">Claude Code docs: Extend Claude Code</a> (CLAUDE.md, skills, subagents, hooks, MCP, plugins)</li>
+      <li><a href="https://code.claude.com/docs/en/permission-modes">Claude Code docs: Permission modes</a> (six modes, Bash sandbox)</li>
+      <li><a href="https://cdn.jsdelivr.net/npm/@mariozechner/pi-coding-agent@0.73.1/README.md">Pi coding agent README, v0.73.1</a> (default tools, context files, extensions, what is left out)</li>
+      <li><a href="https://developers.openai.com/codex/agent-approvals-security">OpenAI Codex docs: Agent approvals and security</a> (official reference for sandbox modes and approval policy)</li>
+      <li><a href="https://codex.danielvaughan.com/2026/05/07/codex-cli-instruction-stack-six-surfaces-agents-md-rules-hooks-skills/">D. Vaughan: The Codex CLI instruction stack</a> and <a href="https://codex.danielvaughan.com/2026/08/31/codex-cli-sandbox-permission-hardening-full-auto-removed-untrusted-retired-fail-closed/">Codex CLI permission hardening</a> (secondary source for AGENTS.md discovery, rules, hooks, skills, sandbox modes)</li>
+    </ol>
+    <p>Draft note: the Codex details on this page were checked against the secondary source in item 6. The official page in item 5 could not be opened from the build environment. These tools change quickly; check the docs for your installed version.</p>
+  </section>
+</div>
+
+<script src="explainer:player.js"></script>
+<script>
+(function(){
+"use strict";
+var $=function(s,r){return (r||document).querySelector(s)}, $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+function el(tag,cls,html){var e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e}
+
+var api={say:function(){},stop:function(){},scene:null,goWhere:function(){}};
+/* ---------- content ---------- */
+
+var SYS=[
+ {id:"inst",name:"Instructions",sub:"system prompt + files",
+  on:"A system prompt plus project files such as <code>CLAUDE.md</code> or <code>AGENTS.md</code>, loaded at the start of every session. The model begins already knowing your build commands and house rules.",
+  off:"The model guesses your conventions. It runs npm in a pnpm repo. You repeat the same corrections every session."},
+ {id:"tools",name:"Tools",sub:"read, edit, shell",
+  on:"Each tool is a function the harness runs when the model asks: read a file, edit it, run a shell command, search. Tool descriptions sit in the context so the model knows what it can call.",
+  off:"The model can only talk. It describes a fix and you type it. This is the bare model from section 2."},
+ {id:"perm",name:"Permissions",sub:"approvals + sandbox",
+  on:"Approval modes decide which calls run, which wait for you, and which never run. A sandbox enforces limits at the operating-system level, whatever the model writes.",
+  off:"Every call runs as you, on your machine, unreviewed. A single wrong command is enough."},
+ {id:"ctx",name:"Context mgmt",sub:"compaction",
+  on:"The window is finite. The harness drops stale tool output and compacts the conversation into a summary when it fills. Compaction is lossy, so durable rules belong in the instructions file.",
+  off:"The window fills in the middle of a task. The session errors out, or early instructions silently fall off the end."},
+ {id:"sub",name:"Subagents",sub:"side loops",
+  on:"A side task runs in its own loop with its own context window. Only a summary returns to the main conversation.",
+  off:"Every file opened during research stays in the main window and crowds out the actual task."},
+ {id:"skill",name:"Skills + plugins",sub:"on-demand know-how",
+  on:"A skill is a folder of instructions loaded only when relevant. Plugins, packages and extensions bundle skills, hooks and tools so a team can install one setup.",
+  off:"Every procedure is pasted by hand, or it sits in the always-loaded instructions and costs context on every request."},
+ {id:"mcp",name:"MCP servers",sub:"external systems",
+  on:"Model Context Protocol servers add tools for systems outside the repo: an issue tracker, a database, a browser.",
+  off:"The agent reaches only what the shell reaches. Anything else needs a CLI wrapper or copy and paste."}
+];
+
+var CARDS=[
+ {name:"Claude Code",doc:"Doctrine: batteries included",rows:[
+  ["Instructions","CLAUDE.md"],["Tools","files, search, shell, web"],["Permissions","6 modes + Bash sandbox"],["Context","auto-compact, /compact"],["Subagents","built in"],["Extend","skills, hooks, plugins"],["MCP","built in"]],
+  note:"Most of the panel ships fitted. Modes run from Manual and Plan through Accept edits to Auto, where a classifier reviews actions for you. You configure a lot and build very little."},
+ {name:"Codex",doc:"Doctrine: sandbox first",rows:[
+  ["Instructions","AGENTS.md"],["Tools","shell, patch edits"],["Permissions","sandbox mode + approval policy"],["Context","auto-compact"],["Subagents","supported"],["Extend","skills, hooks, rules"],["MCP","via config.toml"]],
+  note:"Two separate dials. Sandbox mode sets what is technically possible: <code>read-only</code>, <code>workspace-write</code> or <code>danger-full-access</code>. Approval policy sets when it stops to ask. The CLI is open source."},
+ {name:"Pi",doc:"Doctrine: minimal core",rows:[
+  ["Instructions","AGENTS.md or CLAUDE.md"],["Tools","read, write, edit, bash"],["Permissions","not fitted",1],["Context","compaction, session tree"],["Subagents","not fitted",1],["Extend","TS extensions, skills, packages"],["MCP","not fitted",1]],
+  note:"Four default tools and a short system prompt you can replace with <code>SYSTEM.md</code>. No MCP, no subagents, no permission popups, no plan mode, on purpose. The advice: run it in a container, and write or install an extension for anything you miss."}
+];
+
+var CALLS=[
+ {cmd:"read src/parse.js",risk:"lo",label:"read-only",read:true},
+ {cmd:"edit src/parse.js",risk:"mid",label:"writes inside the repo"},
+ {cmd:"bash: git push --force origin main",risk:"hi",label:"rewrites shared history"}
+];
+
+var STEPS=[
+ {s:"hook",say:"One model, moved between three tools, produces three different sessions. Hold that question."},
+ {s:"bare",k:0,say:"A bare model maps text to text. Ask it to fix a test and it can only write about fixing a test."},
+ {s:"bare",k:1,say:"It cannot open a file or run a command. Somebody else has to do that and report back. That somebody is the harness."},
+ {s:"loop",k:0,say:"Lap start. The harness assembles the context: its system prompt, your project instructions, your request."},
+ {s:"loop",k:1,say:"The model reads the context and replies with a structured request: call the shell tool with npm test. It is still only text."},
+ {s:"loop",k:2,say:"The harness parses that request and checks it against the permission rules before anything runs."},
+ {s:"loop",k:3,say:"Allowed. The harness runs the command itself. The model never touches your machine directly."},
+ {s:"loop",k:4,say:"The output is appended to the context. Now the model can see that one test failed, and where."},
+ {s:"loop",k:5,say:"Back to the top for another lap. Laps continue until the model replies with no tool call. That reply is the answer."},
+ {s:"you",say:"You are the harness now. Approve or deny each proposed call. Try a second run with different choices or another mode."},
+ {s:"panel",k:0,say:"Instructions: what the model is told before you type anything."},
+ {s:"panel",k:1,say:"Tools: the only ways the model can act. A harness with four tools and one with forty behave differently."},
+ {s:"panel",k:2,say:"Permissions and sandboxing: who is asked, and what is impossible regardless of the answer."},
+ {s:"panel",k:3,say:"Context management: what stays in the window when it fills, and what is summarized away."},
+ {s:"panel",k:4,say:"Subagents: extra loops with their own windows, so research does not flood the main one."},
+ {s:"panel",k:5,say:"Skills, plugins and extensions: know-how and code loaded only when needed."},
+ {s:"panel",k:6,say:"MCP servers: a standard socket for tools that live outside the repo."},
+ {s:"three",k:0,say:"Claude Code fits nearly everything at the factory and lets you tune it with settings, skills, hooks and plugins."},
+ {s:"three",k:1,say:"Codex leads with the sandbox. What the agent can technically reach and when it asks you are set separately."},
+ {s:"three",k:2,say:"Pi ships the loop, four tools and an extension API. Missing systems are a deliberate choice, and yours to add."},
+ {s:"payoff",say:"Same pilot, different aircraft. The harness is the difference you were seeing."}
+];
+
+/* ---------- state ---------- */
+/* loop tape */
+var TAPE=[
+ {at:0,c:"",t:"SYSTEM PROMPT: you are a coding agent. Tools: read, edit, bash"},
+ {at:0,c:"",t:"PROJECT INSTRUCTIONS: use pnpm. Run tests before finishing."},
+ {at:0,c:"",t:"USER: fix the failing test"},
+ {at:1,c:"call",t:"TOOL CALL: bash { command: \"pnpm test\" }"},
+ {at:4,c:"res",t:"TOOL RESULT: 1 failed. parse.test.js:17 expected 3, got 4"},
+ {at:5,c:"call",t:"TOOL CALL: read { path: \"src/parse.js\" } ..."}
+];
+var tape=$("#tape"); TAPE.forEach(function(x){var d=el("div","slot "+x.c);d.textContent=x.t;d.dataset.at=x.at;tape.appendChild(d)});
+function drawLoop(k){
+  $$("#stations .st").forEach(function(li,n){li.classList.toggle("on",n===k)});
+  $$("#tape .slot").forEach(function(d){var at=+d.dataset.at;d.classList.toggle("hide",at>k);d.classList.toggle("new",at===k&&k>0)});
+  $("#lap").textContent=k>=5?"lap 2":"lap 1";
+}
+
+/* overhead panel */
+var ovh=$("#ovh"), sysOn=SYS.map(function(){return true}), focusK=0;
+SYS.forEach(function(s,n){
+  var b=el("button","sw",s.name+"<small>"+s.sub+"</small>");b.type="button";b.setAttribute("aria-pressed","true");
+  b.addEventListener("click",function(){sysOn[n]=!sysOn[n];focusK=n;api.stop();drawPanel();api.say(s.name+(sysOn[n]?" restored.":" pulled. Read the fault below."))});
+  ovh.appendChild(b);
+});
+function drawPanel(){
+  var off=0;
+  $$(".sw",ovh).forEach(function(b,n){b.setAttribute("aria-pressed",sysOn[n]?"true":"false");b.classList.toggle("focus",n===focusK);if(!sysOn[n])off++});
+  var s=SYS[focusK], r=$("#readout"), on=sysOn[focusK];
+  r.className="readout"+(on?"":" fault");
+  r.innerHTML='<span class="tag">'+s.name+(on?" / fitted":" / fault")+"</span>"+(on?s.on:s.off);
+  var m=$("#master");
+  m.className="master"+(off===0?"":off===SYS.length||!sysOn[1]?" fail":" warn");
+  m.textContent=off===0?"All 7 systems fitted. Tap any switch to pull it.":
+    off===SYS.length?"Master warning: nothing fitted. This is a bare model again.":
+    !sysOn[1]?"Master warning: no tools. The loop has nothing to execute.":
+    (SYS.length-off)+" of 7 fitted. The loop still runs, with gaps.";
+}
+
+/* three aircraft */
+var cards=$("#cards");
+CARDS.forEach(function(c){
+  var d=el("article","card");
+  d.appendChild(el("h3",null,c.name));d.appendChild(el("div","doc",c.doc));
+  var ul=el("ul","chk");
+  c.rows.forEach(function(r){ul.appendChild(el("li",null,'<span class="k">'+r[0]+'</span><span class="dots"></span><span class="v'+(r[2]?" nf":"")+'">'+r[1]+"</span>"))});
+  d.appendChild(ul);d.appendChild(el("p",null,c.note));cards.appendChild(d);
+});
+$$(".tab").forEach(function(t){t.addEventListener("click",function(){api.goWhere(function(x){return x.scene==="three"&&x.mark.k===+t.dataset.t})})});
+function drawThree(k){
+  $$(".card",cards).forEach(function(c,n){c.classList.toggle("on",n===k)});
+  $$(".tab").forEach(function(t,n){t.setAttribute("aria-selected",n===k?"true":"false")});
+}
+
+/* you have control */
+var Y={n:0,mode:"ask",blind:false,noEdit:false,log:[],done:false,pushed:false,auto:0};
+function yReset(){Y.n=0;Y.blind=false;Y.noEdit=false;Y.log=[["","USER: fix the failing test in parse.test.js"]];Y.done=false;Y.pushed=false;Y.auto=0;yAdvance()}
+function yPush(c,t){Y.log.push([c,t])}
+function yDecide(ok,auto){
+  var c=CALLS[Y.n], by=auto?"auto-allowed by mode":"approved by you";
+  yPush("call","TOOL CALL: "+c.cmd);
+  if(Y.n===0){
+    if(ok){yPush("res","RESULT ("+by+"): 42 lines. Line 17 loops with i <= len. Off by one.")}
+    else{Y.blind=true;yPush("bad","RESULT: denied by user.");yPush("","MODEL: I cannot see the file. I will infer the bug from the test name.")}
+  }else if(Y.n===1){
+    if(ok){yPush("res",Y.blind?"RESULT ("+by+"): edit applied to line 9. A guess, made blind. Tests still fail.":"RESULT ("+by+"): line 17 changed to i < len. Tests pass.")}
+    else{Y.noEdit=true;yPush("bad","RESULT: denied by user.");yPush("","MODEL: Understood. Here is the diff as text. Apply it yourself.")}
+  }else{
+    if(ok){Y.pushed=true;yPush("bad","RESULT ("+by+"): pushed. Remote main overwritten.")}
+    else{yPush("bad","RESULT: denied by user.");yPush("fin","MODEL: Understood. The commit is local. Push when you are ready.")}
+  }
+  if(auto)Y.auto++;
+  Y.n++; yAdvance();
+}
+function yAdvance(){
+  while(Y.n<CALLS.length){
+    if(Y.n===2&&Y.noEdit){yPush("fin","MODEL: Nothing was changed, so there is nothing to push. Done.");Y.n=CALLS.length;break}
+    var c=CALLS[Y.n];
+    if(Y.mode==="all"||(Y.mode==="reads"&&c.read)){yDecide(true,true);return}
+    break;
+  }
+  if(Y.n>=CALLS.length)Y.done=true;
+  drawYou();
+}
+function drawYou(){
+  var p=$("#prop");p.innerHTML="";
+  if(!Y.done){
+    var c=CALLS[Y.n];
+    p.appendChild(el("div","who","Model proposes / call "+(Y.n+1)+" of 3"));
+    var cmd=el("div","cmd");cmd.textContent=c.cmd;p.appendChild(cmd);
+    p.appendChild(el("div","risk "+c.risk,"Reach: "+c.label));
+    var a=el("div","acts"),ok=el("button","act ok","Approve"),no=el("button","act no","Deny");ok.type=no.type="button";
+    ok.addEventListener("click",function(){yDecide(true)});no.addEventListener("click",function(){yDecide(false)});
+    a.appendChild(ok);a.appendChild(no);p.appendChild(a);
+  }else{
+    p.appendChild(el("div","who","Run complete"));
+    var a2=el("div","acts"),re=el("button","act re","Fly it again");re.type="button";re.addEventListener("click",yReset);a2.appendChild(re);p.appendChild(a2);
+  }
+  var lg=$("#ylog");lg.innerHTML="";
+  Y.log.slice(-5).forEach(function(r){var d=el("div","slot "+r[0]);d.textContent=r[1];lg.appendChild(d)});
+  $("#ylap").textContent=Y.log.length+" entries";
+  var db="";
+  if(Y.done){
+    db=Y.pushed?(Y.auto===3?"Nobody looked at anything, including the force push. The loop was identical. Only the harness setting changed.":"The harness did exactly what you allowed, including the force push. Approval is the last gate before your machine acts.")
+      :Y.noEdit?"You denied the edit, so the model fell back to describing a diff. Without permission to act it is a bare model again."
+      :Y.blind?"You denied the read. The model kept going on a guess, and the denial became one more line of context for it to work around."
+      :"Read and edit ran, the risky push did not. That middle setting is what approval modes automate.";
+  }
+  $("#debrief").textContent=db;
+  if(Y.done&&api.scene==="you")api.say("Run complete. "+db);
+}
+$$(".mode").forEach(function(b){b.addEventListener("click",function(){
+  Y.mode=b.dataset.mode;$$(".mode").forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false")});yReset();
+  api.say(Y.mode==="ask"?"Ask every call: nothing runs until you say so.":Y.mode==="reads"?"Auto-allow reads: the read ran without you. Writes and shell still stop here.":"Allow everything: all three calls ran with no questions.");
+})});
+
+yReset();drawPanel();
+/* ---------- the shared player drives the sections ---------- */
+api=Explainer.scene("#manual",{
+  title:"What is an AI coding harness?",
+  steps:STEPS.map(function(x){return {scene:x.s,mark:{k:x.k},say:x.say,wait:x.s==="you"};}),
+  scenes:{
+    bare:{draw:function(st){$("#noacc").classList.toggle("on",st.k>=1)}},
+    loop:{draw:function(st){drawLoop(st.k)}},
+    you:{draw:function(){drawYou()}},
+    panel:{draw:function(st){focusK=st.k;drawPanel()}},
+    three:{draw:function(st){drawThree(st.k)}}
+  }
+});
+})();
+</script>
+</body>
+</html>

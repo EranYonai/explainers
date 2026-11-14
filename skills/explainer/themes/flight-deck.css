@@ -1,0 +1,65 @@
+/* Flight Deck (flight-deck)
+   An operating manual for an aircraft: khaki paper, stencil headings, amber callouts, a black night panel.
+   Best for: Systems and tools, agents, pipelines, anything with switches, modes and procedures.
+   Fonts: Big Shoulders Display / Instrument Sans / Martian Mono
+   Google Fonts: https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=Instrument+Sans:wght@400;500;600&family=Martian+Mono:wght@400;600&display=swap
+   Mode: light and dark
+   Extracted from the "What is an AI coding harness?" draft.
+   Optional tokens: --rule (heavy lines), --good-fill / --bad-fill (lamp colors behind dark text).
+*/
+:root {
+  --font-display: "Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --font-body: "Instrument Sans",system-ui,sans-serif;
+  --font-mono: "Martian Mono",ui-monospace,Menlo,monospace;
+  --radius: 3px;
+  --stroke-width: 2;
+  --sketch: 2.2;
+  --display-scale: 1.1;
+  --display-weight: 900;
+  --display-transform: uppercase;
+  --display-tracking: .01em;
+  --border-width: 2px;
+  --linecap: square;
+  --body-scale: .95;
+  --paper: #e9e3d3;
+  --surface: #f6f1e4;
+  --ink: #15170f;
+  --muted: #5a5c4e;
+  --line: #c9c2ad;
+  --rule: #15170f;
+  --accent: #8f4b00;
+  --hl: #f2a900;
+  --good: #1c6e37;
+  --bad: #a8221b;
+  --good-fill: #2fae5a;
+  --bad-fill: #e04a3f;
+  --accent-ink: #ffffff;
+  --hl-ink: #14160f;
+  --shadow: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #090d0b; --surface: #111714; --ink: #e8e3cd; --muted: #8f947f; --line: #2a322b; --rule: #55604f;
+    --accent: #ffb81f; --hl: #ffb000; --good: #58dd84; --bad: #ff6a5c; --good-fill: #3fcf6f; --bad-fill: #ff5a4d;
+    --accent-ink: #14160f; --hl-ink: #14160f;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #090d0b; --surface: #111714; --ink: #e8e3cd; --muted: #8f947f; --line: #2a322b; --rule: #55604f;
+  --accent: #ffb81f; --hl: #ffb000; --good: #58dd84; --bad: #ff6a5c; --good-fill: #3fcf6f; --bad-fill: #ff5a4d;
+  --accent-ink: #14160f; --hl-ink: #14160f;
+}
+
+/* chrome: the scene is a manual page, the caption an amber callout, the controls stencil switches */
+.scene { border-color: var(--rule); border-radius: var(--radius); }
+.scene .sec { border-bottom: 1px solid var(--rule); }
+.scene .sec .no::before { content: "SEC "; }
+.caption { margin: 12px 20px 0; padding: 8px 12px; border-left: 6px solid var(--hl); background: var(--paper);
+  font-family: var(--font-body); font-weight: 500; font-size: 1rem; line-height: 1.45; min-height: 4.6em; }
+.controls button { border-color: var(--rule); font-family: var(--font-display); font-weight: 800; font-size: 1.05rem;
+  letter-spacing: .08em; text-transform: uppercase; }
+.controls button.primary { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.dots i.on { background: var(--hl); }
+.dots i.done { background: var(--ink); }
+:focus-visible { outline-color: var(--hl); }
+@media (max-width: 600px) { .caption { margin: 12px 12px 0; } }
