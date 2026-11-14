@@ -230,6 +230,14 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
     <p class="payoff">The code never changed. The timing did, and <mark>the test was measuring the timing</mark>.</p>
     <p>The fix is to wait for the thing itself: join the thread, await the result, or poll until the condition is true.
       Retries make the dashboard green but leave the race in place, and users can't rerun production.</p>
+    <h2>Other causes with the same shape</h2>
+    <ul>
+      <li><b>Shared state.</b> One test leaves a row, a file or a global behind, and another test reads it.</li>
+      <li><b>Test order.</b> A test passes only when another one ran first. Shuffle the suite and it breaks.</li>
+      <li><b>The real clock.</b> Code that reads the time fails near midnight, at month end, or on a server set to UTC.</li>
+      <li><b>The network.</b> A call to a real service inherits its slowness and outages.</li>
+    </ul>
+    <p>When one does flake, move it out of the blocking checks, give it an owner and a deadline, and count every pass-after-retry so you know which test to fix first.</p>
   </section>
 </main>
 
