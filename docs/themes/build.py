@@ -10,7 +10,7 @@ def C(paper,surface,ink,muted,line,accent,hl,good,bad,accent_ink,extra=None):
 MONO_FB='ui-monospace,Menlo,Consolas,monospace'
 themes=[
 T('inkwell','Inkwell','A ruled notebook, a black fineliner and one green highlighter.',
-  'Step-by-step reasoning, debugging stories, anything Eran would sketch by hand.',
+  'Step-by-step reasoning, debugging stories, anything you would sketch by hand.',
   'Notebook lines and a light wobble on drawings can feel busy in dense diagrams.',2,
   'Fraunces / Newsreader / IBM Plex Mono','Fraunces:opsz,wght@9..144,600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;600',
   C('#f1f1ee','#fbfbf9','#1d1d22','#55565f','#c4cbd8','#1456b8','#c8f03c','#1d7a45','#c8322b','#ffffff',
@@ -227,15 +227,20 @@ for t in themes:
             if r<m: print('LOW',t['slug'],mode,n,round(r,2))
 # ---- css files
 def decl(d,ind='  '): return ''.join(f'{ind}{k}: {v};\n' for k,v in d.items())
-def dropin(t):
+# Tokens only the gallery uses (its wobble filter and node shapes); the copies the skill ships leave them out.
+GALLERY_ONLY=('--sketch','--node-rx')
+def dropin(t,ship=False):
     base=dict(t['style']); base.update(t['light'])
+    if ship: base={k:v for k,v in base.items() if k not in GALLERY_ONLY}
     for k,v in {'--texture':'none','--texture-size':'auto','--shadow':'none','--body-scale':'1'}.items(): base.setdefault(k,v)
     s=f"/* {t['name']} ({t['slug']})\n   {t['mood']}\n   Best for: {t['best']}\n   Fonts: {t['fonts']}\n   Google Fonts: https://fonts.googleapis.com/css2?family={t['gf']}&display=swap\n"
     if t['src']:
         sc=SOURCES[t['src']]
         s+=f"   Source: {sc['url']}\n   File: {files_text(t['src'])}\n   License: {sc['license']}\n"
         if t.get('srcnote'): s+=f"   Note: {t['srcnote']}\n"
-    s+=f"   Mode: {'single. '+t['single'] if t['single'] else 'light and dark'}\n   --sketch is the feDisplacementMap scale for hand-drawn wobble (0 = off).\n*/\n"
+    s+=f"   Mode: {'single. '+t['single'] if t['single'] else 'light and dark'}\n"
+    if not ship: s+="   --sketch is the feDisplacementMap scale for hand-drawn wobble (0 = off).\n"
+    s+="*/\n"
     s+=':root {\n'+decl(base)+'}\n'
     if t['dark']:
         s+='@media (prefers-color-scheme: dark) {\n  :root:not([data-theme="light"]) {\n'+decl(t['dark'],'    ')+'  }\n}\n'
@@ -250,8 +255,12 @@ def scoped(t):
         s+='@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) '+c+'{'+decl(t['dark'],'')+'}}\n'
         s+=':root[data-theme="dark"] '+c+'{'+decl(t['dark'],'')+'}\n'
     return s
+# The skill ships these from the gallery (Flight Deck and Transit are hand-written in the skill folder).
+SHIPPED=('inkwell','gruvbox','kanagawa','one-half','dracula','rose-pine')
+SKILL_THEMES=os.path.join(OUT,'..','..','skills','explainer','themes')
 for t in themes:
     open(f"{OUT}/themes/{t['slug']}.css",'w').write(dropin(t))
+    if t['slug'] in SHIPPED: open(f"{SKILL_THEMES}/{t['slug']}.css",'w').write(dropin(t,ship=True))
 # ---- scene
 def scene(slug):
     xs=[30+40*i for i in range(8)]

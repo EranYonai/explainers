@@ -5,9 +5,11 @@ eight (`skills/explainer/themes/`): Inkwell, plus Flight Deck and Transit (taken
 gallery), plus five editor palettes: Gruvbox, Kanagawa, One Half, Dracula and Rose Pine. The rest live here as
 the pool new ones come from.
 
-- `build.py` generates `index.html` and `themes/*.css`. Edit it and rerun `python3 build.py`. Do not hand-edit the outputs.
+- `build.py` generates `index.html`, `themes/*.css`, and the six gallery themes the skill ships
+  (`skills/explainer/themes/`, without the gallery-only `--sketch` and `--node-rx`). Edit it and rerun
+  `python3 build.py`. Do not hand-edit the outputs; CI fails when they differ from a fresh run.
 - `verify_schemes.py` checks the 12 editor schemes against their upstream palettes. It expects those repos cloned
   under `/tmp/schemes` (paths in `scheme_src.py`).
-- `shot.py` renders the gallery at phone and desktop width with Playwright.
+- `shot.py` renders the gallery at phone and desktop width with Playwright, into `out/themes/`.
 
 Required tokens: `--paper --surface --ink --muted --line --accent --hl --good --bad --font-display --font-body --font-mono`.

@@ -7,7 +7,6 @@
    File: gruvbox/colors/gruvbox.vim
    License: no LICENSE file in the repo; package.json says "MIT" and README says "MIT/X11"
    Mode: light and dark
-   --sketch is the feDisplacementMap scale for hand-drawn wobble (0 = off).
 */
 :root {
   --font-display: "Space Grotesk","Segoe UI",sans-serif;
@@ -15,7 +14,6 @@
   --font-mono: "Fira Code",ui-monospace,Menlo,Consolas,monospace;
   --radius: 6px;
   --stroke-width: 2.4;
-  --sketch: 0;
   --texture: none;
   --display-scale: 1.1;
   --display-weight: 600;
@@ -23,7 +21,6 @@
   --display-tracking: -.01em;
   --border-width: 1.5px;
   --linecap: round;
-  --node-rx: 6px;
   --paper: #f2e5bc;
   --surface: #fbf1c7;
   --ink: #3c3836;

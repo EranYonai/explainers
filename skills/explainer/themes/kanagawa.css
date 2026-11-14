@@ -7,7 +7,6 @@
    File: kanagawa.nvim/lua/kanagawa/colors.lua
    License: MIT (LICENSE, Copyright (c) 2021 Tommaso Laurenzi)
    Mode: light and dark
-   --sketch is the feDisplacementMap scale for hand-drawn wobble (0 = off).
 */
 :root {
   --font-display: "Marcellus","Trajan Pro",serif;
@@ -15,7 +14,6 @@
   --font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
   --radius: 6px;
   --stroke-width: 2.4;
-  --sketch: 0;
   --texture: none;
   --display-scale: 1.2;
   --display-weight: 400;
@@ -23,7 +21,6 @@
   --display-tracking: -.01em;
   --border-width: 1.5px;
   --linecap: round;
-  --node-rx: 6px;
   --paper: #e5ddb0;
   --surface: #f2ecbc;
   --ink: #43436c;
