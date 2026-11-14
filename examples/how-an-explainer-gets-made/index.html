@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>What you get from one sentence</title>
 <meta name="description" content="Watch an explainer page get built piece by piece: a question, a picture that changes, a choice for the reader, and a one-line answer.">
-<style>
+<style data-explainer="player">
 /* explainer player: page base, scene chrome and a few layout helpers. Colors and fonts come from a theme file (themes/*.css). */
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -142,7 +142,7 @@ nav[data-slot="next"] a:hover{border-color:var(--accent)}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
-<style>
+<style data-explainer="theme">
 /* Inkwell (inkwell)
    A ruled notebook, a black fineliner and one green highlighter.
    Best for: Step-by-step reasoning, debugging stories, anything Eran would sketch by hand.
@@ -215,7 +215,6 @@ nav[data-slot="next"] a:hover{border-color:var(--accent)}
 }
 </style>
 <style>
-
   .phone{width:min(300px,100%);margin:4px auto 0;border:2px solid var(--ink);border-radius:26px;background:var(--surface);padding:16px 14px 18px;box-sizing:border-box;display:grid;gap:10px}
   .phone .bar{width:60px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 2px}
   .piece{transition:opacity .35s,max-height .45s,box-shadow .35s;overflow:hidden;max-height:240px;border-radius:var(--radius,6px)}
@@ -231,9 +230,8 @@ nav[data-slot="next"] a:hover{border-color:var(--accent)}
   .mcap{font-size:14px;margin:0;padding:2px 6px;color:var(--ink)}
   .mctl{display:flex;gap:6px;justify-content:center;font:600 12px var(--font-mono);color:var(--muted)}
   .mctl span{border:1px solid var(--line);border-radius:999px;padding:2px 10px}
-  .mpick{display:flex;flex-wrap:wrap;gap:6px}
-  .mpick button{font:inherit;font-size:14px;border:var(--border-width,1px) solid var(--accent);border-radius:var(--radius,6px);background:var(--paper);color:var(--ink);padding:6px 10px;cursor:pointer;flex:1 1 auto}
-  .mpick button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+  .phone .choices{gap:6px;margin:0}
+  .phone .choices button{font-size:14px;min-height:36px;padding:6px 10px;flex:1 1 auto}
   .mpay{font-weight:600;font-size:15px;margin:0;border-top:1px dashed var(--line);padding-top:8px}
   .mpay mark{background:var(--hl);color:var(--hl-ink)}
   .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:10px;margin-top:8px}
@@ -265,7 +263,7 @@ nav[data-slot="next"] a:hover{border-color:var(--accent)}
             <div class="piece mpic" id="p-pic"></div>
             <p class="piece mcap" id="p-cap"></p>
             <div class="piece mctl" id="p-ctl"><span>&#8249; Back</span><span>Next &#8250;</span></div>
-            <div class="piece mpick" id="p-pick" role="group" aria-label="How should clients retry?"></div>
+            <div class="piece choices" id="p-pick" role="group" aria-label="How should clients retry?"></div>
             <p class="piece mpay" id="p-pay">Retrying at once <mark>multiplies the load</mark>; waiting first lets the server recover.</p>
           </div>
         </section>
@@ -298,7 +296,7 @@ nav[data-slot="next"] a:hover{border-color:var(--accent)}
   </nav>
 </main>
 
-<script>
+<script data-explainer="player">
 /* explainer player
  * One shared stepper for every explainer: Back / Next / Play, captions, dots, keys, reduced motion.
  * A scene is data plus two small functions:
@@ -705,12 +703,12 @@ nav[data-slot="next"] a:hover{border-color:var(--accent)}
   var BASE = 100, CAP = 200, RETRIES = 3, SPREAD = 4;
   function load(mode) {
     if (mode === "calm") return BASE;
-    if (mode === "storm") return BASE * (1 + RETRIES);          // every client sends again at once, three times
-    if (mode === "backoff") return BASE + Math.round(BASE * RETRIES / SPREAD); // the same retries, spread over 4 seconds
+    if (mode === "storm") return BASE * (1 + RETRIES);          // every client sends again at once, RETRIES times
+    if (mode === "backoff") return BASE + Math.round(BASE * RETRIES / SPREAD); // the same retries, spread over SPREAD seconds
     return 0;
   }
-  // One real run of the skill, copied from runs.csv in the repo.
-  var RUN = { minutes: 5, fixes: 2, kb: 46.3, tools: 9 };
+  // One real run of the skill (logged in runs.csv). The file size is this page's own, measured when it loads.
+  var RUN = { minutes: 5, fixes: 2, kb: Math.round(new Blob([document.documentElement.outerHTML]).size / 102.4) / 10 };
   var TILES = [
     { k: "minutes", label: "minutes from request to file" },
     { k: "fixes", label: "rounds where it checked its own page and fixed it" },
@@ -721,7 +719,7 @@ nav[data-slot="next"] a:hover{border-color:var(--accent)}
   var CAPS = {
     calm: "Clients send {calm} requests a second. The server handles up to {cap}.",
     stall: "The server stalls. Every request waits, then fails.",
-    storm: "Each client retries 3 times at once: {storm} a second. Still too many.",
+    storm: "Each client retries {retries} times at once: {storm} a second. Still too many.",
     backoff: "Clients wait before retrying: {backoff} a second. Under {cap}, so it recovers."
   };
   var CHOICES = [
@@ -757,6 +755,8 @@ nav[data-slot="next"] a:hover{border-color:var(--accent)}
       return { calm: load("calm"), cap: CAP, storm: load("storm"), backoff: load("backoff"), now: load(s.mode),
                minutes: RUN.minutes, fixes: RUN.fixes, kb: RUN.kb };
     },
+    // every outcome a choice can add, so the player reserves room for them up front
+    branches: function () { return CHOICES.map(function (c, i) { return after(i, false); }); },
     scenes: {
       page: {
         setup: function (sec, api) {
@@ -790,7 +790,7 @@ nav[data-slot="next"] a:hover{border-color:var(--accent)}
           srv.style.fill = over ? "var(--bad)" : s.mode === "backoff" ? "var(--good)" : "var(--paper)";
           srvText.textContent = s.mode === "stall" ? "stalled" : l + "/s";
           srvText.style.fill = over || s.mode === "backoff" ? "var(--accent-ink)" : "var(--ink)";
-          var txt = CAPS[s.mode].replace(/\{(\w+)\}/g, function (_, k) { return k === "cap" ? CAP : load(k); });
+          var txt = CAPS[s.mode].replace(/\{(\w+)\}/g, function (_, k) { return k === "cap" ? CAP : k === "retries" ? RETRIES : load(k); });
           el.cap.textContent = txt;
           buttons.forEach(function (b, i) { b.setAttribute("aria-pressed", String(i === s.picked)); });
         }

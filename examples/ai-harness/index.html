@@ -1,10 +1,11 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>What is an AI coding harness? Claude Code, Codex and Pi on the flight deck</title>
-<style>
+<meta name="description" content="The same model behaves differently in Claude Code, Codex and Pi because the harness around it decides what it sees, what it may touch and what comes back.">
+<style data-explainer="player">
 /* explainer player: page base, scene chrome and a few layout helpers. Colors and fonts come from a theme file (themes/*.css). */
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -141,7 +142,7 @@ nav[data-slot="next"] a:hover{border-color:var(--accent)}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=Instrument+Sans:wght@400;500;600&family=Martian+Mono:wght@400;600&display=swap">
-<style>
+<style data-explainer="theme">
 /* Flight Deck (flight-deck)
    An operating manual for an aircraft: khaki paper, stencil headings, amber callouts, a black night panel.
    Best for: Systems and tools, agents, pipelines, anything with switches, modes and procedures.
@@ -209,23 +210,19 @@ nav[data-slot="next"] a:hover{border-color:var(--accent)}
 @media (max-width: 600px) { .caption { margin: 12px 12px 0; } }
 </style>
 <style>
-.wrap{max-width:1040px;margin:0 auto;padding:12px 16px 48px}
 /* manual header strip */
-.strip{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:4px solid var(--rule,var(--ink));border-bottom:1px solid var(--rule,var(--ink));padding:6px 0;font-family:var(--font-mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.08em}
-.strip b{font-weight:600}
-.daynight{border:1.5px solid var(--rule,var(--ink));background:transparent;padding:4px 8px;font-family:var(--font-mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border-radius:2px}
-h1.hook{font-family:var(--font-display);font-weight:900;text-transform:uppercase;font-size:clamp(2rem,9vw,3.6rem);line-height:.92;margin:16px 0 8px;letter-spacing:.005em}
-.lede{max-width:62ch;margin:0 0 14px;color:var(--muted);font-size:1em}
-.payoff-wrap{margin-top:26px}
+.masthead{border-top:4px solid var(--rule,var(--ink));border-bottom:1px solid var(--rule,var(--ink));padding:6px 0}
+h1.hook{font-weight:900;text-transform:uppercase;font-size:clamp(2rem,9vw,3.6rem);line-height:.92;letter-spacing:.005em}
+.dek{color:var(--muted)}
 
-.prose{max-width:64ch;margin:0 0 12px;font-size:.95rem}
+.lead{max-width:64ch;margin:0 0 12px;font-size:.95rem}
 /* hook */
 .big{font-family:var(--font-display);font-weight:900;text-transform:uppercase;font-size:clamp(2.6rem,13vw,6rem);line-height:.88;margin:8px 0 14px}
 .big em{font-style:normal;color:var(--accent)}
 .lamps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 12px}
 .lamp{border:2px solid var(--rule,var(--ink));border-radius:3px;padding:8px 6px;text-align:center;font-family:var(--font-mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;background:var(--paper)}
 .lamp b{display:block;font-family:var(--font-display);font-size:1.15rem;font-weight:800;letter-spacing:.03em;line-height:1.1}
-.lamp i{display:block;font-style:normal;margin-top:4px;padding:2px;border-radius:2px;color:#14160f;font-weight:600}
+.lamp i{display:block;font-style:normal;margin-top:4px;padding:2px;border-radius:2px;color:var(--hl-ink);font-weight:600}
 .lamp:nth-child(1) i{background:var(--good-fill,var(--good))}.lamp:nth-child(2) i{background:var(--hl)}.lamp:nth-child(3) i{background:var(--bad-fill,var(--bad))}
 
 /* bare model */
@@ -236,7 +233,7 @@ h1.hook{font-family:var(--font-display);font-weight:900;text-transform:uppercase
 .core small{display:block;font-family:var(--font-mono);font-size:.58rem;font-weight:400;letter-spacing:.08em}
 .arrow{text-align:center;font-family:var(--font-mono);font-size:.8rem;line-height:1;color:var(--muted)}
 .noacc{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;opacity:.25;transition:opacity .4s}
-.noacc.on{opacity:1}
+.noacc.lit{opacity:1}
 .inop{border:2px solid var(--bad);color:var(--bad);border-radius:3px;padding:8px;text-align:center;font-family:var(--font-mono);font-size:.64rem;text-transform:uppercase;letter-spacing:.06em}
 .inop b{display:block;font-family:var(--font-display);font-size:1.3rem;font-weight:800;letter-spacing:.06em}
 @media(min-width:760px){.io{grid-template-columns:1fr auto 190px auto 1fr;align-items:center}.arrow{transform:rotate(-90deg)}}
@@ -251,8 +248,8 @@ h1.hook{font-family:var(--font-display);font-weight:900;text-transform:uppercase
 .st .n{font-family:var(--font-mono);font-size:.62rem;width:1.6em;flex:none}
 .st .t{font-family:var(--font-display);font-weight:800;font-size:1.05rem;text-transform:uppercase;letter-spacing:.04em;line-height:1.1}
 .st .d{display:block;font-family:var(--font-body);font-weight:400;font-size:.76rem;text-transform:none;letter-spacing:0;color:var(--muted);line-height:1.25}
-.st.on{background:var(--hl);border-color:var(--rule,var(--ink));color:#14160f}
-.st.on .d{color:#2c2a1c}
+.st.lit{background:var(--hl);border-color:var(--rule,var(--ink));color:var(--hl-ink)}
+.st.lit .d{color:color-mix(in srgb,var(--hl-ink) 80%,var(--hl))}
 .tape{border:1.5px solid var(--rule,var(--ink));border-radius:3px;background:var(--paper);padding:8px}
 .tape h3,.log h3{margin:0 0 6px;font-family:var(--font-mono);font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;display:flex;justify-content:space-between;gap:8px}
 .slot{font-family:var(--font-mono);font-size:.66rem;line-height:1.4;border-left:4px solid var(--muted);padding:3px 6px;margin:0 0 4px;background:var(--surface);overflow-wrap:anywhere;transition:opacity .35s,transform .35s}
@@ -262,7 +259,7 @@ h1.hook{font-family:var(--font-display);font-weight:900;text-transform:uppercase
 @keyframes slotin{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
 
 /* you have control */
-.hazard{height:10px;border-radius:2px;margin:0 0 10px;background:repeating-linear-gradient(135deg,var(--hl) 0 10px,#15170f 10px 20px)}
+.hazard{height:10px;border-radius:2px;margin:0 0 10px;background:repeating-linear-gradient(135deg,var(--hl) 0 10px,var(--hl-ink) 10px 20px)}
 .modes{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;align-items:center}
 .modes span{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;width:100%}
 .mode{border:1.5px solid var(--rule,var(--ink));background:var(--paper);border-radius:2px;padding:7px 9px;font-family:var(--font-mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;min-height:36px}
@@ -272,10 +269,10 @@ h1.hook{font-family:var(--font-display);font-weight:900;text-transform:uppercase
 .prop .cmd{font-family:var(--font-mono);font-weight:600;font-size:.86rem;margin:4px 0 2px;overflow-wrap:anywhere}
 .prop .risk{font-family:var(--font-mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.06em}
 .risk.lo{color:var(--good)}.risk.mid{color:var(--accent)}.risk.hi{color:var(--bad)}
-.acts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-.act{flex:1 1 120px;min-height:46px;border:2px solid var(--rule,var(--ink));border-radius:3px;font-family:var(--font-display);font-weight:800;font-size:1.15rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;color:#14160f}
-.act.ok{background:var(--good-fill,var(--good))}.act.no{background:var(--bad-fill,var(--bad))}.act.re{background:var(--paper);color:var(--ink);font-size:.95rem}
-.act:active{transform:translateY(1px)}
+.acts{gap:8px;margin-top:10px}
+.choices .act{flex:1 1 120px;padding:0 12px;min-height:46px;border:2px solid var(--rule,var(--ink));border-radius:3px;font-family:var(--font-display);font-weight:800;font-size:1.15rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;color:var(--hl-ink)}
+.choices .act.ok{background:var(--good-fill,var(--good))}.choices .act.no{background:var(--bad-fill,var(--bad))}.choices .act.re{background:var(--paper);color:var(--ink);font-size:.95rem}
+.choices .act:active{transform:translateY(1px)}
 .log{border:1.5px solid var(--rule,var(--ink));border-radius:3px;background:var(--paper);padding:8px}
 .debrief{font-size:.9rem;margin:8px 0 0;font-weight:500}
 
@@ -289,8 +286,8 @@ h1.hook{font-family:var(--font-display);font-weight:900;text-transform:uppercase
 .sw[aria-pressed="false"]{border-style:dashed;color:var(--muted)}
 .sw.focus{outline:3px solid var(--hl);outline-offset:1px}
 .master{font-family:var(--font-mono);font-size:.64rem;text-transform:uppercase;letter-spacing:.06em;margin:0 0 8px;padding:5px 8px;border-radius:2px;border:1.5px solid var(--rule,var(--ink))}
-.master.warn{background:var(--hl);color:#14160f}
-.master.fail{background:var(--bad-fill,var(--bad));color:#14160f}
+.master.warn{background:var(--hl);color:var(--hl-ink)}
+.master.fail{background:var(--bad-fill,var(--bad));color:var(--hl-ink)}
 .readout{border:1.5px solid var(--rule,var(--ink));border-radius:3px;background:var(--paper);padding:9px 10px;font-size:.9rem;min-height:92px}
 .readout .tag{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:3px}
 .readout.fault{border-color:var(--bad);border-width:2px}
@@ -300,19 +297,19 @@ h1.hook{font-family:var(--font-display);font-weight:900;text-transform:uppercase
 .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
 .tab{border:2px solid var(--rule,var(--ink));background:var(--paper);border-radius:3px 3px 0 0;padding:7px 4px;font-family:var(--font-display);font-weight:800;font-size:1rem;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;min-height:40px}
 .tab[aria-selected="true"]{background:var(--ink);color:var(--surface)}
-.cards{display:grid;grid-template-columns:1fr;gap:10px}
-.card{display:none;border:2px solid var(--rule,var(--ink));border-radius:3px;background:var(--paper);padding:10px}
-.card.on{display:block}
-@media(min-width:900px){.cards{grid-template-columns:repeat(3,1fr)}.card{display:block;opacity:.55;transition:opacity .3s}.card.on{opacity:1;outline:3px solid var(--hl)}}
-.card h3{margin:0;font-family:var(--font-display);font-weight:900;font-size:1.6rem;text-transform:uppercase;line-height:1}
-.card .doc{font-family:var(--font-mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:3px 0 8px}
+.crafts{display:grid;grid-template-columns:1fr;gap:10px}
+.craft{display:none;border:2px solid var(--rule,var(--ink));border-radius:3px;background:var(--paper);padding:10px}
+.craft.lit{display:block}
+@media(min-width:900px){.crafts{grid-template-columns:repeat(3,1fr)}.craft{display:block;opacity:.55;transition:opacity .3s}.craft.lit{opacity:1;outline:3px solid var(--hl)}}
+.craft h3{margin:0;font-family:var(--font-display);font-weight:900;font-size:1.6rem;text-transform:uppercase;line-height:1}
+.craft .doc{font-family:var(--font-mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:3px 0 8px}
 .chk{list-style:none;margin:0;padding:0;font-family:var(--font-mono);font-size:.64rem;line-height:1.35}
 .chk li{display:flex;align-items:baseline;gap:4px;padding:3px 0}
 .chk .k{text-transform:uppercase;letter-spacing:.04em;flex:none}
-.chk .dots{flex:1 1 12px;min-width:12px;border-bottom:1.5px dotted var(--muted);transform:translateY(-3px)}
+.chk .leader{flex:1 1 12px;min-width:12px;border-bottom:1.5px dotted var(--muted);transform:translateY(-3px)}
 .chk .v{text-align:right;max-width:62%;overflow-wrap:anywhere;font-weight:600}
 .chk .v.nf{color:var(--bad)}
-.card p{font-size:.86rem;margin:8px 0 0}
+.craft p{font-size:.86rem;margin:8px 0 0}
 
 /* payoff */
 .stampwrap{display:grid;place-items:center;padding:18px 0 8px}
@@ -320,24 +317,27 @@ h1.hook{font-family:var(--font-display);font-weight:900;text-transform:uppercase
 .stamp small{display:block;font-family:var(--font-mono);font-size:.6rem;font-weight:600;letter-spacing:.14em;margin-bottom:8px}
 @keyframes thump{from{opacity:0;transform:rotate(-2.5deg) scale(1.5)}to{opacity:1;transform:rotate(-2.5deg) scale(1)}}
 
-.src{margin-top:26px;border-top:4px solid var(--rule,var(--ink));padding-top:8px}
-.src h2{font-family:var(--font-display);font-weight:800;font-size:1.2rem;text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px}
-.src ol{margin:0;padding-left:1.3em;font-size:.84rem}
-.src li{margin:0 0 5px;overflow-wrap:anywhere}
-.src a{color:inherit}
-.src p{font-size:.8rem;color:var(--muted);margin:8px 0 0;max-width:70ch}
+.sources{border-top:4px solid var(--rule,var(--ink));padding-top:8px}
+.sources h2{text-transform:uppercase;letter-spacing:.04em}
+.sources li{overflow-wrap:anywhere}
 #manual .stage{padding:14px 20px 4px}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="strip" data-slot="masthead"><span><b>Harness operating manual</b> / draft</span><button class="daynight" data-theme-toggle type="button" aria-label="Switch between day and night theme">Day / Night</button></div>
-  <header data-slot="intro">
-    <h1 class="hook">What is an AI coding harness?</h1>
-    <p class="lede dek">A step-through briefing. The model is the pilot. Everything else in the cockpit is the harness. Use Next, the arrow keys, or Play.</p>
+<main>
+  <header class="masthead col" data-slot="masthead">
+    <span class="kind">Harness operating manual</span>
+    <button type="button" data-theme-toggle aria-label="Switch between day and night theme">Day / Night</button>
   </header>
 
-  <figure id="manual" data-slot="scene">
+  <header class="col stack" data-slot="intro">
+    <h1 class="hook">What is an AI coding harness?</h1>
+    <p class="dek">A step-through briefing. The model is the pilot. Everything else in the cockpit is the harness. Use Next, the arrow keys, or Play.</p>
+    <p class="meta">6 min read · checked against the Claude Code, Codex and Pi docs on 2026-11-14</p>
+  </header>
+
+  <section class="wide" data-slot="scene">
+  <figure class="scene" id="manual">
     <div class="stage">
 
     <section data-scene="hook" data-title="The puzzle">
@@ -347,11 +347,11 @@ h1.hook{font-family:var(--font-display);font-weight:900;text-transform:uppercase
         <div class="lamp"><b>Codex</b>same pilot<i>result B</i></div>
         <div class="lamp"><b>Pi</b>same pilot<i>result C</i></div>
       </div>
-      <p class="prose">Pi can run the same Claude or GPT models that Claude Code and Codex run. Give each tool the same task and you get different edits, different questions, different speed. The weights did not change. Something around them did.</p>
+      <p class="lead">Pi can run the same Claude or GPT models that Claude Code and Codex run. Give each tool the same task and you get different edits, different questions, different speed. The weights did not change. Something around them did.</p>
     </section>
 
     <section data-scene="bare" data-title="Pilot without an aircraft">
-      <p class="prose">Start with the pilot alone. A language model takes text and predicts more text. That is the whole interface.</p>
+      <p class="lead">Start with the pilot alone. A language model takes text and predicts more text. That is the whole interface.</p>
       <div class="io">
         <div class="box"><span class="tag">Text in</span>Fix the failing test in parse.test.js</div>
         <div class="arrow" aria-hidden="true">&#9660;</div>
@@ -366,7 +366,7 @@ h1.hook{font-family:var(--font-display);font-weight:900;text-transform:uppercase
     </section>
 
     <section data-scene="loop" data-title="The agent loop">
-      <p class="prose">A harness is a program that wraps the model in a loop and acts on its behalf. One lap looks like this.</p>
+      <p class="lead">A harness is a program that wraps the model in a loop and acts on its behalf <a class="cite" href="#src-1">[1]</a>. One lap looks like this.</p>
       <div class="loop">
         <ol class="stations" id="stations">
           <li class="st"><span class="n">1</span><span class="t">Context<span class="d">system prompt, instructions, your request, history</span></span></li>
@@ -385,7 +385,7 @@ h1.hook{font-family:var(--font-display);font-weight:900;text-transform:uppercase
 
     <section data-scene="you" data-title="You have control">
       <div class="hazard" aria-hidden="true"></div>
-      <p class="prose">Your turn. You are the permission check. The model proposes, you decide, and your answer goes back into its context.</p>
+      <p class="lead">Your turn. You are the permission check. The model proposes, you decide, and your answer goes back into its context.</p>
       <div class="modes" role="group" aria-label="Approval mode"><span>Approval mode</span>
         <button class="mode" type="button" data-mode="ask" aria-pressed="true">Ask every call</button>
         <button class="mode" type="button" data-mode="reads" aria-pressed="false">Auto-allow reads</button>
@@ -396,49 +396,50 @@ h1.hook{font-family:var(--font-display);font-weight:900;text-transform:uppercase
     </section>
 
     <section data-scene="panel" data-title="Overhead panel">
-      <p class="prose">The loop is twenty lines of code. The rest of a harness is the equipment bolted around it. Tap a switch to pull that system and read the fault.</p>
+      <p class="lead">The loop is twenty lines of code. The rest of a harness is the equipment bolted around it <a class="cite" href="#src-2">[2]</a>. Tap a switch to pull that system and read the fault.</p>
       <div class="master" id="master"></div>
       <div class="ovh" id="ovh"></div>
       <div class="readout" id="readout"></div>
     </section>
 
     <section data-scene="three" data-title="Three aircraft">
-      <p class="prose">All three run the same loop. They disagree about how much of the panel should ship fitted.</p>
+      <p class="lead">All three run the same loop. They disagree about how much of the panel should ship fitted.</p>
       <div class="tabs" role="tablist" aria-label="Tool">
         <button class="tab" role="tab" type="button" data-t="0">Claude Code</button>
         <button class="tab" role="tab" type="button" data-t="1">Codex</button>
         <button class="tab" role="tab" type="button" data-t="2">Pi</button>
       </div>
-      <div class="cards" id="cards"></div>
+      <div class="crafts" id="crafts"></div>
     </section>
 
     <section data-scene="payoff" data-title="Answer">
       <div class="stampwrap"><div class="stamp"><small>ANSWER / CLEARED</small>The harness decides what the model sees, what it may touch and what comes back, so the same pilot flies a different aircraft in each tool.</div></div>
-      <p class="prose">When two tools behave differently on one model, compare the instructions they loaded, the tools they exposed, what they let run without asking, and what they kept in context. The difference is in that list.</p>
+      <p class="lead">When two tools behave differently on one model, compare the instructions they loaded, the tools they exposed, what they let run without asking, and what they kept in context. The difference is in that list.</p>
     </section>
 
     </div>
   </figure>
+  </section>
 
-  <section class="payoff-wrap" data-slot="payoff">
+  <section class="col stack" data-slot="payoff">
     <p class="payoff">Same model, different tool: <mark>the harness is the difference</mark>.</p>
   </section>
 
-  <section class="src sources" data-slot="sources">
+  <section class="sources col" data-slot="sources">
     <h2>Sources</h2>
     <ol>
       <li id="src-1"><a href="https://code.claude.com/docs/en/how-claude-code-works">Claude Code docs: How Claude Code works</a> (agentic loop, "agentic harness", tools, compaction)</li>
       <li id="src-2"><a href="https://code.claude.com/docs/en/features-overview">Claude Code docs: Extend Claude Code</a> (CLAUDE.md, skills, subagents, hooks, MCP, plugins)</li>
       <li id="src-3"><a href="https://code.claude.com/docs/en/permission-modes">Claude Code docs: Permission modes</a> (six modes, Bash sandbox)</li>
       <li id="src-4"><a href="https://cdn.jsdelivr.net/npm/@mariozechner/pi-coding-agent@0.73.1/README.md">Pi coding agent README, v0.73.1</a> (default tools, context files, extensions, what is left out)</li>
-      <li id="src-5"><a href="https://developers.openai.com/codex/agent-approvals-security">OpenAI Codex docs: Agent approvals and security</a> (official reference for sandbox modes and approval policy)</li>
+      <li id="src-5"><a href="https://learn.chatgpt.com/docs/agent-approvals-security">OpenAI Codex docs: Agent approvals and security</a> (sandbox modes and approval policy)</li>
       <li id="src-6"><a href="https://codex.danielvaughan.com/2026/05/07/codex-cli-instruction-stack-six-surfaces-agents-md-rules-hooks-skills/">D. Vaughan: The Codex CLI instruction stack</a> and <a href="https://codex.danielvaughan.com/2026/08/31/codex-cli-sandbox-permission-hardening-full-auto-removed-untrusted-retired-fail-closed/">Codex CLI permission hardening</a> (secondary source for AGENTS.md discovery, rules, hooks, skills, sandbox modes)</li>
     </ol>
-    <p>Draft note: the Codex details on this page were checked against the secondary source in item 6. The official page in item 5 could not be opened from the build environment. These tools change quickly; check the docs for your installed version.</p>
+    <p>Checked on 2026-11-14. These tools change quickly; check the docs for your installed version.</p>
   </section>
-</div>
+</main>
 
-<script>
+<script data-explainer="player">
 /* explainer player
  * One shared stepper for every explainer: Back / Next / Play, captions, dots, keys, reduced motion.
  * A scene is data plus two small functions:
@@ -926,7 +927,7 @@ var TAPE=[
 ];
 var tape=$("#tape"); TAPE.forEach(function(x){var d=el("div","slot "+x.c);d.textContent=x.t;d.dataset.at=x.at;tape.appendChild(d)});
 function drawLoop(k){
-  $$("#stations .st").forEach(function(li,n){li.classList.toggle("on",n===k)});
+  $$("#stations .st").forEach(function(li,n){li.classList.toggle("lit",n===k)});
   $$("#tape .slot").forEach(function(d){var at=+d.dataset.at;d.classList.toggle("hide",at>k);d.classList.toggle("new",at===k&&k>0)});
   $("#lap").textContent=k>=5?"lap 2":"lap 1";
 }
@@ -946,24 +947,24 @@ function drawPanel(){
   r.innerHTML='<span class="tag">'+s.name+(on?" / fitted":" / fault")+"</span>"+(on?s.on:s.off);
   var m=$("#master");
   m.className="master"+(off===0?"":off===SYS.length||!sysOn[1]?" fail":" warn");
-  m.textContent=off===0?"All 7 systems fitted. Tap any switch to pull it.":
+  m.textContent=off===0?"All "+SYS.length+" systems fitted. Tap any switch to pull it.":
     off===SYS.length?"Master warning: nothing fitted. This is a bare model again.":
     !sysOn[1]?"Master warning: no tools. The loop has nothing to execute.":
-    (SYS.length-off)+" of 7 fitted. The loop still runs, with gaps.";
+    (SYS.length-off)+" of "+SYS.length+" fitted. The loop still runs, with gaps.";
 }
 
 /* three aircraft */
-var cards=$("#cards");
+var cards=$("#crafts");
 CARDS.forEach(function(c){
-  var d=el("article","card");
+  var d=el("article","craft");
   d.appendChild(el("h3",null,c.name));d.appendChild(el("div","doc",c.doc));
   var ul=el("ul","chk");
-  c.rows.forEach(function(r){ul.appendChild(el("li",null,'<span class="k">'+r[0]+'</span><span class="dots"></span><span class="v'+(r[2]?" nf":"")+'">'+r[1]+"</span>"))});
+  c.rows.forEach(function(r){ul.appendChild(el("li",null,'<span class="k">'+r[0]+'</span><span class="leader"></span><span class="v'+(r[2]?" nf":"")+'">'+r[1]+"</span>"))});
   d.appendChild(ul);d.appendChild(el("p",null,c.note));cards.appendChild(d);
 });
 $$(".tab").forEach(function(t){t.addEventListener("click",function(){api.goWhere(function(x){return x.scene==="three"&&x.mark.k===+t.dataset.t})})});
 function drawThree(k){
-  $$(".card",cards).forEach(function(c,n){c.classList.toggle("on",n===k)});
+  $$(".craft",cards).forEach(function(c,n){c.classList.toggle("lit",n===k)});
   $$(".tab").forEach(function(t,n){t.setAttribute("aria-selected",n===k?"true":"false")});
 }
 
@@ -1001,22 +1002,22 @@ function drawYou(){
   var p=$("#prop");p.innerHTML="";
   if(!Y.done){
     var c=CALLS[Y.n];
-    p.appendChild(el("div","who","Model proposes / call "+(Y.n+1)+" of 3"));
+    p.appendChild(el("div","who","Model proposes / call "+(Y.n+1)+" of "+CALLS.length));
     var cmd=el("div","cmd");cmd.textContent=c.cmd;p.appendChild(cmd);
     p.appendChild(el("div","risk "+c.risk,"Reach: "+c.label));
-    var a=el("div","acts"),ok=el("button","act ok","Approve"),no=el("button","act no","Deny");ok.type=no.type="button";
+    var a=el("div","acts choices"),ok=el("button","act ok","Approve"),no=el("button","act no","Deny");ok.type=no.type="button";
     ok.addEventListener("click",function(){yDecide(true)});no.addEventListener("click",function(){yDecide(false)});
     a.appendChild(ok);a.appendChild(no);p.appendChild(a);
   }else{
     p.appendChild(el("div","who","Run complete"));
-    var a2=el("div","acts"),re=el("button","act re","Fly it again");re.type="button";re.addEventListener("click",yReset);a2.appendChild(re);p.appendChild(a2);
+    var a2=el("div","acts choices"),re=el("button","act re","Fly it again");re.type="button";re.addEventListener("click",yReset);a2.appendChild(re);p.appendChild(a2);
   }
   var lg=$("#ylog");lg.innerHTML="";
   Y.log.slice(-5).forEach(function(r){var d=el("div","slot "+r[0]);d.textContent=r[1];lg.appendChild(d)});
   $("#ylap").textContent=Y.log.length+" entries";
   var db="";
   if(Y.done){
-    db=Y.pushed?(Y.auto===3?"Nobody looked at anything, including the force push. The loop was identical. Only the harness setting changed.":"The harness did exactly what you allowed, including the force push. Approval is the last gate before your machine acts.")
+    db=Y.pushed?(Y.auto===CALLS.length?"Nobody looked at anything, including the force push. The loop was identical. Only the harness setting changed.":"The harness did exactly what you allowed, including the force push. Approval is the last gate before your machine acts.")
       :Y.noEdit?"You denied the edit, so the model fell back to describing a diff. Without permission to act it is a bare model again."
       :Y.blind?"You denied the read. The model kept going on a guess, and the denial became one more line of context for it to work around."
       :"Read and edit ran, the risky push did not. That middle setting is what approval modes automate.";
@@ -1026,7 +1027,7 @@ function drawYou(){
 }
 $$(".mode").forEach(function(b){b.addEventListener("click",function(){
   Y.mode=b.dataset.mode;$$(".mode").forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false")});yReset();
-  api.say(Y.mode==="ask"?"Ask every call: nothing runs until you say so.":Y.mode==="reads"?"Auto-allow reads: the read ran without you. Writes and shell still stop here.":"Allow everything: all three calls ran with no questions.");
+  api.say(Y.mode==="ask"?"Ask every call: nothing runs until you say so.":Y.mode==="reads"?"Auto-allow reads: the read ran without you. Writes and shell still stop here.":"Allow everything: all "+CALLS.length+" calls ran with no questions.");
 })});
 
 yReset();drawPanel();
@@ -1035,7 +1036,7 @@ api=Explainer.scene("#manual",{
   title:"What is an AI coding harness?",
   steps:STEPS.map(function(x){return {scene:x.s,mark:{k:x.k},say:x.say,wait:x.s==="you"};}),
   scenes:{
-    bare:{draw:function(st){$("#noacc").classList.toggle("on",st.k>=1)}},
+    bare:{draw:function(st){$("#noacc").classList.toggle("lit",st.k>=1)}},
     loop:{draw:function(st){drawLoop(st.k)}},
     you:{draw:function(){drawYou()}},
     panel:{draw:function(st){focusK=st.k;drawPanel()}},
