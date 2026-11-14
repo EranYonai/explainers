@@ -2,8 +2,7 @@
 
 A skill for Claude Code and Pi that turns a topic into an interactive HTML explainer you can share as a link.
 
-You ask "make an explainer of how git bisect finds a bad commit", or of a PR, an incident or an onboarding
-topic. The agent asks a few short questions, then writes one self-contained page: prose, step-through scenes
+You ask for an explainer of a concept, a PR, an incident or an onboarding topic. The agent asks a few short questions, then writes one self-contained page: prose, step-through scenes
 (Back / Next / Play), captions that carry the teaching, and something the reader controls, like picking an
 input, dragging a slider or approving a step.
 
@@ -27,18 +26,6 @@ Pi:
 pi install git:github.com/EranYonai/explainers
 ```
 
-## Examples
-
-The five drafts that shaped the format, each one self-contained HTML (open in a browser):
-
-| Explainer | What the reader does |
-|---|---|
-| [How an explainer gets made](examples/how-an-explainer-gets-made/index.html) | Picks the bad commit; a real binary search builds the steps |
-| [Hash tables and collisions](examples/hash-table/index.html) | Steps through hashing, chaining, resizing and probing |
-| [Why a flaky test lies](examples/flaky-test/index.html) | Drags timing sliders over 200 seeded runs |
-| [What is an AI coding harness?](examples/ai-harness/index.html) | Plays the harness and approves a tool call |
-| [LangChain and LangGraph, explained](examples/langgraph/index.html) | Chooses the route at a graph junction |
-
 ## Principles
 
 1. **Content first, engine second, platform last.** Each layer is pulled out of real use of the one before.
@@ -53,7 +40,7 @@ The five drafts that shaped the format, each one self-contained HTML (open in a 
 
 ```
 skills/explainer/      the skill: SKILL.md, references, player template, themes, check script
-examples/              finished explainers
+examples/              explainers made with the skill or its drafts
 docs/themes/           gallery of 25 themes and the generator (3 ship with the skill)
 docs/findings/         field notes from the first drafts
 runs.csv               cost of every explainer made with the skill
