@@ -11,14 +11,14 @@ MONO_FB='ui-monospace,Menlo,Consolas,monospace'
 themes=[
 T('inkwell','Inkwell','A ruled notebook, a black fineliner and one green highlighter.',
   'Step-by-step reasoning, debugging stories, anything Eran would sketch by hand.',
-  'Handwritten titles get hard to read when they run long. Keep them under six words.',4,
-  'Caveat / Newsreader / IBM Plex Mono','Caveat:wght@600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;600',
+  'Notebook lines and a light wobble on drawings can feel busy in dense diagrams.',2,
+  'Fraunces / Newsreader / IBM Plex Mono','Fraunces:opsz,wght@9..144,600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;600',
   C('#f1f1ee','#fbfbf9','#1d1d22','#55565f','#c4cbd8','#1456b8','#c8f03c','#1d7a45','#c8322b','#ffffff',
-    {'--texture':'repeating-linear-gradient(to bottom,transparent 0 25px,color-mix(in srgb,var(--accent) 22%,transparent) 25px 26px)','--shadow':'0 1px 0 rgba(0,0,0,.08)'}),
+    {'--texture':'repeating-linear-gradient(to bottom,transparent 0 25px,color-mix(in srgb,var(--accent) 9%,transparent) 25px 26px)','--shadow':'0 1px 0 rgba(0,0,0,.08)'}),
   C('#161618','#1f1f23','#ecebe6','#a5a49c','#3a3a40','#7fb2ff','#c8f03c','#5fd38a','#ff7b6e','#101014',
-    {'--texture':'repeating-linear-gradient(to bottom,transparent 0 25px,color-mix(in srgb,var(--accent) 16%,transparent) 25px 26px)','--shadow':'none'}),
-  {'--font-display':'"Caveat","Segoe Print",cursive','--font-body':'"Newsreader",Georgia,serif','--font-mono':'"IBM Plex Mono",'+MONO_FB,
-   '--radius':'3px','--stroke-width':'2','--sketch':'2.4','--display-scale':'1.45','--display-weight':'700','--display-transform':'none','--display-tracking':'0','--border-width':'1px','--linecap':'round','--node-rx':'13px'}),
+    {'--texture':'repeating-linear-gradient(to bottom,transparent 0 25px,color-mix(in srgb,var(--accent) 7%,transparent) 25px 26px)','--shadow':'none'}),
+  {'--font-display':'"Fraunces",Georgia,serif','--font-body':'"Newsreader",Georgia,serif','--font-mono':'"IBM Plex Mono",'+MONO_FB,
+   '--radius':'3px','--stroke-width':'2','--sketch':'1.2','--display-scale':'1','--display-weight':'600','--display-transform':'none','--display-tracking':'0','--border-width':'1px','--linecap':'round','--node-rx':'13px'}),
 T('whiteprint','Whiteprint','An engineering drawing. Thin exact lines on a measured grid.',
   'Architecture, memory layouts, protocols, low-level and systems topics.',
   'Everything is blue, so good and bad lean on glyphs and labels more than on color.',0,
@@ -405,13 +405,14 @@ header.top p{{margin:.3rem 0 0;color:var(--g-muted);font-size:.92rem}}
   <button id="mode" type="button" aria-label="Switch color mode">Mode: auto</button>
 </header>
 <section class="rec">
-  <h2>My top three for you</h2>
+  <h2>What the skill ships</h2>
+  <p>The skill ships eight of these looks. The other drafts stay here for reference.</p>
   <ol>
-    <li><b><a href="#inkwell">Inkwell</a>.</b> It looks like your own notebook. Your drawings fit without redrawing, and the green highlighter is a mark people will remember.</li>
-    <li><b><a href="#whiteprint">Whiteprint</a>.</b> The best fit for low-level and CI topics. Exact lines suit memory layouts and pipelines, and engineers trust it on sight.</li>
-    <li><b><a href="#two-ink">Two-Ink</a>.</b> The most recognizable in a feed. Navy and pink read well in 9:16 reels and look like nobody else's AI output.</li>
+    <li><b><a href="#inkwell">Inkwell</a></b> (default). A quiet notebook with a green highlighter, for step-by-step reasoning and debugging.</li>
+    <li><b>Flight Deck.</b> Stencil labels and an amber callout, for systems, tools and agents. It comes from the AI coding harness explainer, so it has no card here.</li>
+    <li><b>Transit.</b> A dark sign-plate header and amber choices, for flows, request paths and state machines. It comes from the LangGraph explainer, so it has no card here.</li>
+    <li><b>Editor palettes:</b> <a href="#gruvbox">Gruvbox</a>, <a href="#kanagawa">Kanagawa</a>, <a href="#one-half">One Half</a>, <a href="#dracula">Dracula</a> and <a href="#rose-pine">Rosé Pine</a>. They keep the same layout in the reader's favorite colors.</li>
   </ol>
-  <p>If you want one house look, take Inkwell and borrow Whiteprint's grid for dense diagrams. Skip Dry Erase as a signature: it is pleasant but common. Phosphor and Slate are dark only on purpose, so the toggle does not change them.</p>
   <p><b>New: Catppuccin.</b> The open-source (MIT) pastel palette, using only its official colors, checked against the @catppuccin/palette package v1.8.0. <a href="#catppuccin">Catppuccin</a> switches between Latte (light) and Mocha (dark) with the toggle. <a href="#catppuccin-frappe">Frappé</a> and <a href="#catppuccin-macchiato">Macchiato</a> are the other two dark flavors. A good fit for agent and tooling topics, since many readers already use it in their editor.</p>
   <p><b>New: Editor color schemes.</b> Twelve schemes from the list in Nathan Long, <a href="https://nathan-long.com/blog/colorschemes-for-the-discerning-developer/">"Colorschemes for the discerning developer"</a>: <a href="#rose-pine">Rosé Pine</a>, <a href="#tokyo-night">Tokyo Night</a>, <a href="#dracula">Dracula</a>, <a href="#nord">Nord</a>, <a href="#solarized">Solarized</a>, <a href="#oceanic-next">Oceanic Next</a>, <a href="#tomorrow">Tomorrow</a>, <a href="#iceberg">Iceberg</a>, <a href="#one-half">One Half</a>, <a href="#kanagawa">Kanagawa</a>, <a href="#onedark">OneDark</a> and <a href="#gruvbox">Gruvbox</a>. Every color comes from the scheme's own source palette, and each CSS file names the source file and license. Nord and Oceanic Next are dark only, since their sources define no light palette. The others switch between their light and dark variants with the toggle.</p>
 </section>
