@@ -3,5 +3,6 @@ __pycache__/
 *.pyc
 .DS_Store
 /out/
+package-lock.json
 /tmp/
 *.sheet.png
