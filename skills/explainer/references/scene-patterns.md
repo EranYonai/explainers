@@ -24,6 +24,10 @@ var api = Explainer.scene("#main", {
   class it owns, every time.
 - `api.branch(steps)` replaces what comes after the current step: use it for any reader choice.
 - `api.say(text)` replaces the caption after a click inside a scene. `api.goWhere(fn)` jumps (tabs).
+- Reader input that should NOT advance (answering several questions on one step): keep the answers in a
+  variable of your own, rebuild the steps from them, and call `api.setSteps(makeSteps(answers), api.index)`.
+  `api.state` is derived from the steps and read-only; never write to it.
+- Give every scene section the same `min-height` (e.g. `#main .stage{min-height:420px}`) so controls do not jump.
 - `api.rng(seed)` for anything random. `api.h(tag, attrs, parent)` and `api.svg(...)` build elements.
 - `<button data-theme-toggle>` anywhere on the page flips light and dark.
 

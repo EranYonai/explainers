@@ -56,12 +56,18 @@ what happens next, with real logic behind it.
    - **Theme tokens only:** `var(--ink)`, `var(--accent)`, ... Never hard-code a color.
    - **Phone first:** 390 px wide with no sideways scroll; text in SVG at least 12 px on a phone.
    - **Captions:** one or two sentences, under 200 characters, plain words.
-   - **Current tech:** check facts against primary sources and list them in a Sources section.
-4. Build: `node <skill>/scripts/build.mjs <slug>.src.html` writes `<slug>.html`, one self-contained file.
+   - **Current tech:** for tools, libraries and services, check facts against primary sources and list them
+     in a Sources section. Timeless topics (algorithms, concepts) need none.
+4. Build: `node <skill>/scripts/build.mjs <slug>.src.html -o <slug>.html` writes one self-contained file.
+
+The player owns these class names, so do not reuse them for your own elements: `scene`, `stage`, `caption`,
+`stepno`, `controls`, `prev`, `next`, `play`, `playgroup`, `speed-now`, `speed-menu`, `speed-opts`, `dots`,
+`sec`, `deck`, `on`, `done`. Layout helpers you may use: `col` (reading column), `wide` (scene width),
+`stack` (vertical gap), `hook`, `payoff`, `note`, `choices` and `pick` (rows of reader buttons).
 
 ## 4. Check once, fix once
 
-Run `node <skill>/scripts/check.mjs <slug>.html`. It walks every step at phone and desktop width and
+Run `node <skill>/scripts/check.mjs <slug>.html` (add `--sheet <path.png>` to choose where the contact sheet goes). It walks every step at phone and desktop width and
 prints PASS or FAIL with a short list (JS errors, missing caption values, sideways scroll, content wider
 than its scene), plus a contact sheet image of every step. Look at the contact sheet. Fix with targeted
 edits, rebuild, re-run once. See `references/checks.md` for what it cannot catch and you must eyeball.

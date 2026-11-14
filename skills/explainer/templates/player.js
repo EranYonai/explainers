@@ -31,6 +31,17 @@
   var registry = (window.__explainer = window.__explainer || { scenes: [], errors: [] });
   if (reduce) document.documentElement.classList.add("reduce-motion");
 
+  // Playback speed, shared by every scene on the page and remembered per viewer.
+  var SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+  var speed = 1, speedViews = [];
+  try { var saved = parseFloat(localStorage.getItem("explainer-speed")); if (SPEEDS.indexOf(saved) >= 0) speed = saved; } catch (e) {}
+  function speedLabel(v) { return v + "\u00d7"; }
+  function setSpeed(v) {
+    speed = v;
+    try { localStorage.setItem("explainer-speed", String(v)); } catch (e) {}
+    speedViews.forEach(function (f) { f(); });
+  }
+
   function report(scene, msg) {
     registry.errors.push(scene + ": " + msg);
     if (window.console) console.error("[explainer] " + scene + ": " + msg);
@@ -108,7 +119,40 @@
     var bar = h("div", { class: "controls" }, fig);
     var prev = h("button", { type: "button", class: "prev", text: "Back" }, bar);
     var next = h("button", { type: "button", class: "next primary", text: "Next" }, bar);
-    var play = h("button", { type: "button", class: "play", text: "Play" }, bar);
+    // Play is a split control: the main part plays and pauses, the chip shows the speed and opens the choices.
+    var group = h("div", { class: "playgroup" }, bar);
+    var play = h("button", { type: "button", class: "play", text: "Play" }, group);
+    var chip = h("button", { type: "button", class: "speed-now", "aria-expanded": "false", "aria-label": "Playback speed" }, group);
+    var menu = h("div", { class: "speed-menu", role: "group", "aria-label": "Playback speed", "aria-hidden": "true" }, bar);
+    var menuIn = h("div", { class: "speed-opts" }, menu);
+    var opts_ = SPEEDS.map(function (v) {
+      var b = h("button", { type: "button", "data-speed": v, tabindex: "-1", text: speedLabel(v) }, menuIn);
+      b.addEventListener("click", function () { setSpeed(v); openMenu(false); chip.focus(); if (timer) { clearTimeout(timer); tick(); } });
+      return b;
+    });
+    function paintSpeed() {
+      chip.textContent = speedLabel(speed);
+      chip.setAttribute("aria-label", "Playback speed " + speedLabel(speed) + ". Change");
+      opts_.forEach(function (b) { b.setAttribute("aria-pressed", +b.getAttribute("data-speed") === speed); });
+    }
+    function openMenu(on) {
+      fig.classList.toggle("speed-open", on);
+      chip.setAttribute("aria-expanded", on);
+      menu.setAttribute("aria-hidden", !on);
+      opts_.forEach(function (b) { b.setAttribute("tabindex", on ? "0" : "-1"); });
+      if (on) { var cur = opts_[SPEEDS.indexOf(speed)]; if (cur) cur.focus(); }
+    }
+    chip.addEventListener("click", function () { openMenu(chip.getAttribute("aria-expanded") !== "true"); });
+    menu.addEventListener("keydown", function (e) {
+      var i = opts_.indexOf(document.activeElement);
+      if (e.key === "Escape") { openMenu(false); chip.focus(); }
+      else if ((e.key === "ArrowRight" || e.key === "ArrowLeft") && i >= 0) {
+        opts_[(i + (e.key === "ArrowRight" ? 1 : opts_.length - 1)) % opts_.length].focus();
+      } else return;
+      e.preventDefault(); e.stopPropagation();
+    });
+    speedViews.push(paintSpeed);
+    paintSpeed();
     var dots = h("div", { class: "dots", "aria-hidden": "true" }, bar);
 
     var steps = [], idx = 0, timer = null, state = {};
@@ -125,6 +169,8 @@
       prev: function () { stop(); step(-1); },
       play: function () { if (!timer) toggle(); },
       stop: stop,
+      get speed() { return speed; },
+      setSpeed: setSpeed,
       // Replace the steps, e.g. after the reader picks an input and real code generates a new trace.
       setSteps: function (s, at) { steps = s || []; buildDots(); stop(); show(at || 0, true); },
       // Keep steps up to the current one, replace everything after it, and move on: a reader's choice
@@ -221,7 +267,7 @@
         show(idx + 1, true);
         if (steps[idx].wait) { stop(); return; }
         tick();
-      }, holdFor(steps[idx]));
+      }, holdFor(steps[idx]) / speed);
     }
 
     function toggle() {
@@ -238,6 +284,7 @@
     function onKey(e) {
       var t = e.target, tag = t && t.tagName;
       if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA" || (t && t.isContentEditable)) return;
+      if (t && t.closest && t.closest(".speed-menu")) return;
       if (e.altKey || e.ctrlKey || e.metaKey) return;
       var k = e.key;
       if (k === "ArrowRight") { stop(); step(1); }
