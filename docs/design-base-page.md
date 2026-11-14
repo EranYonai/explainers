@@ -106,58 +106,106 @@ per width for the whole scene.
 
 ---
 
-## 2. Page anatomy
+## 2. Page anatomy, written in the HTML
+
+The model already learns by copying HTML: it starts from `templates/page.src.html` and imitates the
+examples. So the anatomy lives in the template as real markup, not as a table in a markdown file. Each
+part is an element with a `data-slot` name, a class the player styles, and a one-line comment saying
+what goes there. The model fills it in or deletes it.
 
 Today the template has a hook, one scene and a payoff, and each example invents its own prose and
-sources markup (`.sources`, `.src`, a bare `<h2>`). The base page should name every part, in order, so the
-player CSS can lay it out and the themes can style it once.
+sources markup (`.sources`, `.src`, a bare `<h2>`). The new template carries every slot, in order:
 
-| # | Slot | Element | Required | Job |
-|---|---|---|---|---|
-| 1 | Masthead | `header.masthead` | no | Kind label ("Pull request", "Incident review"), theme toggle |
-| 2 | Headline | `h1.hook` | **yes** | The question, one sentence |
-| 3 | Dek | `p.dek` | **yes** | One or two sentences of setup the reader already knows |
-| 4 | Meta | `p.meta` | no | Reading time, "checked against v1.2 on 14 Nov 2026" |
-| 5 | Summary | `dl.tldr` | no | Key facts as label and value (what, why, impact, risk) |
-| 6 | Scene | `figure.scene` | **yes** | The stepper; one per page, a deck of sections |
-| 7 | Payoff | `p.payoff` | **yes** | The answer, one sentence with one `<mark>` |
-| 8 | Prose | `section.prose` | no, up to 3 | Short `h2` sections: where it matters, what changed, what to do |
-| 9 | Glossary | `dl.glossary` | no | Terms the page uses, one plain sentence each |
-| 10 | Sources | `section.sources` | when facts are current | Numbered list; prose cites them |
-| 11 | Next | `nav.next` | no | Where to go after: the PR, the runbook, the next lesson |
+```html
+<body data-kind="concept">            <!-- concept | pr | incident | onboarding -->
 
-Rules:
+<header class="masthead col" data-slot="masthead">   <!-- optional: kind label + theme toggle -->
+  <span class="kind">Pull request</span>
+  <button type="button" data-theme-toggle>Day / Night</button>
+</header>
 
-- **Reading column for words, wide column for the scene.** Slots 1 to 5 and 7 to 11 use `.col` (66ch);
-  only the scene uses `.wide`. On a phone both are the full width minus a 16 px gutter.
-- **Citations are links, not footnote glyphs.** Prose cites with `<a class="cite" href="#src-2">[2]</a>`;
-  each source is `<li id="src-2">` with a real URL, a title and, for current tech, the version or date.
-  A caption may cite too, since some readers only read the scene.
-- **Order is fixed, slots are optional.** An author removes slots, never reorders them, so every
-  explainer reads the same way.
-- **Word budget stays.** 150 to 400 words outside the scene (from `story-beats.md`); the slots do not
-  raise it.
+<main>
+  <header class="col stack" data-slot="intro">
+    <h1 class="hook">HEADLINE: one question the reader cannot answer yet?</h1>        <!-- required -->
+    <p class="dek">HOOK: one or two sentences the reader already knows.</p>          <!-- required -->
+    <p class="meta">5 min read · checked against v1.2 on 14 Nov 2026</p>          <!-- optional -->
+  </header>
+
+  <dl class="tldr col" data-slot="summary">          <!-- optional: label and value pairs -->
+    <dt>What</dt><dd>…</dd>
+    <dt>Why</dt><dd>…</dd>
+  </dl>
+
+  <section class="wide" data-slot="scene">           <!-- required: the stepper -->
+    <figure class="scene" id="main"><div class="stage">…</div></figure>
+  </section>
+
+  <section class="col stack" data-slot="payoff">     <!-- required -->
+    <p class="payoff">PAYOFF: the one sentence to <mark>remember</mark>.</p>
+  </section>
+
+  <section class="prose col" data-slot="prose">      <!-- optional, up to 3 -->
+    <h2>Where you will see this</h2>
+    <p>Short paragraph. Current facts cite a source: <a class="cite" href="#src-1">[1]</a></p>
+  </section>
+
+  <dl class="glossary col" data-slot="glossary">…</dl>    <!-- optional -->
+
+  <section class="sources col" data-slot="sources">  <!-- required when facts are current -->
+    <h2>Sources</h2>
+    <ol><li id="src-1"><a href="https://…">Title</a>, version or date</li></ol>
+  </section>
+
+  <nav class="next col" data-slot="next">…</nav>     <!-- optional: the PR, the runbook, the next part -->
+</main>
+```
+
+Rules, also written as comments in the template:
+
+- **Order is fixed, slots are optional.** Delete a slot, never move it, so every explainer reads the same way.
+- **Words in the reading column, the scene wide.** Everything but the scene uses `.col` (66ch); on a
+  phone both are full width minus a 16 px gutter.
+- **Citations are links.** `<a class="cite" href="#src-2">[2]</a>` in prose or a caption, pointing at
+  `<li id="src-2">` with a real URL and, for current tech, a version or date.
+- **Word budget stays:** 150 to 400 words outside the scene.
+
+`data-slot` is what makes the page checkable: the check script reads the slots instead of guessing from
+class names, and themes can target `[data-slot=masthead]` safely.
 
 ---
 
-## 3. Use cases as presets
+## 3. Use cases as HTML starters
 
-One template, four presets. A preset is just which optional slots are on and what their headings say.
-It lives as a table in `SKILL.md`, not as four templates, so there is one file to maintain.
+Each use case gets a starter page next to the base template, a complete working `.src.html` the model
+copies, with neutral placeholder content:
 
-| Slot | Concept | Pull request | Incident | Onboarding |
-|---|---|---|---|---|
-| Masthead label | none | "Pull request" | "Incident review" | "Onboarding: part 2 of 5" |
-| Meta | optional | branch, date | date, duration | reading time |
-| Summary (`tldr`) | none | What, Why, Risk, How to test | Impact, Duration, Cause, Status | You will learn, You need |
-| Scene focus | the mechanism | before and after | timeline, then the failure path | one system, step by step |
-| Reader action | choose an input | toggle old vs new code path | choose where to intervene | try it: pick a route |
-| Prose sections | "Where you will see this" | "What changed", "What to review" | "What we changed", "Follow-ups" | "Try it yourself" |
-| Glossary | optional | none | optional | yes |
-| Sources | current tech only | the PR, related issues | postmortem doc, dashboards (no hosts or names) | docs, runbook |
-| Next | optional | link to the PR | link to the follow-up tickets | next part |
+```
+templates/
+  page.src.html            base: every slot, generic placeholders
+  kinds/
+    concept.src.html       hook → mechanism scene → "Where you will see this"
+    pr.src.html            tldr: What / Why / Risk / How to test; before-and-after scene; "What to review"
+    incident.src.html      tldr: Impact / Duration / Cause / Status; timeline scene; "What we changed"
+    onboarding.src.html    tldr: You will learn / You need; glossary; "Next part" nav
+```
 
-New kinds (a design review, a migration guide) are a new column in that table, not new code.
+A starter is the base template with the right slots kept, the headings written, and a scene skeleton of
+the right shape (a before/after toggle for a PR, a timeline deck for an incident). It builds and passes
+the check as shipped, so the model starts from something that works and only replaces content.
+
+| Starter | Masthead | Summary (`tldr`) | Scene shape | Reader action | Prose | Extra slots |
+|---|---|---|---|---|---|---|
+| concept | none | none | the mechanism | choose an input | "Where you will see this" | sources if current |
+| pr | "Pull request" | What, Why, Risk, How to test | before and after | toggle old and new path | "What changed", "What to review" | next: link to the PR |
+| incident | "Incident review" | Impact, Duration, Cause, Status | timeline, then the failure path | choose where to intervene | "What we changed", "Follow-ups" | sources: postmortem (no hosts or names) |
+| onboarding | "Part 2 of 5" | You will learn, You need | one system, step by step | try a route | "Try it yourself" | glossary, next part |
+
+The examples stay the place to learn *style* (LangGraph, ai-harness, the meta example); the starters
+are the place to learn *structure*. A new kind (design review, migration guide) is one new starter file,
+not new player code.
+
+To keep the starters from drifting, the check script compares each starter's slot order with the base
+template, and CI builds and checks all of them.
 
 ---
 
@@ -183,17 +231,18 @@ New kinds (a design review, a migration guide) are a new column in that table, n
 - Optional tokens for the new slots, with sensible fallbacks so existing themes keep working:
   `--dek-scale`, `--tldr-bg`, `--cite-color`.
 - Each theme's header comment lists how it styles the masthead (Flight Deck's strip, Transit's line
-  badge), so the presets look native in every theme.
+  badge), so the starters look native in every theme.
 
-### `SKILL.md` and references
+### `SKILL.md`
 
-- Step 2 gains "pick a preset" with the table above; the brief questions stay.
-- The build rules gain three lines: put growing content in a `.well`; never set a height on the stage;
+Stays short and points at HTML instead of describing it:
+
+- Step 3 says: copy `templates/kinds/<kind>.src.html` (or `page.src.html` for anything else), keep the
+  slots you need, delete the rest. One line per kind, no anatomy tables.
+- The build rules gain three lines: growing content goes in a `.well`; never set a height on the stage;
   cite current facts with `.cite` links into `.sources`.
-- New `references/page-anatomy.md` with the slot table and one filled example per preset.
-- The template (`page.src.html`) contains every slot, with the optional ones in comments that say
-  "delete if not needed".
 - Add the new class names to the reserved list.
+- `references/story-beats.md` keeps the writing advice; anything about structure moves into template comments.
 
 ### `check.mjs`
 
@@ -203,7 +252,8 @@ New failures:
   at the same width (1 px tolerance). Reported as "controls moved 133 px between step 8 and step 9".
 - **Reserve exceeded.** A step's stage or caption is taller than the reserved height (content escaped a
   well, or a draw added rows the measuring pass did not see).
-- **Anatomy.** Missing `h1.hook`, `p.dek`, the scene or `p.payoff`; more than one `h1`.
+- **Anatomy.** Missing a required slot (`intro` with `h1.hook` and `p.dek`, `scene`, `payoff`), slots out of
+  order, or more than one `h1`. A starter whose slot order differs from the base template.
 - **Broken citations.** A `.cite` pointing at a missing `id`, or a source without an `http(s)` link.
 - **Theme overrides layout.** A computed `min-height` or `height` on `.stage` that the player did not set.
 
@@ -226,9 +276,9 @@ Three changes, each small enough to review on a phone:
 1. **Stability.** Player 1a to 1e, the "controls moved" and "reserve exceeded" checks, `--click`.
    Migrate LangGraph (message list into a well) and ai-harness (drop the hand-set `min-height`). Done
    when every example reports one Next position per width.
-2. **Anatomy.** Slot styles, template with all slots, citation and anatomy checks, `page-anatomy.md`.
+2. **Anatomy.** Slot styles, the base template with every slot, citation and anatomy checks.
    Move the existing examples' sources and prose into the shared slots.
-3. **Presets.** The preset table in `SKILL.md`, then one dogfood run per new kind (a PR and an incident,
+3. **Starters.** The four `templates/kinds/*.src.html` files, then one dogfood run per new kind (a PR and an incident,
    with neutral made-up content) logged in `runs.csv`.
 
 ## Open questions
@@ -237,5 +287,5 @@ Three changes, each small enough to review on a phone:
   towards the dock, since tall decks like ai-harness will exist anyway.
 - **Captions above or below the stage:** below today. Above would keep the text next to the headline
   and leave the controls as the only thing at the bottom. Worth trying on one example.
-- **Several scenes per page** (onboarding with chapters): allowed today; keep it, but the presets assume
+- **Several scenes per page** (onboarding with chapters): allowed today; keep it, but the starters assume
   one, and the check measures each scene on its own.
