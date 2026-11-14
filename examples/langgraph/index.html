@@ -1,663 +1,684 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>LangChain and LangGraph, explained: why LLM apps moved from chains to graphs</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&family=Overpass+Mono:wght@400;600&display=swap" rel="stylesheet">
+<title>Why LLM apps moved from chains to graphs</title>
+<meta name="description" content="A chain only goes forward. Agents need to loop, branch and wait, which is why LangGraph runs them as a graph with shared state.">
 <style>
-:root{
-  --map:#f4efe1; --card:#fffdf6; --ink:#16233b; --soft:#5b6577; --rule:#d9d0b8;
-  --red:#d6312b; --teal:#0c8a8a; --amber:#e8a400; --violet:#6b4bb8; --go:#1f9455; --stop:#d6312b;
-  --station:#fffdf6; --ghost:#b9b09a;
-  --f-sign:"Barlow Condensed","Arial Narrow",sans-serif;
-  --f-body:"Barlow",system-ui,sans-serif;
-  --f-mono:"Overpass Mono",ui-monospace,Menlo,monospace;
-}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --map:#0d1524; --card:#152036; --ink:#f2ecdb; --soft:#9aa5b8; --rule:#2b3a55;
-    --red:#ff5a4f; --teal:#2ec4c4; --amber:#ffc531; --violet:#a98bff; --go:#3ed07f; --stop:#ff5a4f;
-    --station:#0d1524; --ghost:#48566f;
-  }
-}
-:root[data-theme="dark"]{
-  --map:#0d1524; --card:#152036; --ink:#f2ecdb; --soft:#9aa5b8; --rule:#2b3a55;
-  --red:#ff5a4f; --teal:#2ec4c4; --amber:#ffc531; --violet:#a98bff; --go:#3ed07f; --stop:#ff5a4f;
-  --station:#0d1524; --ghost:#48566f;
-}
+/* explainer player v0: page base and scene chrome. Colors and fonts come from a theme file (themes/*.css). */
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--map);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.55;overflow-x:hidden}
-a{color:inherit;text-decoration-color:var(--teal);text-decoration-thickness:2px;text-underline-offset:3px}
-code,pre{font-family:var(--f-mono)}
-p code,li code,.cap code{font-size:.86em;background:color-mix(in srgb,var(--amber) 22%,transparent);padding:.05em .3em;border-radius:3px;overflow-wrap:anywhere}
-.wrap{max-width:1040px;margin:0 auto;padding:0 18px}
+body{margin:0;background:var(--paper);background-image:var(--texture,none);background-size:var(--texture-size,auto);color:var(--ink);
+  font-family:var(--font-body);font-size:calc(clamp(1rem,.96rem + .15vw,1.06rem) * var(--body-scale,1));line-height:1.6}
+main{padding:clamp(24px,4vw,64px) 16px 80px;display:grid;grid-template-columns:minmax(0,1fr);gap:56px}
+main>*{min-width:0}
+.col{max-width:66ch;margin:0 auto;width:100%}
+.wide{max-width:1040px;margin:0 auto;width:100%}
+.stack{display:grid;gap:14px}
+h1,h2,h3{font-family:var(--font-display);font-weight:var(--display-weight,700);text-transform:var(--display-transform,none);
+  letter-spacing:var(--display-tracking,0);line-height:1.12;margin:0;text-wrap:balance}
+h1{font-size:calc(clamp(2rem,1.5rem + 2.4vw,3rem) * var(--display-scale,1))}
+h2{font-size:calc(clamp(1.4rem,1.25rem + .6vw,1.7rem) * var(--display-scale,1))}
+p{margin:0}
+a{color:var(--accent)}
+code{font-family:var(--font-mono);font-size:.88em;background:color-mix(in srgb,var(--line) 45%,transparent);padding:.05em .3em;border-radius:4px}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius:3px}
 
-/* line strip: the page's own route diagram */
-.strip{position:sticky;top:0;z-index:5;background:var(--map);border-bottom:2px solid var(--ink)}
-.strip .wrap{display:flex;align-items:center;gap:10px;padding-top:8px;padding-bottom:8px}
-.strip ol{list-style:none;margin:0;padding:0;display:flex;flex:1;align-items:center;position:relative;min-width:0}
-.strip ol::before{content:"";position:absolute;left:8px;right:8px;top:7px;height:6px;background:var(--red);border-radius:3px}
-.strip li{flex:1;position:relative;text-align:center;min-width:0}
-.strip li a{display:block;text-decoration:none;font:600 11px/1 var(--f-sign);letter-spacing:.06em;text-transform:uppercase;padding-top:24px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.strip li a::before{content:"";position:absolute;left:50%;top:1px;width:14px;height:14px;margin-left:-9px;border-radius:50%;background:var(--station);border:3px solid var(--ink)}
-.strip li a[aria-current="true"]{color:var(--ink)}
-.strip li a[aria-current="true"]::before{background:var(--amber)}
-.theme{font:600 12px/1 var(--f-sign);letter-spacing:.08em;text-transform:uppercase;background:none;color:var(--ink);border:2px solid var(--ink);border-radius:4px;padding:7px 8px;cursor:pointer}
-@media (max-width:520px){.strip li a{font-size:0;padding-top:20px}}
+/* story beats: hook question in big type, payoff stamped large */
+.hook{font-size:calc(clamp(2.1rem,1.6rem + 2.4vw,3.2rem) * var(--display-scale,1));letter-spacing:-.015em}
+.payoff{font-family:var(--font-display);font-weight:var(--display-weight,700);line-height:1.05;letter-spacing:-.02em;text-wrap:balance;
+  font-size:calc(clamp(2rem,1.4rem + 3.4vw,3.6rem) * var(--display-scale,1));margin:8px 0}
+.note{color:var(--muted);font-size:.9rem}
 
-/* hook */
-.hook{padding:44px 0 30px;position:relative}
-.kicker{display:inline-flex;align-items:center;gap:8px;font:700 13px/1 var(--f-sign);letter-spacing:.14em;text-transform:uppercase}
-.bullet{display:inline-grid;place-items:center;min-width:26px;height:26px;padding:0 6px;border-radius:5px;background:var(--red);color:#fff;font:800 15px/1 var(--f-sign);letter-spacing:0}
-.bullet.t{background:var(--teal)}.bullet.a{background:var(--amber);color:#16233b}.bullet.v{background:var(--violet)}.bullet.k{background:var(--ink);color:var(--map)}
-h1{font:800 clamp(46px,13.5vw,118px)/.9 var(--f-sign);letter-spacing:-.01em;text-transform:uppercase;margin:16px 0 18px;text-wrap:balance}
-h1 em{font-style:normal;color:var(--red)}
-h1 b{color:var(--teal);font-weight:800}
-.lede{max-width:34em;font-size:19px;margin:0}
-.hookmap{display:block;width:100%;height:auto;margin-top:26px}
-
-section{padding:34px 0 10px;border-top:2px solid var(--ink);margin-top:26px}
-h2{font:700 clamp(30px,7vw,44px)/1 var(--f-sign);text-transform:uppercase;margin:10px 0 12px;letter-spacing:.005em}
-.prose{max-width:36em}
-.prose p{margin:0 0 12px}
-
-/* scene */
-.scene{background:var(--card);border:2px solid var(--ink);border-radius:10px;margin:18px 0 8px;overflow:hidden;outline-offset:3px}
-.scene:focus-visible{outline:3px solid var(--amber)}
-.plate{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--ink);color:var(--map);padding:7px 12px;font:700 13px/1.1 var(--f-sign);letter-spacing:.12em;text-transform:uppercase}
-.plate .count{font-family:var(--f-mono);font-weight:400;letter-spacing:0;font-size:12px;white-space:nowrap}
-.stage{display:grid;grid-template-columns:1fr;gap:0}
-.stage svg{display:block;width:100%;height:auto;max-width:560px;margin:0 auto}
-.side{border-top:2px dashed var(--rule);padding:12px 14px;min-width:0}
-@media (min-width:860px){
-  .stage{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
-  .side{border-top:0;border-left:2px dashed var(--rule)}
+/* scene frame: stage, caption, controls */
+.scene{margin:0;background:var(--surface);border:var(--border-width,1px) solid var(--line);border-radius:calc(var(--radius,8px) + 6px);overflow:hidden;box-shadow:var(--shadow,none)}
+.scene .stage{padding:16px 20px 0;min-width:0}
+.scene .stage svg{display:block;width:100%;height:auto;max-width:100%}
+.scene svg text{font-family:var(--font-mono);fill:var(--ink)}
+.caption{padding:12px 20px 0;min-height:4.9em;font-family:var(--caption-font,var(--font-body));font-weight:400;font-size:clamp(1.05rem,1rem + .3vw,1.2rem);line-height:1.42;text-wrap:balance}
+.caption .stepno{display:block;font-family:var(--font-mono);font-weight:400;font-size:.74rem;color:var(--muted);margin-bottom:4px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 20px 18px}
+.controls button,.pick button,.choices button{font:inherit;font-size:.92rem;padding:9px 15px;min-height:44px;border-radius:var(--radius,8px);
+  border:var(--border-width,1px) solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.controls button:hover,.pick button:hover,.choices button:hover{border-color:var(--accent)}
+.controls button.primary{background:var(--accent);color:var(--accent-ink,#fff);border-color:var(--accent)}
+.pick button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.controls button:disabled{opacity:.45;cursor:default}
+.dots{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--line);display:block}
+.dots i.on{background:var(--accent)}
+.pick{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:12px 20px 0}
+@media (max-width:600px){
+  .scene .stage{padding:12px 12px 0}
+  .caption{padding:12px 16px 0;min-height:6.4em}
+  .controls,.pick{padding-left:16px;padding-right:16px}
 }
-.cap{font-size:16.5px;line-height:1.45;margin:0;min-height:5.8em}
-.cap b{font-weight:600}
-.ctl{display:flex;gap:8px;align-items:center;padding:10px 12px;border-top:2px solid var(--ink);flex-wrap:wrap}
-.ctl button,.choice button{font:700 16px/1 var(--f-sign);letter-spacing:.08em;text-transform:uppercase;border:2px solid var(--ink);background:var(--card);color:var(--ink);border-radius:6px;padding:11px 14px;min-height:44px;cursor:pointer}
-.ctl button.next{background:var(--ink);color:var(--map)}
-.ctl button:disabled{opacity:.35;cursor:default}
-.ctl button:focus-visible,.choice button:focus-visible,.theme:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
-.ctl .hint{margin-left:auto;font:400 12px/1.2 var(--f-mono);color:var(--soft)}
-@media (max-width:520px){.ctl .hint{display:none}}
-.choice{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.choice:empty{display:none}
-.choice button{background:var(--amber);color:#16233b;border-color:var(--ink);flex:1 1 130px}
-.choice button.alt{background:var(--card);color:var(--ink)}
-.choice .q{flex:1 1 100%;font:700 14px/1.2 var(--f-sign);letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}
 
-/* manifest: what the train carries */
-.bag{margin-top:12px;border:2px solid var(--ink);border-radius:6px;overflow:hidden}
-.bag h3{margin:0;padding:5px 9px;font:700 12px/1.2 var(--f-sign);letter-spacing:.14em;text-transform:uppercase;background:var(--amber);color:#16233b;border-bottom:2px solid var(--ink);display:flex;justify-content:space-between;gap:8px}
-.bag h3 span{font-family:var(--f-mono);font-weight:400;letter-spacing:0;text-transform:none}
-.bag ul{list-style:none;margin:0;padding:0}
-.bag li{display:flex;gap:8px;align-items:baseline;padding:6px 9px;border-top:1px dashed var(--rule);font:400 12.5px/1.35 var(--f-mono);overflow-wrap:anywhere}
-.bag li:first-child{border-top:0}
-.bag li.new{background:color-mix(in srgb,var(--amber) 24%,transparent)}
-.chip{flex:none;font:700 11px/1 var(--f-sign);letter-spacing:.08em;text-transform:uppercase;padding:3px 5px;border-radius:3px;color:#fff;background:var(--ink)}
-.chip.h{background:var(--violet)}.chip.ai{background:var(--red)}.chip.tool{background:var(--teal)}.chip.k{background:var(--ink);color:var(--map)}
-.route{margin:8px 0 0;font:400 12.5px/1.4 var(--f-mono);color:var(--soft);min-height:1.4em;overflow-wrap:anywhere}
-.route b{color:var(--ink)}
-.depot{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px;font:400 12.5px/1.2 var(--f-mono)}
-.depot i{width:14px;height:18px;border:2px solid var(--ink);border-radius:2px;background:var(--teal);display:inline-block}
-.depot i.last{background:var(--amber)}
+/* shared drawing classes for SVG stages */
+.rough{filter:url(#rough)}
+.ink{stroke:var(--ink);fill:none;stroke-width:var(--stroke-width,2);stroke-linecap:var(--linecap,round);stroke-linejoin:round}
+.fill-surface{fill:var(--surface)} .fill-accent{fill:var(--accent)} .fill-hl{fill:var(--hl)} .fill-good{fill:var(--good)} .fill-bad{fill:var(--bad)} .fill-line{fill:var(--line)}
+.muted{fill:var(--muted);color:var(--muted)}
+.scene .stage *{transition:fill .35s,stroke .35s,opacity .35s,transform .45s cubic-bezier(.3,.7,.2,1)}
+.reduce-motion *,.reduce-motion *::before,.reduce-motion *::after{transition:none!important;animation:none!important}
 
-/* map drawing */
-svg text{font-family:var(--f-sign);font-weight:700;font-size:13px;fill:var(--ink);letter-spacing:.03em}
-svg text.sm{font-family:var(--f-mono);font-weight:400;font-size:10.5px;fill:var(--soft);letter-spacing:0}
-.ln{fill:none;stroke-width:7;stroke-linecap:round;stroke-linejoin:round;transition:opacity .35s}
-.ln.r{stroke:var(--red)}.ln.t{stroke:var(--teal)}.ln.a{stroke:var(--amber)}.ln.v{stroke:var(--violet)}
-.ln.ghost{stroke:var(--ghost);stroke-dasharray:2 11}
-.ln.plan{stroke-dasharray:9 7;stroke-width:5}
-.st circle,.st rect,.st path{fill:var(--station);stroke:var(--ink);stroke-width:3.5;transition:fill .3s}
-.st.term rect{fill:var(--ink)}
-.st.on circle,.st.on path{fill:var(--amber)}
-.dim{opacity:.18}
-.hide{opacity:0}
-.fade{transition:opacity .35s}
-.train rect{fill:var(--ink);stroke:var(--card);stroke-width:2}
-.train circle{fill:var(--amber)}
-.sig{fill:var(--ghost);stroke:var(--ink);stroke-width:2.5;transition:fill .3s}
-.sig.red{fill:var(--stop)}.sig.green{fill:var(--go)}
-.bar{stroke:var(--stop);stroke-width:6;stroke-linecap:round}
+/* deck mode: one stepper, several sections, only the active one shown */
+.scene.deck [data-scene]{display:none}
+.scene.deck [data-scene].on{display:block;animation:pagein .35s ease both}
+@keyframes pagein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.scene .sec{display:flex;align-items:baseline;gap:10px;padding:12px 20px 6px;border-bottom:var(--border-width,1px) solid var(--line)}
+.scene .sec .no{font-family:var(--font-mono);font-size:.68rem;color:var(--muted);white-space:nowrap}
+.scene .sec .ttl{font-family:var(--font-display);font-weight:var(--display-weight,700);text-transform:var(--display-transform,none);font-size:1.15rem;line-height:1.1}
+.dots.many{flex:1 1 100%;order:9;gap:2px;margin:4px 0 0;flex-wrap:nowrap}
+.dots.many i{flex:1;width:auto;height:5px;border-radius:1px}
+.dots i.done{background:color-mix(in srgb,var(--accent) 45%,var(--line))}
+[data-theme-toggle]{font:inherit;font-size:.8rem;padding:6px 10px;min-height:36px;border:var(--border-width,1px) solid var(--line);border-radius:var(--radius,8px);background:transparent;color:var(--ink);cursor:pointer}
 
-/* network stack */
-.stack{padding:14px;display:grid;gap:10px}
-.svc{border:2px solid var(--ink);border-radius:8px;padding:10px 12px 10px 20px;position:relative;transition:opacity .3s,transform .3s;background:var(--card)}
-.svc::before{content:"";position:absolute;left:0;top:0;bottom:0;width:9px;background:var(--red)}
-.svc.t::before{background:var(--teal)}.svc.g::before{background:var(--ghost)}
-.svc h4{margin:0 0 2px;font:700 20px/1.1 var(--f-sign);letter-spacing:.04em;text-transform:uppercase}
-.svc p{margin:0;font:400 12.5px/1.45 var(--f-mono);color:var(--soft);overflow-wrap:anywhere}
-.svc.off{opacity:.28}
-.svc.hot{transform:translateX(4px);box-shadow:-4px 4px 0 var(--amber)}
-.rides{font:700 12px/1 var(--f-sign);letter-spacing:.14em;text-transform:uppercase;color:var(--soft);text-align:center}
+/* play + speed: one pill; the chip shows the speed and opens the choices in a row below */
+.playgroup{display:inline-flex;align-items:stretch}
+.controls .playgroup button.play{border-top-right-radius:0;border-bottom-right-radius:0;min-width:5.2em}
+.controls .playgroup button.speed-now{border-top-left-radius:0;border-bottom-left-radius:0;margin-left:calc(-1 * var(--border-width,1px));
+  min-width:3.4em;padding-left:10px;padding-right:10px;font-family:var(--font-mono);font-variant-numeric:tabular-nums;letter-spacing:0;text-transform:none}
+.controls .playgroup button.speed-now::after{content:"";display:inline-block;width:.42em;height:.42em;margin-left:.4em;vertical-align:.15em;
+  border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);transition:transform .25s}
+.scene.speed-open .speed-now::after{transform:rotate(-135deg);vertical-align:-.05em}
+.scene.speed-open .speed-now{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.speed-menu{flex:1 1 100%;order:8;display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .28s cubic-bezier(.3,.7,.2,1),opacity .2s}
+.scene.speed-open .speed-menu{grid-template-rows:1fr;opacity:1}
+.speed-opts{overflow:hidden;display:flex;gap:4px;padding:2px;margin:0 -2px;border-radius:calc(var(--radius,8px) + 4px)}
+.scene.speed-open .speed-opts{background:color-mix(in srgb,var(--line) 55%,transparent);padding:4px;margin-top:2px}
+.controls .speed-opts button{flex:1 1 0;min-width:0;min-height:40px;padding:6px 0;font-family:var(--font-mono);font-size:clamp(.7rem,2.5vw,.86rem);letter-spacing:-.02em;white-space:nowrap;
+  font-variant-numeric:tabular-nums;letter-spacing:0;text-transform:none;background:var(--surface);border-color:transparent}
+.controls .speed-opts button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink,#fff);border-color:var(--accent)}
+@media (max-width:520px){
+  .speed-opts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&family=Overpass+Mono:wght@400;600&display=swap">
+<style>
+/* Transit (transit)
+   A city transit map: cream paper, colored lines, round stations, condensed signage.
+   Best for: Flows and architectures, request paths, state machines, graphs a reader can route through.
+   Fonts: Barlow Condensed / Barlow / Overpass Mono
+   Google Fonts: https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&family=Overpass+Mono:wght@400;600&display=swap
+   Mode: light and dark
+   Extracted from the "LangChain and LangGraph, explained" draft.
+   Optional tokens: --line-1 .. --line-4 (route colors), --rule (heavy lines).
+*/
+:root {
+  --font-display: "Barlow Condensed","Arial Narrow",sans-serif;
+  --font-body: "Barlow",system-ui,sans-serif;
+  --font-mono: "Overpass Mono",ui-monospace,Menlo,monospace;
+  --radius: 6px;
+  --stroke-width: 3;
+  --sketch: 0;
+  --display-scale: 1.2;
+  --display-weight: 800;
+  --display-transform: uppercase;
+  --display-tracking: .005em;
+  --border-width: 2px;
+  --linecap: round;
+  --body-scale: 1.05;
+  --paper: #f4efe1;
+  --surface: #fffdf6;
+  --ink: #16233b;
+  --muted: #5b6577;
+  --line: #d9d0b8;
+  --rule: #16233b;
+  --accent: #0c8a8a;
+  --hl: #e8a400;
+  --good: #1f9455;
+  --bad: #d6312b;
+  --line-1: #d6312b; --line-2: #0c8a8a; --line-3: #e8a400; --line-4: #6b4bb8;
+  --accent-ink: #ffffff;
+  --hl-ink: #16233b;
+  --shadow: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0d1524; --surface: #152036; --ink: #f2ecdb; --muted: #9aa5b8; --line: #2b3a55; --rule: #f2ecdb;
+    --accent: #2ec4c4; --hl: #ffc531; --good: #3ed07f; --bad: #ff5a4f;
+    --line-1: #ff5a4f; --line-2: #2ec4c4; --line-3: #ffc531; --line-4: #a98bff;
+    --accent-ink: #0d1524; --hl-ink: #16233b;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0d1524; --surface: #152036; --ink: #f2ecdb; --muted: #9aa5b8; --line: #2b3a55; --rule: #f2ecdb;
+  --accent: #2ec4c4; --hl: #ffc531; --good: #3ed07f; --bad: #ff5a4f;
+  --line-1: #ff5a4f; --line-2: #2ec4c4; --line-3: #ffc531; --line-4: #a98bff;
+  --accent-ink: #0d1524; --hl-ink: #16233b;
+}
 
-pre{background:var(--ink);color:var(--map);border-radius:8px;padding:14px;font-size:12.5px;line-height:1.5;overflow-x:auto;margin:14px 0;max-width:100%}
-pre .c{opacity:.6}
-
-/* terminus ticket */
-.ticket{margin:20px 0 8px;background:var(--card);border:2px solid var(--ink);border-radius:10px;padding:26px 20px 30px;position:relative;
-  -webkit-mask:radial-gradient(circle 9px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 9px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;
-  mask:radial-gradient(circle 9px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 9px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
-.ticket small{font:700 12px/1 var(--f-sign);letter-spacing:.16em;text-transform:uppercase;color:var(--soft)}
-.ticket p{font:700 clamp(27px,6.6vw,46px)/1.04 var(--f-sign);text-transform:uppercase;margin:10px 0 0;max-width:17em;text-wrap:balance}
-.stamp{position:absolute;right:16px;bottom:12px;transform:rotate(-9deg);border:3px double var(--red);color:var(--red);border-radius:6px;padding:5px 9px;font:800 15px/1 var(--f-sign);letter-spacing:.16em;text-transform:uppercase;opacity:.85}
-.src{font-size:15px;padding-left:1.1em}
-.src li{margin:0 0 5px;overflow-wrap:anywhere}
-footer{padding:26px 0 60px;color:var(--soft);font-size:14px}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* chrome: the scene is a route card with a dark sign plate, controls are signage, choices are amber */
+.scene { border-color: var(--rule); border-radius: 10px; }
+.scene .sec { background: var(--ink); color: var(--paper); border: 0; padding: 7px 14px; }
+.scene .sec .no { color: inherit; opacity: .8; }
+.scene .sec .no::before { content: "STOP "; }
+.caption { font-family: var(--font-body); font-weight: 500; font-size: 1.05rem; line-height: 1.45; }
+.controls { border-top: 2px solid var(--rule); margin-top: 12px; }
+.controls button, .choices button, .pick button { border-color: var(--rule); font-family: var(--font-display); font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase; border-radius: var(--radius); }
+.controls button.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.choices button { background: var(--hl); color: var(--hl-ink); flex: 1 1 130px; }
+.dots i.on { background: var(--hl); }
+.dots i.done { background: var(--ink); }
+:focus-visible { outline-color: var(--hl); }
+</style>
+<style>
+  #main .stage{min-height:470px}
+  svg.map{display:block;width:100%;height:auto;max-width:560px;margin:0 auto}
+  .trk{fill:none;stroke:var(--line-1,var(--accent));stroke-width:7;stroke-linecap:round;transition:opacity .4s}
+  .trk.two{stroke:var(--line-2,var(--good))}
+  .trk.miss{stroke:var(--bad);stroke-dasharray:6 7;stroke-width:4;opacity:0}
+  .trk.miss.on{opacity:1}
+  .trk.off{opacity:0}
+  .stn{fill:var(--paper);stroke:var(--ink);stroke-width:3;transition:fill .3s}
+  .stn.at{fill:var(--hl)}
+  .name{font:700 22px var(--font-display);fill:var(--ink);text-anchor:middle;text-transform:uppercase;letter-spacing:.03em}
+  .need{font:600 19px var(--font-mono);fill:var(--bad);text-anchor:middle;opacity:0;transition:opacity .4s}
+  .need.on{opacity:1}
+  .train{fill:var(--accent);stroke:var(--paper);stroke-width:3;transition:transform .5s}
+  .state{margin:10px auto 0;max-width:560px;font:14px var(--font-mono)}
+  .state h3{font:700 13px var(--font-display);text-transform:uppercase;letter-spacing:.05em;margin:0 0 4px;color:var(--muted)}
+  .state ol{margin:0;padding-left:1.6em;display:grid;gap:3px}
+  .state li.new{background:color-mix(in srgb,var(--hl) 40%,transparent)}
+  .saved{font:600 13px var(--font-mono);color:var(--muted);margin:8px auto 0;max-width:560px;min-height:1.4em}
+  .choices{display:flex;flex-wrap:wrap;gap:8px;margin:10px auto 0;max-width:560px}
+  .choices button{font-size:15px;padding:8px 12px;cursor:pointer}
+  .choices button[disabled]{opacity:.4;cursor:default}
+  .sources{font-size:15px}
 </style>
 </head>
 <body>
+<main>
+  <header class="col stack">
+    <h1 class="hook">Why did LLM apps move from chains to graphs?</h1>
+    <p>Early LLM apps were built as a straight line of steps. Today's agents are built as maps with loops in them.
+      Something forced that change. Ride the line to see what.</p>
+  </header>
 
-<nav class="strip" aria-label="Sections">
-  <div class="wrap">
-    <ol>
-      <li><a href="#hook">Start</a></li>
-      <li><a href="#chain">Chain</a></li>
-      <li><a href="#breaks">Breaks</a></li>
-      <li><a href="#graph">Graph</a></li>
-      <li><a href="#pause">Pause</a></li>
-      <li><a href="#today">Today</a></li>
-      <li><a href="#terminus">Terminus</a></li>
-    </ol>
-    <button class="theme" id="theme" type="button" aria-label="Switch between day map and night map">Night</button>
-  </div>
-</nav>
-
-<main class="wrap">
-
-<header class="hook" id="hook">
-  <span class="kicker"><span class="bullet k">?</span> LangChain and LangGraph, explained</span>
-  <h1>Why did LLM apps move from <em>chains</em> to <b>graphs</b>?</h1>
-  <p class="lede">Early LLM apps were built as pipelines. Today's agents are built as graphs with loops in them. Something forced that change. Ride five short lines to find out what.</p>
-  <svg class="hookmap" viewBox="0 0 360 74" role="img" aria-label="A straight red line with three stations, and below it a teal line that loops back on itself.">
-    <path class="ln r" d="M14 18H346"/>
-    <g class="st"><circle cx="60" cy="18" r="8"/><circle cx="180" cy="18" r="8"/><circle cx="300" cy="18" r="8"/></g>
-    <path class="ln t" d="M14 56H120L140 40H220L240 56H346"/>
-    <path class="ln a" d="M140 40L160 68H200L220 40"/>
-    <g class="st"><circle cx="60" cy="56" r="8"/><circle cx="140" cy="40" r="8"/><circle cx="220" cy="40" r="8"/><circle cx="180" cy="68" r="6"/><circle cx="300" cy="56" r="8"/></g>
-  </svg>
-</header>
-
-<section id="chain">
-  <span class="kicker"><span class="bullet">1</span> Red line</span>
-  <h2>One call, then a chain</h2>
-  <div class="prose">
-    <p>A language model call is one stop. Text goes in, text comes out, and the model remembers nothing afterwards.</p>
-    <p>Real apps need more around that call. You fill a prompt template, call the model, then parse the reply into something your code can use. LangChain made that a <b>chain</b>: steps joined with the pipe operator, each output feeding the next input.</p>
-  </div>
-  <div class="scene" id="s1" tabindex="0" aria-label="Scene 1: an LLM call, then a chain">
-    <div class="plate"><span>Red line · the chain</span><span class="count"></span></div>
-    <div class="stage">
-      <svg viewBox="0 0 360 150" role="img" aria-label="A straight line: START, prompt, model, parser, END.">
-        <path class="ln r fade" id="c-line" d="M30 78H330"/>
-        <path id="c-a" d="M30 78H110" fill="none"/><path id="c-b" d="M110 78H190" fill="none"/>
-        <path id="c-c" d="M190 78H270" fill="none"/><path id="c-d" d="M270 78H330" fill="none"/>
-        <g class="st term fade" data-k="start"><rect x="25" y="64" width="10" height="28" rx="2"/><text x="30" y="116" text-anchor="middle">START</text></g>
-        <g class="st fade" data-k="prompt"><circle cx="110" cy="78" r="10"/><text x="110" y="52" text-anchor="middle">prompt</text></g>
-        <g class="st fade" data-k="model"><circle cx="190" cy="78" r="10"/><text x="190" y="116" text-anchor="middle">model</text></g>
-        <g class="st fade" data-k="parser"><circle cx="270" cy="78" r="10"/><text x="270" y="52" text-anchor="middle">parser</text></g>
-        <g class="st term fade" data-k="end"><rect x="325" y="64" width="10" height="28" rx="2"/><text x="330" y="116" text-anchor="middle">END</text></g>
-        <g class="train"><rect x="-12" y="-8" width="24" height="16" rx="5"/><circle r="3.5"/></g>
-      </svg>
-      <div class="side">
-        <p class="cap" aria-live="polite"></p>
-        <div class="bag"><h3>On board</h3><ul></ul></div>
-        <p class="route"></p>
+  <section class="wide">
+    <figure class="scene" id="main">
+      <div class="stage">
+        <section data-scene="chain" data-title="The chain">
+          <div id="chainmap"></div>
+        </section>
+        <section data-scene="graph" data-title="The graph">
+          <div id="graphmap"></div>
+          <div class="choices" id="pick" role="group" aria-label="You are the model: what do you do?"></div>
+          <div class="state"><h3>Shared state: messages</h3><ol id="msgs"></ol></div>
+          <p class="saved" id="saved"></p>
+        </section>
       </div>
-    </div>
-    <div class="ctl"><button class="back" type="button">Back</button><button class="next" type="button">Next</button><button class="play" type="button">Play</button><span class="hint">or use ← →</span></div>
-  </div>
-</section>
+    </figure>
+  </section>
 
-<section id="breaks">
-  <span class="kicker"><span class="bullet k">2</span> Planned works</span>
-  <h2>Where the straight line breaks</h2>
-  <div class="prose">
-    <p>A chain fixes its route before the train leaves. That works for summarise-this or translate-that. It stops working once the next step depends on what just happened.</p>
-    <p>Agents made this unavoidable. An agent lets the model decide whether to call a tool, reads the result, and decides again. Nobody knows in advance how many laps that takes.</p>
-  </div>
-  <div class="scene" id="s2" tabindex="0" aria-label="Scene 2: what a chain cannot express">
-    <div class="plate"><span>Planned works · four missing tracks</span><span class="count"></span></div>
-    <div class="stage">
-      <svg viewBox="0 0 360 230" role="img" aria-label="The chain line with four dashed proposed tracks: a retry loop, a branch, a tool loop and an approval stop.">
-        <path class="ln r" d="M30 86H330"/>
-        <g class="fade" data-w="1"><path class="ln v plan" d="M270 86V42H190V86"/><text class="sm" x="230" y="34" text-anchor="middle">retry until it parses</text></g>
-        <g class="fade" data-w="2"><path class="ln a plan" d="M110 86L140 132H80"/><g class="st"><circle cx="80" cy="132" r="8"/></g><text class="sm" x="80" y="154" text-anchor="middle">other branch</text></g>
-        <g class="fade" data-w="3"><path class="ln t plan" d="M184 86V180"/><path class="ln t plan" d="M196 180V86"/><g class="st"><circle cx="190" cy="186" r="9"/></g><text x="190" y="216" text-anchor="middle">tools</text><text class="sm" x="206" y="140">until done</text></g>
-        <g class="fade" data-w="4"><line class="bar" x1="300" y1="68" x2="300" y2="104"/><circle class="sig red" cx="300" cy="56" r="6"/><text class="sm" x="300" y="128" text-anchor="middle">wait for</text><text class="sm" x="300" y="141" text-anchor="middle">a person</text></g>
-        <g class="st term"><rect x="25" y="72" width="10" height="28" rx="2"/><rect x="325" y="72" width="10" height="28" rx="2"/></g>
-        <g class="st"><circle cx="110" cy="86" r="10"/><circle cx="190" cy="86" r="10"/><circle cx="270" cy="86" r="10"/></g>
-        <text x="110" y="66" text-anchor="middle">prompt</text><text x="160" y="74" text-anchor="end" class="hide">.</text>
-        <text x="190" y="66" text-anchor="middle" id="s2m">model</text><text x="270" y="116" text-anchor="middle">parser</text>
-      </svg>
-      <div class="side"><p class="cap" aria-live="polite"></p></div>
-    </div>
-    <div class="ctl"><button class="back" type="button">Back</button><button class="next" type="button">Next</button><button class="play" type="button">Play</button><span class="hint">or use ← →</span></div>
-  </div>
-</section>
-
-<section id="graph">
-  <span class="kicker"><span class="bullet t">3</span> Teal loop</span>
-  <h2>LangGraph: state rides the network</h2>
-  <div class="prose">
-    <p>LangGraph replaces the pipeline with a map. Three ideas carry it.</p>
-    <p><b>State</b> is the train. It is one shared object, here a list of messages, that visits every station. <b>Nodes</b> are stations: plain functions that read the state and return only the keys they change. A <b>reducer</b> decides how that update merges in. For messages, the <code>add_messages</code> reducer appends. With no reducer, the new value replaces the old one.</p>
-    <p><b>Edges</b> are track. A normal edge always goes to the same next station. A <b>conditional edge</b> is a junction: a routing function reads the state and returns the name of the next node. Point an edge backwards and you have a cycle.</p>
-    <p>Below is the standard agent loop. You play the model. Each time the train reaches it, decide whether it asks for a tool.</p>
-  </div>
-  <div class="scene" id="s3" tabindex="0" aria-label="Scene 3: drive the agent loop">
-    <div class="plate"><span>Teal loop · you set the junction</span><span class="count"></span></div>
-    <div class="stage">
-      <svg viewBox="0 0 360 250" role="img" aria-label="Map: START to model to a junction. The junction leads to END or down to tools, which loops back to model.">
-        <path class="ln r" id="g-a" d="M30 70H128"/>
-        <path class="ln r" id="g-b" d="M128 70H232"/>
-        <path class="ln a" id="g-e" d="M232 70H330"/>
-        <path class="ln t" id="g-c" d="M232 70V160L202 190H180"/>
-        <path class="ln t" id="g-d" d="M180 190H158L128 160V70"/>
-        <g class="st term"><rect x="25" y="56" width="10" height="28" rx="2"/><rect x="325" y="56" width="10" height="28" rx="2"/></g>
-        <g class="st" data-k="model"><circle cx="128" cy="70" r="11"/></g>
-        <g class="st" data-k="junction"><path d="M232 56L246 70L232 84L218 70Z"/></g>
-        <g class="st" data-k="tools"><circle cx="180" cy="190" r="11"/></g>
-        <text x="30" y="44" text-anchor="middle">START</text><text x="128" y="44" text-anchor="middle">model</text>
-        <text x="232" y="44" text-anchor="middle">route()</text><text x="330" y="44" text-anchor="middle">END</text>
-        <text x="180" y="222" text-anchor="middle">tools</text>
-        <text class="sm" x="254" y="128">"tools"</text><text class="sm" x="281" y="92" text-anchor="middle">END</text>
-        <text class="sm" x="118" y="128" text-anchor="end">always</text>
-        <g class="train"><rect x="-12" y="-8" width="24" height="16" rx="5"/><circle r="3.5"/></g>
-      </svg>
-      <div class="side">
-        <p class="cap" aria-live="polite"></p>
-        <div class="choice"></div>
-        <div class="bag"><h3>State on board <span>messages</span></h3><ul></ul></div>
-        <p class="route"></p>
-      </div>
-    </div>
-    <div class="ctl"><button class="back" type="button">Back</button><button class="next" type="button">Next</button><button class="play" type="button">Play</button><span class="hint">or use ← →</span></div>
-  </div>
-  <div class="prose">
-    <p>That whole map is a few lines of Python. The loop is the last <code>add_edge</code>: tools always return to the model.</p>
-  </div>
-<pre><code>from typing import Annotated, TypedDict
-from langgraph.graph import StateGraph, START, END
-from langgraph.graph.message import add_messages
-from langgraph.checkpoint.memory import InMemorySaver
-
-class State(TypedDict):
-    messages: Annotated[list, add_messages]  <span class="c"># reducer: append</span>
-
-def call_model(state: State):
-    <span class="c"># model = a chat model with tools bound</span>
-    return {"messages": [model.invoke(state["messages"])]}
-
-def run_tools(state: State):
-    ...  <span class="c"># run each requested tool, return ToolMessages</span>
-
-def route(state: State):
-    last = state["messages"][-1]
-    return "tools" if last.tool_calls else END
-
-builder = StateGraph(State)
-builder.add_node("model", call_model)
-builder.add_node("tools", run_tools)
-builder.add_edge(START, "model")
-builder.add_conditional_edges(
-    "model", route, {"tools": "tools", END: END})
-builder.add_edge("tools", "model")           <span class="c"># the cycle</span>
-
-graph = builder.compile(checkpointer=InMemorySaver())</code></pre>
-</section>
-
-<section id="pause">
-  <span class="kicker"><span class="bullet v">4</span> Violet line</span>
-  <h2>Checkpoints and a red signal</h2>
-  <div class="prose">
-    <p>Because the state is one explicit object, it can be saved. Compile the graph with a <b>checkpointer</b> and LangGraph persists the state as checkpoints under a <code>thread_id</code>. The same thread can continue a conversation later.</p>
-    <p>Saved state also lets a run stop for a person. A node calls <code>interrupt()</code>, the graph pauses, and the value you passed is handed to the caller. To continue, invoke the graph again on the same thread with <code>Command(resume=...)</code>. Here the agent wants to send an email. You hold the signal.</p>
-  </div>
-  <div class="scene" id="s4" tabindex="0" aria-label="Scene 4: interrupt and resume">
-    <div class="plate"><span>Violet line · signal at approve</span><span class="count"></span></div>
-    <div class="stage">
-      <svg viewBox="0 0 360 200" role="img" aria-label="Map: START, model, approve with a signal, send email, END. A bypass track runs from approve straight to END.">
-        <path class="ln v" id="h-a" d="M30 78H110"/>
-        <path class="ln v" id="h-b" d="M110 78H196"/>
-        <path class="ln v" id="h-c" d="M196 78H274"/>
-        <path class="ln v" id="h-d" d="M274 78H334"/>
-        <path class="ln a" id="h-e" d="M196 78V128L216 148H314L334 128V78"/>
-        <g class="st term"><rect x="25" y="64" width="10" height="28" rx="2"/><rect x="329" y="64" width="10" height="28" rx="2"/></g>
-        <g class="st" data-k="model"><circle cx="110" cy="78" r="11"/></g>
-        <g class="st" data-k="approve"><circle cx="196" cy="78" r="11"/></g>
-        <g class="st" data-k="send"><circle cx="274" cy="78" r="11"/></g>
-        <circle class="sig" id="sig" cx="196" cy="30" r="7"/>
-        <text x="30" y="118" text-anchor="middle">START</text><text x="110" y="52" text-anchor="middle">model</text>
-        <text x="172" y="52" text-anchor="middle">approve</text><text x="274" y="52" text-anchor="middle">send_email</text>
-        <text x="334" y="52" text-anchor="middle">END</text>
-        <text class="sm" x="265" y="170" text-anchor="middle">rejected: skip the tool</text>
-        <g class="train"><rect x="-12" y="-8" width="24" height="16" rx="5"/><circle r="3.5"/></g>
-      </svg>
-      <div class="side">
-        <p class="cap" aria-live="polite"></p>
-        <div class="choice"></div>
-        <div class="depot" aria-label="Saved checkpoints"></div>
-        <p class="route"></p>
-      </div>
-    </div>
-    <div class="ctl"><button class="back" type="button">Back</button><button class="next" type="button">Next</button><button class="play" type="button">Play</button><span class="hint">or use ← →</span></div>
-  </div>
-</section>
-
-<section id="today">
-  <span class="kicker"><span class="bullet a">5</span> Network map</span>
-  <h2>How the two fit together today</h2>
-  <div class="prose">
-    <p>The names suggest rivals. In practice they are layers of one stack, and both reached version 1.0 in October 2025.</p>
-  </div>
-  <div class="scene" id="s5" tabindex="0" aria-label="Scene 5: how LangChain and LangGraph relate">
-    <div class="plate"><span>Network map · who runs on what</span><span class="count"></span></div>
-    <div class="stage">
-      <div class="stack">
-        <div class="svc" data-k="lc"><h4>langchain</h4><p>create_agent(model, tools, middleware) · model and tool integrations</p></div>
-        <div class="rides">runs on</div>
-        <div class="svc t" data-k="lg"><h4>langgraph</h4><p>StateGraph · nodes and edges · checkpointers · interrupt · streaming</p></div>
-        <div class="svc g" data-k="cl"><h4>langchain-classic</h4><p>legacy chains · retrievers · indexing API · hub</p></div>
-      </div>
-      <div class="side"><p class="cap" aria-live="polite"></p><p class="route"></p></div>
-    </div>
-    <div class="ctl"><button class="back" type="button">Back</button><button class="next" type="button">Next</button><button class="play" type="button">Play</button><span class="hint">or use ← →</span></div>
-  </div>
-</section>
-
-<section id="terminus">
-  <span class="kicker"><span class="bullet k">T</span> Terminus</span>
-  <h2>The answer</h2>
-  <div class="ticket">
-    <small>Chains to graphs · single journey</small>
-    <p>A chain can only go forward. Agents have to loop, branch, wait and resume, so the route became a graph and the cargo became shared state.</p>
-    <span class="stamp" aria-hidden="true">Validated</span>
-  </div>
-  <div class="prose">
-    <p>Chains did not disappear. A fixed pipeline is still the right shape for a fixed job. The graph is what you reach for when the model, a tool result or a person decides the next stop.</p>
-  </div>
-  <h2 style="font-size:24px;margin-top:26px">Sources</h2>
-  <ul class="src">
-    <li><a href="https://docs.langchain.com/oss/python/langgraph/graph-api">LangGraph docs: Graph API</a> (state, reducers, nodes, edges, conditional edges, recursion limit)</li>
-    <li><a href="https://docs.langchain.com/oss/python/langgraph/persistence">LangGraph docs: Persistence</a> (checkpointers, threads)</li>
-    <li><a href="https://docs.langchain.com/oss/python/langgraph/interrupts">LangGraph docs: Interrupts</a> (interrupt, Command(resume=...))</li>
-    <li><a href="https://docs.langchain.com/oss/python/releases/langchain-v1">LangChain v1 release notes</a> (create_agent, middleware, langchain-classic)</li>
-    <li><a href="https://blog.langchain.com/langchain-langgraph-1dot0">LangChain blog: LangChain and LangGraph reach v1.0</a></li>
-  </ul>
-</section>
-
+  <section class="col stack">
+    <p class="payoff">A chain can only go forward. Agents loop, branch and wait, so <mark>the route became a graph</mark>.</p>
+    <p>A straight chain is still right for a fixed job like "summarise this". LangGraph is for when the model, a tool result or a person decides the next stop.
+      LangChain's <code>create_agent</code> builds the standard loop above on top of LangGraph for you.</p>
+    <h2>Sources</h2>
+    <ul class="sources">
+      <li><a href="https://docs.langchain.com/oss/python/langgraph/graph-api">LangGraph docs: Graph API</a></li>
+      <li><a href="https://docs.langchain.com/oss/python/langgraph/persistence">LangGraph docs: Persistence</a></li>
+      <li><a href="https://docs.langchain.com/oss/python/langgraph/interrupts">LangGraph docs: Interrupts</a></li>
+      <li><a href="https://docs.langchain.com/oss/python/releases/langchain-v1">LangChain v1 release notes</a></li>
+    </ul>
+  </section>
 </main>
-<footer class="wrap">Draft explainer. Checked against the LangChain and LangGraph docs on 14 November 2026.</footer>
 
 <script>
-(function(){
-"use strict";
-var RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
-var $ = function(s, r){ return (r||document).querySelector(s); };
-var $$ = function(s, r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
+/* explainer player v0
+ * One shared stepper for every explainer: Back / Next / Play, captions, dots, keys, reduced motion.
+ * A scene is data plus two small functions:
+ *
+ *   Explainer.scene("#queue", {
+ *     title: "Requests waiting in a queue",        // used for the stage's aria-label
+ *     initial: { waiting: 0, served: 0 },          // state before step 1
+ *     steps: [                                     // or a function (api) -> steps, see setSteps
+ *       { say: "Three requests arrive at once.", set: { waiting: 3 } },
+ *       { say: "The worker takes one. {left} still wait.", set: { waiting: 2, served: 1 }, mark: { busy: true } },
+ *     ],
+ *     setup(stage, api) { ... },                   // build the DOM once
+ *     draw(state, api)  { ... },                   // make the DOM match `state`; api.animate is false on first paint
+ *     compute(state)    { return { left: state.waiting }; }  // numbers for {name} in captions
+ *   });
+ *
+ * Deck mode (one stepper drives several sections, like a manual): put <section data-scene="loop" data-title="The loop">
+ * blocks inside the figure, give each step `scene: "loop"`, and pass per-section code as
+ * `scenes: { loop: { setup(sectionEl, api), draw(state, api) } }`. Only the active section is shown.
+ * A step with `wait: true` stops Play there, because the reader has something to do.
+ *
+ * State at step i = initial, then every step's `set` from 0..i merged in order, then step i's `mark`.
+ * `set` carries forward; `mark` is true for one step only (highlights, "look here", a probe).
+ * Captions may use {name}: filled from compute(state), then state. A missing name renders [?name] and is
+ * reported in window.__explainer.errors, so the check script fails instead of shipping a wrong number.
+ */
+(function () {
+  "use strict";
+  var NS = "http://www.w3.org/2000/svg";
+  var reduce = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  var registry = (window.__explainer = window.__explainer || { scenes: [], errors: [] });
+  if (reduce) document.documentElement.classList.add("reduce-motion");
 
-/* theme */
-var root = document.documentElement, tb = $("#theme");
-function isDark(){ var t = root.getAttribute("data-theme"); return t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; }
-function label(){ tb.textContent = isDark() ? "Day" : "Night"; }
-tb.addEventListener("click", function(){ root.setAttribute("data-theme", isDark() ? "light" : "dark"); label(); });
-label();
-
-/* train movement */
-function place(train, x, y){ train.setAttribute("transform", "translate(" + x + "," + y + ")"); }
-function endOf(path, rev){ var L = path.getTotalLength(); return path.getPointAtLength(rev ? 0 : L); }
-function ride(train, path, token){
-  var L = path.getTotalLength(), t0 = null, dur = Math.min(1100, 350 + L * 4);
-  function f(ts){
-    if (train._tok !== token) return;
-    if (t0 === null) t0 = ts;
-    var k = Math.min(1, (ts - t0) / dur); k = k < .5 ? 2*k*k : 1 - Math.pow(-2*k + 2, 2) / 2;
-    var p = path.getPointAtLength(L * k); place(train, p.x, p.y);
-    if (k < 1) requestAnimationFrame(f);
+  // Playback speed, shared by every scene on the page and remembered per viewer.
+  var SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+  var speed = 1, speedViews = [];
+  try { var saved = parseFloat(localStorage.getItem("explainer-speed")); if (SPEEDS.indexOf(saved) >= 0) speed = saved; } catch (e) {}
+  function speedLabel(v) { return v + "\u00d7"; }
+  function setSpeed(v) {
+    speed = v;
+    try { localStorage.setItem("explainer-speed", String(v)); } catch (e) {}
+    speedViews.forEach(function (f) { f(); });
   }
-  requestAnimationFrame(f);
-}
 
-/* scene controller: a history of snapshots. Each snapshot says what is true. */
-var scenes = [], active = null;
-function Scene(id, o){
-  var el = $("#" + id), me = this;
-  this.el = el; this.o = o; this.hist = [o.first()]; this.i = 0; this.timer = null;
-  this.cap = $(".cap", el); this.count = $(".count", el); this.choice = $(".choice", el);
-  this.train = $(".train", el); this.bBack = $(".back", el); this.bNext = $(".next", el); this.bPlay = $(".play", el);
-  this.bBack.addEventListener("click", function(){ me.stop(); me.back(); });
-  this.bNext.addEventListener("click", function(){ me.stop(); me.next(); });
-  this.bPlay.addEventListener("click", function(){ me.timer ? me.stop() : me.play(); });
-  el.addEventListener("pointerdown", function(){ active = me; });
-  el.addEventListener("focusin", function(){ active = me; });
-  scenes.push(this); this.show(null);
-}
-Scene.prototype.canNext = function(){
-  if (this.i < this.hist.length - 1) return true;
-  var s = this.hist[this.i]; return !!(this.o.grow && !s.choices && !s.done && this.o.grow(s, true));
-};
-Scene.prototype.next = function(){
-  if (this.i < this.hist.length - 1){ this.i++; this.show(this.i - 1); return true; }
-  var s = this.hist[this.i]; if (!this.o.grow || s.choices || s.done) return false;
-  var n = this.o.grow(s); if (!n) return false;
-  this.hist.push(n); this.i++; this.show(this.i - 1); return true;
-};
-Scene.prototype.back = function(){ if (this.i > 0){ this.i--; this.show(this.i + 1); } };
-Scene.prototype.pick = function(k){
-  var s = this.hist[this.i]; this.hist.length = this.i + 1;
-  this.hist.push(s.choices[k].go(s)); this.i++; this.show(this.i - 1);
-};
-Scene.prototype.play = function(){
-  var me = this;
-  if (!this.canNext() && !this.hist[this.i].choices){ this.i = 0; if (this.o.grow) this.hist.length = 1; this.show(null); }
-  this.bPlay.textContent = "Pause";
-  this.timer = setInterval(function(){
-    var s = me.hist[me.i];
-    if (s.choices && me.i === me.hist.length - 1){ me.pick(s.auto || 0); return; }
-    if (!me.next()) me.stop();
-  }, RM ? 2600 : 2300);
-};
-Scene.prototype.stop = function(){ clearInterval(this.timer); this.timer = null; this.bPlay.textContent = "Play"; };
-Scene.prototype.show = function(prev){
-  var me = this, s = this.hist[this.i], total = this.o.total;
-  this.cap.innerHTML = s.say;
-  this.count.textContent = total ? "stop " + (this.i + 1) + "/" + total : "stop " + (this.i + 1);
-  this.bBack.disabled = this.i === 0; this.bNext.disabled = !this.canNext();
-  if (this.choice){
-    this.choice.innerHTML = "";
-    if (s.choices){
-      var q = document.createElement("span"); q.className = "q"; q.textContent = s.ask; this.choice.appendChild(q);
-      s.choices.forEach(function(c, k){
-        var b = document.createElement("button"); b.type = "button"; b.textContent = c.label; if (k) b.className = "alt";
-        b.addEventListener("click", function(){ me.stop(); me.pick(k); }); me.choice.appendChild(b);
+  function report(scene, msg) {
+    registry.errors.push(scene + ": " + msg);
+    if (window.console) console.error("[explainer] " + scene + ": " + msg);
+  }
+
+  function svg(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  function h(tag, attrs, parent) {
+    var e = document.createElement(tag);
+    for (var k in attrs) {
+      if (k === "text") e.textContent = attrs[k];
+      else if (attrs[k] != null) e.setAttribute(k, attrs[k]);
+    }
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  // Seeded random numbers (mulberry32): same seed, same sequence, so captions and videos stay stable.
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6d2b79f5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function fmt(v) {
+    return typeof v === "number" ? v.toLocaleString("en-US", { maximumFractionDigits: 2 }) : String(v);
+  }
+
+  function words(s) {
+    return String(s || "").split(/\s+/).filter(Boolean).length;
+  }
+
+  // Hand-drawn wobble: one shared SVG filter, strength from the theme's --sketch token (0 = off).
+  var roughDone = false;
+  function ensureRough() {
+    if (roughDone) return;
+    roughDone = true;
+    var scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sketch")) || 0;
+    var defs = svg("svg", { width: 0, height: 0, "aria-hidden": "true", style: "position:absolute" }, document.body);
+    var f = svg("filter", { id: "rough", x: "-5%", y: "-5%", width: "110%", height: "110%" }, svg("defs", {}, defs));
+    svg("feTurbulence", { type: "fractalNoise", baseFrequency: "0.035", numOctaves: 2, seed: 7, result: "n" }, f);
+    svg("feDisplacementMap", { in: "SourceGraphic", in2: "n", scale: scale, xChannelSelector: "R", yChannelSelector: "G" }, f);
+  }
+
+  function scene(target, opts) {
+    var fig = typeof target === "string" ? document.querySelector(target) : target;
+    var name = fig && (fig.id || opts.title) || "scene";
+    if (!fig) { report(String(target), "element not found"); return null; }
+    ensureRough();
+
+    fig.classList.add("scene");
+    if (!fig.hasAttribute("tabindex")) fig.setAttribute("tabindex", "0");
+    var stage = fig.querySelector(".stage") || h("div", { class: "stage" }, fig);
+    stage.setAttribute("role", "img");
+    stage.setAttribute("aria-label", opts.title || name);
+    var sections = {}, head = null;
+    [].forEach.call(fig.querySelectorAll("[data-scene]"), function (s) { sections[s.getAttribute("data-scene")] = s; });
+    var names = Object.keys(sections);
+    if (names.length) {
+      fig.classList.add("deck");
+      head = h("div", { class: "sec" }, null);
+      stage.parentNode.insertBefore(head, stage);
+    }
+    var caption = h("p", { class: "caption", "aria-live": "polite" }, fig);
+    var bar = h("div", { class: "controls" }, fig);
+    var prev = h("button", { type: "button", class: "prev", text: "Back" }, bar);
+    var next = h("button", { type: "button", class: "next primary", text: "Next" }, bar);
+    // Play is a split control: the main part plays and pauses, the chip shows the speed and opens the choices.
+    var group = h("div", { class: "playgroup" }, bar);
+    var play = h("button", { type: "button", class: "play", text: "Play" }, group);
+    var chip = h("button", { type: "button", class: "speed-now", "aria-expanded": "false", "aria-label": "Playback speed" }, group);
+    var menu = h("div", { class: "speed-menu", role: "group", "aria-label": "Playback speed", "aria-hidden": "true" }, bar);
+    var menuIn = h("div", { class: "speed-opts" }, menu);
+    var opts_ = SPEEDS.map(function (v) {
+      var b = h("button", { type: "button", "data-speed": v, tabindex: "-1", text: speedLabel(v) }, menuIn);
+      b.addEventListener("click", function () { setSpeed(v); openMenu(false); chip.focus(); if (timer) { clearTimeout(timer); tick(); } });
+      return b;
+    });
+    function paintSpeed() {
+      chip.textContent = speedLabel(speed);
+      chip.setAttribute("aria-label", "Playback speed " + speedLabel(speed) + ". Change");
+      opts_.forEach(function (b) { b.setAttribute("aria-pressed", +b.getAttribute("data-speed") === speed); });
+    }
+    function openMenu(on) {
+      fig.classList.toggle("speed-open", on);
+      chip.setAttribute("aria-expanded", on);
+      menu.setAttribute("aria-hidden", !on);
+      opts_.forEach(function (b) { b.setAttribute("tabindex", on ? "0" : "-1"); });
+      if (on) { var cur = opts_[SPEEDS.indexOf(speed)]; if (cur) cur.focus(); }
+    }
+    chip.addEventListener("click", function () { openMenu(chip.getAttribute("aria-expanded") !== "true"); });
+    menu.addEventListener("keydown", function (e) {
+      var i = opts_.indexOf(document.activeElement);
+      if (e.key === "Escape") { openMenu(false); chip.focus(); }
+      else if ((e.key === "ArrowRight" || e.key === "ArrowLeft") && i >= 0) {
+        opts_[(i + (e.key === "ArrowRight" ? 1 : opts_.length - 1)) % opts_.length].focus();
+      } else return;
+      e.preventDefault(); e.stopPropagation();
+    });
+    speedViews.push(paintSpeed);
+    paintSpeed();
+    var dots = h("div", { class: "dots", "aria-hidden": "true" }, bar);
+
+    var steps = [], idx = 0, timer = null, state = {};
+    var api = {
+      el: fig, stage: stage, reduce: reduce, animate: false,
+      get index() { return idx; },
+      get count() { return steps.length; },
+      get state() { return state; },
+      get step() { return steps[idx]; },
+      get scene() { return steps[idx] && steps[idx].scene; },
+      sections: sections,
+      go: function (i) { stop(); show(i, true); },
+      next: function () { stop(); step(1); },
+      prev: function () { stop(); step(-1); },
+      play: function () { if (!timer) toggle(); },
+      stop: stop,
+      get speed() { return speed; },
+      setSpeed: setSpeed,
+      // Replace the steps, e.g. after the reader picks an input and real code generates a new trace.
+      setSteps: function (s, at) { steps = s || []; buildDots(); stop(); show(at || 0, true); },
+      // Keep steps up to the current one, replace everything after it, and move on: a reader's choice
+      // that changes what happens next (pick a route, approve a call).
+      branch: function (s) { steps = steps.slice(0, idx + 1).concat(s || []); buildDots(); stop(); show(idx + 1, true); },
+      // Jump to the first step that matches, e.g. api.goWhere(function (s) { return s.scene === "panel"; }).
+      goWhere: function (pred) { for (var i = 0; i < steps.length; i++) if (pred(steps[i], i)) { stop(); show(i, true); return i; } return -1; },
+      redraw: function () { show(idx, false); },
+      // Replace the caption until the next step, e.g. after the reader clicks something inside a scene.
+      say: function (text) { setCaption(text); },
+      stateAt: stateAt,
+      captionAt: function (i) { return fill(steps[i] && steps[i].say, stateAt(i), true); },
+      svg: svg, h: h, rng: rng
+    };
+
+    function stateAt(i) {
+      var s = {}, k;
+      for (k in opts.initial || {}) s[k] = opts.initial[k];
+      for (var j = 0; j <= i && j < steps.length; j++) for (k in steps[j].set || {}) s[k] = steps[j].set[k];
+      var m = (steps[i] && steps[i].mark) || {};
+      for (k in m) s[k] = m[k];
+      return s;
+    }
+
+    function fill(text, s, quiet) {
+      var vals = opts.compute ? opts.compute(s, api) || {} : {};
+      return String(text || "").replace(/\{(\w+)\}/g, function (all, key) {
+        var v = key in vals ? vals[key] : s[key];
+        if (v === undefined || v === null || (typeof v === "number" && !isFinite(v))) {
+          if (!quiet) report(name, "caption needs {" + key + "} but compute() and state do not provide it");
+          return "[?" + key + "]";
+        }
+        return fmt(v);
       });
     }
+
+    function buildDots() {
+      dots.innerHTML = "";
+      dots.classList.toggle("many", steps.length > 12);
+      for (var i = 0; i < steps.length; i++) h("i", {}, dots);
+    }
+
+    function show(i, animate) {
+      if (!steps.length) return;
+      idx = Math.max(0, Math.min(steps.length - 1, i));
+      state = stateAt(idx);
+      api.animate = !!animate && !reduce;
+      var sc = steps[idx].scene;
+      if (names.length) {
+        if (sc && !sections[sc]) report(name, "step " + (idx + 1) + " names scene '" + sc + "' but there is no [data-scene=" + sc + "]");
+        names.forEach(function (n) { sections[n].classList.toggle("on", n === sc); });
+        var pos = names.indexOf(sc) + 1, title = sc && sections[sc] ? sections[sc].getAttribute("data-title") || "" : "";
+        head.innerHTML = "";
+        h("span", { class: "no", text: pos + " / " + names.length }, head);
+        h("span", { class: "ttl", text: title }, head);
+      }
+      try {
+        var part = sc && opts.scenes && opts.scenes[sc];
+        if (part && part.draw) part.draw(state, api);
+        if (opts.draw) opts.draw(state, api);
+      } catch (e) { report(name, "draw() failed at step " + (idx + 1) + ": " + e.message); }
+      setCaption(fill(steps[idx].say, state));
+      for (var d = 0; d < dots.children.length; d++) {
+        dots.children[d].classList.toggle("on", d === idx);
+        dots.children[d].classList.toggle("done", d < idx);
+      }
+      prev.disabled = idx === 0;
+      next.textContent = idx === steps.length - 1 ? "Restart" : "Next";
+    }
+
+    function setCaption(text) {
+      caption.innerHTML = "";
+      h("span", { class: "stepno", text: "step " + (idx + 1) + " of " + steps.length }, caption);
+      caption.appendChild(document.createTextNode(text));
+    }
+
+    function step(d) {
+      if (d > 0 && idx === steps.length - 1) show(0, true);
+      else show(idx + d, true);
+    }
+
+    function holdFor(s) {
+      if (s && s.hold) return s.hold;
+      return Math.max(1800, Math.min(7000, 900 + 260 * words(s && s.say)));
+    }
+
+    function stop() {
+      if (timer) { clearTimeout(timer); timer = null; play.textContent = "Play"; }
+    }
+
+    function tick() {
+      timer = setTimeout(function () {
+        if (idx >= steps.length - 1) { stop(); return; }
+        show(idx + 1, true);
+        if (steps[idx].wait) { stop(); return; }
+        tick();
+      }, holdFor(steps[idx]) / speed);
+    }
+
+    function toggle() {
+      if (timer) { stop(); return; }
+      if (idx === steps.length - 1) show(0, true);
+      else if (steps[idx].wait) show(idx + 1, true);
+      play.textContent = "Pause";
+      tick();
+    }
+
+    prev.addEventListener("click", function () { stop(); step(-1); });
+    next.addEventListener("click", function () { stop(); step(1); });
+    play.addEventListener("click", toggle);
+    function onKey(e) {
+      var t = e.target, tag = t && t.tagName;
+      if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA" || (t && t.isContentEditable)) return;
+      if (t && t.closest && t.closest(".speed-menu")) return;
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === "ArrowRight") { stop(); step(1); }
+      else if (k === "ArrowLeft") { stop(); step(-1); }
+      else if (k === "Home") { stop(); show(0, true); }
+      else if (k === "End") { stop(); show(steps.length - 1, true); }
+      else return;
+      e.preventDefault();
+    }
+    fig.addEventListener("keydown", onKey);
+    api.onKey = onKey;
+
+    try {
+      if (opts.setup) opts.setup(stage, api);
+      names.forEach(function (n) { var p = opts.scenes && opts.scenes[n]; if (p && p.setup) p.setup(sections[n], api); });
+    } catch (e) { report(name, "setup() failed: " + e.message); }
+    steps = typeof opts.steps === "function" ? opts.steps(api) : opts.steps || [];
+    if (!steps.length) report(name, "no steps");
+    buildDots();
+    show(0, false);
+    registry.scenes.push({ name: name, api: api });
+    return api;
   }
-  if (this.train && s.at){
-    var tok = (this.train._tok = {}), path = s.via ? $("#" + s.via, this.el) : null;
-    if (path && prev !== null && prev === this.i - 1 && !RM) ride(this.train, path, tok);
-    else place(this.train, s.at[0], s.at[1]);
-  }
-  $$(".st[data-k]", this.el).forEach(function(g){ g.classList.toggle("on", g.getAttribute("data-k") === s.on); });
-  if (this.o.draw) this.o.draw(s, this.el);
-};
 
-function bagHTML(rows){
-  return rows.map(function(r, k){
-    return '<li class="' + (r.fresh ? "new" : "") + '"><span class="chip ' + r.c + '">' + r.t + "</span><span>" + r.v + "</span></li>";
-  }).join("");
-}
-function fixed(steps){ return { total: steps.length, first: function(){ return steps[0]; }, grow: function(s){ return steps[steps.indexOf(s) + 1] || null; } }; }
-
-/* ---------- Scene 1: call, then chain ---------- */
-var s1 = fixed([
-  {say:"<b>One LLM call.</b> A prompt goes in and a message comes out. Nothing before it, nothing after it.", at:[190,78], on:"model", solo:true,
-   bag:[{c:"h",t:"in",v:'"Tell me a joke about ducks"'}], code:"model.invoke(...)"},
-  {say:"<b>Now a chain.</b> Three stations on one line. The train boards at START with your input, a plain dict.", at:[30,78],
-   bag:[{c:"k",t:"dict",v:'{"topic": "ducks"}',fresh:1}], code:"chain = prompt | model | parser"},
-  {say:"<b>prompt</b> fills a template with that input and produces the messages for the model.", at:[110,78], via:"c-a", on:"prompt",
-   bag:[{c:"h",t:"prompt",v:'"Tell me a joke about ducks"',fresh:1}], code:"chain = <b>prompt</b> | model | parser"},
-  {say:"<b>model</b> takes the prompt and returns an AI message.", at:[190,78], via:"c-b", on:"model",
-   bag:[{c:"ai",t:"AI",v:'AIMessage("Why did the duck...")',fresh:1}], code:"chain = prompt | <b>model</b> | parser"},
-  {say:"<b>parser</b> turns that message into what your code wants, here a plain string.", at:[270,78], via:"c-c", on:"parser",
-   bag:[{c:"k",t:"str",v:'"Why did the duck..."',fresh:1}], code:"chain = prompt | model | <b>parser</b>"},
-  {say:"<b>END.</b> Every run visits the same stations in the same order. Each stop sees only what the previous stop handed over. There is no track back.", at:[330,78], via:"c-d",
-   bag:[{c:"k",t:"str",v:'"Why did the duck..."'}], code:'chain.invoke({"topic": "ducks"})'}
-]);
-s1.draw = function(s, el){
-  $$("[data-k]", el).forEach(function(g){ g.classList.toggle("dim", !!s.solo && g.getAttribute("data-k") !== "model"); });
-  $("#c-line").classList.toggle("ghost", !!s.solo);
-  $(".bag ul", el).innerHTML = bagHTML(s.bag); $(".route", el).innerHTML = s.code;
-};
-new Scene("s1", s1);
-
-/* ---------- Scene 2: missing tracks ---------- */
-var s2 = fixed([
-  {w:0, say:"<b>The chain line again.</b> Fine while the route is known before departure. Now ask it for four ordinary things."},
-  {w:1, say:"<b>Retry.</b> The parser rejects the output and you want the model to try again. That needs track going backwards."},
-  {w:2, say:"<b>Branch.</b> A refund request and a product question need different handling. That needs a fork chosen at run time."},
-  {w:3, say:"<b>Tools until done.</b> The model asks for a tool, reads the result, and may ask for another. That is a loop with no fixed number of laps."},
-  {w:4, say:"<b>Human approval.</b> Before a risky action the run must stop, wait for a person, and continue later. A pipeline has nowhere to wait."},
-  {w:5, say:"<b>Four requests, one cause.</b> Each needs a way back, a fork or a pause, decided while the run is under way. A straight line has none of them."}
-]);
-s2.draw = function(s, el){
-  $$("[data-w]", el).forEach(function(g){
-    var w = +g.getAttribute("data-w");
-    g.classList.toggle("hide", w > s.w); g.classList.toggle("dim", s.w < 5 && w < s.w);
+  // With a single scene on the page, arrow keys work from anywhere, not only when the scene has focus.
+  document.addEventListener("keydown", function (e) {
+    if (registry.scenes.length !== 1 || e.defaultPrevented) return;
+    var fig = registry.scenes[0].api.el;
+    if (fig.contains(e.target)) return;
+    registry.scenes[0].api.onKey(e);
   });
-};
-new Scene("s2", s2);
 
-/* ---------- Scene 3: drive the agent loop ---------- */
-var CITY = ["Lisbon", "Porto", "Faro"], TEMP = ["19°C, sunny", "16°C, rain", "22°C, clear"];
-function old(m){ return m.map(function(r){ return {c:r.c, t:r.t, v:r.v}; }); }
-function atModel(m, laps, via){
-  return {phase:"model", at:[128,70], via:via, on:"model", msgs:m, laps:laps, auto: laps < 2 ? 0 : 1,
-    say: laps === 0 ? "<b>model</b> station. The node receives the whole state. You are the model: what does it return?"
-       : "<b>Back at model.</b> It now sees the tool result in the state" + (laps >= 3 ? ". A real graph would keep lapping until its recursion limit stops it" : "") + ". What does it return this time?",
-    ask:"Does the model want a tool?",
-    route:"call_model(state) → ?",
-    choices:[
-      {label:"Yes, call a tool", go:function(s){
-        var m2 = old(s.msgs).concat([{c:"ai", t:"AI", v:'tool_calls: get_weather("' + CITY[s.laps % 3] + '")', fresh:1}]);
-        return {phase:"j-tools", at:[232,70], via:"g-b", on:"junction", msgs:m2, laps:s.laps,
-          say:"The node returned one new message. The reducer <b>appended</b> it to the state. At the junction, <code>route()</code> reads the last message, finds tool calls, and returns <code>\"tools\"</code>.",
-          route:'route(state) → <b>"tools"</b>'};
-      }},
-      {label:"No, answer now", go:function(s){
-        var ans = s.laps ? '"' + CITY.slice(0, Math.min(s.laps, 3)).map(function(c, k){ return c + " " + TEMP[k].split(",")[0]; }).join(", ") + '"' : '"I cannot check live weather."';
-        var m2 = old(s.msgs).concat([{c:"ai", t:"AI", v:ans + " (no tool_calls)", fresh:1}]);
-        return {phase:"j-end", at:[232,70], via:"g-b", on:"junction", msgs:m2, laps:s.laps,
-          say:"The node returned a plain answer, and the reducer appended it. At the junction, <code>route()</code> finds no tool calls and returns <code>END</code>.",
-          route:"route(state) → <b>END</b>"};
-      }}
-    ]};
-}
-var s3 = {
-  first: function(){ return {phase:"start", at:[30,70], laps:0, msgs:[{c:"h", t:"Human", v:'"Weather in Lisbon and Porto?"', fresh:1}],
-    say:"<b>START.</b> The state boards with one message. Every node on this map reads and updates this same object.", route:'graph.invoke({"messages": [...]})'}; },
-  grow: function(s, peek){
-    if (s.phase === "start") return peek ? true : atModel(old(s.msgs), 0, "g-a");
-    if (s.phase === "j-tools") return peek ? true : {phase:"tools", at:[180,190], via:"g-c", on:"tools", laps:s.laps + 1,
-      msgs: old(s.msgs).concat([{c:"tool", t:"Tool", v:'"' + CITY[s.laps % 3] + ": " + TEMP[s.laps % 3] + '"', fresh:1}]),
-      say:"<b>tools</b> runs the requested function and returns a tool message. The reducer appends that too. The edge out of here is a normal one: it always goes back to model.",
-      route:'add_edge("tools", "model")'};
-    if (s.phase === "tools") return peek ? true : atModel(old(s.msgs), s.laps, "g-d");
-    if (s.phase === "j-end") return peek ? true : {phase:"end", at:[330,70], via:"g-e", done:true, laps:s.laps, msgs:old(s.msgs),
-      say:"<b>END.</b> " + (s.laps ? "The loop ran " + s.laps + " time" + (s.laps > 1 ? "s" : "") + " because you said so, one decision at a time." : "No laps at all. The same graph handled a run with zero tool calls.")
-        + " The full history arrives in the final state. Press Back to choose differently.",
-      route:"result = final state, " + s.msgs.length + " messages"};
-    return null;
-  },
-  draw: function(s, el){
-    $(".bag ul", el).innerHTML = bagHTML(s.msgs); $(".route", el).innerHTML = s.route || "";
-    ["g-a","g-b","g-c","g-d","g-e"].forEach(function(id){ $("#" + id).classList.toggle("dim", !!s.via && s.via !== id && s.phase !== "model"); });
+  // Any <button data-theme-toggle> flips between light and dark, overriding the system setting.
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-theme-toggle]");
+    if (!b) return;
+    var r = document.documentElement;
+    var cur = r.getAttribute("data-theme") || (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    r.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
+  });
+
+  window.Explainer = { scene: scene, svg: svg, h: h, rng: rng, fmt: fmt, reduce: reduce };
+})();
+</script>
+<script>
+(function () {
+  // ---- The chain: five stops in a fixed order ----
+  var CHAIN = ["start", "prompt", "model", "parser", "end"];
+  var CX = function (i) { return 40 + i * 120; };
+  var NEEDS = [
+    { id: "retry", text: "retry", d: "M400 120 C 400 175, 280 175, 280 120", tx: 340, ty: 200 },
+    { id: "branch", text: "branch", d: "M280 120 C 330 40, 420 40, 470 50", tx: 440, ty: 30 },
+    { id: "loop", text: "loop", d: "M280 120 C 220 190, 160 160, 280 120", tx: 180, ty: 200 },
+    { id: "wait", text: "wait", d: "M520 120 L 575 120", tx: 560, ty: 160 }
+  ];
+  // ---- The graph: model and tools in a loop ----
+  var G = { start: [60, 70], model: [250, 70], tools: [250, 190], end: [450, 70] };
+  var MAX_LAPS = 3;
+
+  function lap(n, tool) {
+    // One reader decision at the model stop, then what follows from it.
+    if (tool) return [
+      { scene: "graph", say: "You asked for a tool. The junction after the model reads your message and sends the run to tools.", set: { at: "tools", msgs: n * 2 + 2, laps: n + 1 }, mark: { fresh: true } },
+      { scene: "graph", say: "Tools adds its result to the same state, and the track always leads back to the model.", set: { at: "model", msgs: n * 2 + 3 }, mark: { fresh: true } },
+      decide(n + 1)
+    ];
+    return [
+      { scene: "graph", say: "You answered. With no tool request in the last message, the junction sends the run to the end. This run made {trips} through tools; nobody fixed that number in advance.", set: { at: "end", msgs: n * 2 + 2, done: true }, mark: { fresh: true } },
+      { scene: "graph", say: "The state is one object, so it can be saved at every stop. That is what lets a run pause for a person's approval and pick up later.", set: { savedAll: true } }
+    ];
   }
-};
-new Scene("s3", s3);
-
-/* ---------- Scene 4: checkpoint, interrupt, resume ---------- */
-var s4 = {
-  first: function(){ return {phase:"start", at:[30,78], cps:1, sig:"",
-    say:"<b>Compiled with a checkpointer.</b> This run is on thread <code>thread-1</code>. As it goes, the state is saved as checkpoints in the depot below.",
-    route:'config = {"configurable": {"thread_id": "thread-1"}}'}; },
-  grow: function(s, peek){
-    if (peek) return s.phase !== "end";
-    if (s.phase === "start") return {phase:"model", at:[110,78], via:"h-a", on:"model", cps:2, sig:"",
-      say:'<b>model</b> proposes an action: <code>send_email(to="all-staff")</code>. Too risky to run unattended.', route:"state saved to thread-1"};
-    if (s.phase === "model") return {phase:"approve", at:[196,78], via:"h-b", on:"approve", cps:3, sig:"red", auto:0,
-      say:"<b>Red signal.</b> The approve node calls <code>interrupt()</code>. The graph pauses and hands the question to the caller. The state is in the checkpointer, so nothing has to stay running while you think.",
-      route:'approved = interrupt("Send this email?")', ask:"Send this email?",
-      choices:[
-        {label:"Approve", go:function(){ return {phase:"resumed", ok:true, at:[196,78], on:"approve", cps:3, sig:"green",
-          say:"<b>Resumed.</b> You invoked the graph again on the same thread. The approve node restarts from its first line, and this time <code>interrupt()</code> returns <code>True</code>.",
-          route:"graph.invoke(Command(resume=True), config)"}; }},
-        {label:"Reject", go:function(){ return {phase:"resumed", ok:false, at:[196,78], on:"approve", cps:3, sig:"green",
-          say:"<b>Resumed with a no.</b> Same thread, same node, restarted from its first line. This time <code>interrupt()</code> returns <code>False</code>, and the node routes around the tool.",
-          route:"graph.invoke(Command(resume=False), config)"}; }}
-      ]};
-    if (s.phase === "resumed") return s.ok
-      ? {phase:"send", ok:true, at:[274,78], via:"h-c", on:"send", cps:4, sig:"", say:"<b>send_email</b> runs, with a person's approval on record in the state.", route:"state saved to thread-1"}
-      : {phase:"end", at:[334,78], via:"h-e", done:true, cps:4, sig:"", say:"<b>END, nothing sent.</b> The rejection travelled as data, and an edge chose the bypass. Press Back to approve instead.", route:"state saved to thread-1"};
-    if (s.phase === "send") return {phase:"end", at:[334,78], via:"h-d", done:true, cps:5, sig:"",
-      say:"<b>END.</b> Because node code before an <code>interrupt()</code> runs again on resume, keep side effects there safe to repeat.", route:"state saved to thread-1"};
-    return null;
-  },
-  draw: function(s, el){
-    $("#sig").setAttribute("class", "sig " + s.sig);
-    var h = "<span>thread-1</span>"; for (var k = 0; k < s.cps; k++) h += '<i class="' + (k === s.cps - 1 ? "last" : "") + '"></i>';
-    $(".depot", el).innerHTML = h + "<span>" + s.cps + " saved</span>"; $(".route", el).innerHTML = s.route || "";
+  function decide(n) {
+    return { scene: "graph", say: n >= MAX_LAPS ? "Back at the model with the tool results. Time to answer." : "Back at the model, with one more message in the state. Again: tool or answer?",
+             set: { at: "model", ask: n, done: false }, wait: true };
   }
-};
-new Scene("s4", s4);
 
-/* ---------- Scene 5: the stack ---------- */
-var s5 = fixed([
-  {hot:"", off:[], say:"<b>Three packages, one stack.</b> Step through to see what each one is for.", code:""},
-  {hot:"lg", off:["lc","cl"], say:"<b>LangGraph is the track.</b> It is the low-level runtime you just rode: state, nodes, edges, checkpointers and interrupts. You draw every route yourself.", code:"from langgraph.graph import StateGraph"},
-  {hot:"lc", off:["cl"], say:"<b>LangChain's <code>create_agent</code> is a ready-made service on that track.</b> It builds the model and tools loop for you, on top of LangGraph, so persistence, streaming and human-in-the-loop come included. It replaces the older <code>langgraph.prebuilt.create_react_agent</code>.", code:"from langchain.agents import create_agent"},
-  {hot:"lc", off:["cl"], say:"<b>Middleware customises the loop without redrawing it.</b> Hooks such as <code>before_model</code>, <code>wrap_tool_call</code> and <code>after_model</code> cover things like summarising history or asking a person before sensitive tool calls.", code:"create_agent(model, tools, middleware=[...])"},
-  {hot:"cl", off:["lc","lg"], say:"<b>The old chains moved out.</b> Legacy chains, retrievers, the indexing API and the hub now live in a separate package, <code>langchain-classic</code>.", code:"from langchain_classic.chains import ..."},
-  {hot:"", off:["cl"], say:"<b>Which one do you write?</b> If the standard agent loop fits, <code>create_agent</code>. If you need your own stations and junctions, a <code>StateGraph</code>. Either way the same runtime carries the state.", code:""}
-]);
-s5.draw = function(s, el){
-  $$(".svc", el).forEach(function(d){ var k = d.getAttribute("data-k"); d.classList.toggle("hot", k === s.hot); d.classList.toggle("off", s.off.indexOf(k) >= 0); });
-  $(".route", el).innerHTML = s.code;
-};
-new Scene("s5", s5);
+  var el = {}, msgsEl, savedEl, pickBtns = [];
+  var MSG = ["user: what's the weather in Lisbon?", "model: call weather(\"Lisbon\")", "tools: 19°C, sunny", "model: call forecast(\"Lisbon\")", "tools: rain tomorrow", "model: call weather(\"Porto\")", "tools: 16°C, cloudy"];
+  function msgList(s) {
+    var out = MSG.slice(0, Math.min(s.msgs, s.done ? s.msgs - 1 : s.msgs));
+    if (s.done) out.push("model: answer for you");
+    return out;
+  }
 
-/* keyboard: arrows drive the scene you last touched, else the one most in view */
-function inView(){
-  var best = scenes[0], bd = 1e9, mid = innerHeight / 2;
-  scenes.forEach(function(sc){ var r = sc.el.getBoundingClientRect(), d = Math.abs((r.top + r.bottom) / 2 - mid); if (d < bd){ bd = d; best = sc; } });
-  return best;
-}
-document.addEventListener("keydown", function(e){
-  if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
-  if (e.altKey || e.ctrlKey || e.metaKey) return;
-  var sc = active, r = sc && sc.el.getBoundingClientRect();
-  if (!sc || r.bottom < 0 || r.top > innerHeight) sc = inView();
-  sc.stop(); e.key === "ArrowRight" ? sc.next() : sc.back(); e.preventDefault();
-});
-
-/* line strip: mark the current section */
-var links = $$(".strip a");
-if ("IntersectionObserver" in window){
-  var io = new IntersectionObserver(function(es){
-    es.forEach(function(en){ if (en.isIntersecting) links.forEach(function(a){ a.setAttribute("aria-current", a.getAttribute("href") === "#" + en.target.id ? "true" : "false"); }); });
-  }, {rootMargin:"-45% 0px -50% 0px"});
-  links.forEach(function(a){ var t = $(a.getAttribute("href")); if (t) io.observe(t); });
-}
-window.__scenes = scenes;
+  var api = Explainer.scene("#main", {
+    title: "A chain of stations, then a graph with a loop",
+    initial: { at: "start", needs: 0, msgs: 1, laps: 0, ask: -1, done: false, savedAll: false },
+    steps: [
+      { scene: "chain", say: "A chain is a line of stops. Your input boards at START." },
+      { scene: "chain", say: "prompt fills in a template with your input.", set: { at: "prompt" } },
+      { scene: "chain", say: "model calls the LLM and gets a reply.", set: { at: "model" } },
+      { scene: "chain", say: "parser turns the reply into something your code can use.", set: { at: "parser" } },
+      { scene: "chain", say: "END. Every run visits the same stops in the same order, and there is no track back.", set: { at: "end" } },
+      { scene: "chain", say: "Now ask for ordinary things. Retry a bad reply: that needs track going back.", set: { needs: 1 } },
+      { scene: "chain", say: "Handle a refund and a question differently: that needs a fork chosen while running.", set: { needs: 2 } },
+      { scene: "chain", say: "Let the model call tools until it is done: that needs a loop with no fixed length. Pause for a person: that needs a place to wait.", set: { needs: 4 } },
+      { scene: "graph", say: "So LangGraph draws a map instead. A shared state, here a list of messages, rides along and every stop adds to it.", set: { at: "start", msgs: 1 } },
+      { scene: "graph", say: "The run reaches the model. You play the model: ask for a tool, or answer?", set: { at: "model", ask: 0 }, wait: true }
+    ].concat(lap(0, false)),
+    compute: function (s) { return { trips: s.laps === 0 ? "no trips" : s.laps === 1 ? "one trip" : s.laps + " trips" }; },
+    scenes: {
+      chain: {
+        setup: function (sec, api) {
+          var g = api.svg("svg", { class: "map", viewBox: "0 0 600 220", role: "img", "aria-label": "Stations START, prompt, model, parser, END on one line" }, sec.querySelector("#chainmap"));
+          api.svg("path", { class: "trk", d: "M" + CX(0) + " 120 H " + CX(4) }, g);
+          el.needs = NEEDS.map(function (n) {
+            return { p: api.svg("path", { class: "trk miss", d: n.d }, g), t: (function () { var t = api.svg("text", { class: "need", x: n.tx, y: n.ty }, g); t.textContent = n.text; return t; })() };
+          });
+          el.cst = CHAIN.map(function (name, i) {
+            var c = api.svg("circle", { class: "stn", cx: CX(i), cy: 120, r: 16 }, g);
+            api.svg("text", { class: "name", x: CX(i), y: 92 }, g).textContent = name;
+            return c;
+          });
+          el.ctrain = api.svg("circle", { class: "train", r: 8, cx: 0, cy: 120 }, g);
+        },
+        draw: function (s) {
+          var i = Math.max(0, CHAIN.indexOf(s.at));
+          el.cst.forEach(function (c, j) { c.setAttribute("class", "stn" + (j === i ? " at" : "")); });
+          el.ctrain.style.transform = "translateX(" + CX(i) + "px)";
+          el.needs.forEach(function (n, j) { n.p.classList.toggle("on", j < s.needs); n.t.classList.toggle("on", j < s.needs); });
+        }
+      },
+      graph: {
+        setup: function (sec, api) {
+          var g = api.svg("svg", { class: "map", viewBox: "0 0 520 240", role: "img", "aria-label": "START to model; model to tools or END; tools back to model" }, sec.querySelector("#graphmap"));
+          api.svg("path", { class: "trk", d: "M60 70 H 450" }, g);
+          api.svg("path", { class: "trk two", d: "M250 70 C 330 100, 330 160, 250 190 C 170 160, 170 100, 250 70" }, g);
+          el.gst = {};
+          Object.keys(G).forEach(function (k) {
+            el.gst[k] = api.svg("circle", { class: "stn", cx: G[k][0], cy: G[k][1], r: 15 }, g);
+            api.svg("text", { class: "name", x: G[k][0], y: k === "tools" ? G[k][1] + 44 : G[k][1] - 28 }, g).textContent = k;
+          });
+          el.gtrain = api.svg("circle", { class: "train", r: 8, cx: 0, cy: 0 }, g);
+          msgsEl = sec.querySelector("#msgs"); savedEl = sec.querySelector("#saved");
+          var pick = sec.querySelector("#pick");
+          [["Ask for a tool", true], ["Answer the user", false]].forEach(function (c) {
+            var b = api.h("button", { type: "button", text: c[0] }, pick);
+            b.addEventListener("click", function () {
+              var n = api.state.ask; if (n < 0 || api.state.done) return;
+              api.branch(lap(n, c[1] && n < MAX_LAPS));
+            });
+            pickBtns.push(b);
+          });
+          el.pick = pick;
+        },
+        draw: function (s) {
+          Object.keys(el.gst).forEach(function (k) { el.gst[k].setAttribute("class", "stn" + (k === s.at ? " at" : "")); });
+          var p = G[s.at] || G.start;
+          el.gtrain.style.transform = "translate(" + p[0] + "px," + p[1] + "px)";
+          var list = msgList(s);
+          msgsEl.innerHTML = "";
+          list.forEach(function (m, i) { var li = document.createElement("li"); li.textContent = m; if (s.fresh && i === list.length - 1) li.className = "new"; msgsEl.appendChild(li); });
+          savedEl.textContent = s.savedAll ? "\u2713 state saved at every stop" : "";
+          var open = s.ask >= 0 && !s.done && s.at === "model";
+          el.pick.style.visibility = open ? "visible" : "hidden";
+          pickBtns[0].disabled = s.ask >= MAX_LAPS;
+        }
+      }
+    }
+  });
 })();
 </script>
 </body>

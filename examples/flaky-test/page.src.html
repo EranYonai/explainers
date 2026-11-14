@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why a flaky test lies</title>
+<meta name="description" content="Same code, two results: a test that sleeps and then checks is measuring the computer's timing, not your code.">
+<link rel="stylesheet" href="explainer:player.css">
+<link rel="stylesheet" href="explainer:theme/inkwell">
+<style>
+  #main .stage{min-height:540px}
+  .cells span:empty{display:none}
+  .run{font:600 13px var(--font-mono);color:var(--muted);margin:0 0 6px}
+  svg.tl, svg.dots{display:block;width:100%;height:auto}
+  .lane{font:600 12px var(--font-mono);fill:var(--muted)}
+  .tick{font:12px var(--font-mono);fill:var(--muted);text-anchor:middle}
+  .axis{stroke:var(--line);stroke-width:1}
+  .bar{fill:var(--accent);opacity:.85;transition:width .4s}
+  .bar.sleep{fill:var(--muted);opacity:.35}
+  .gap{fill:none;stroke:var(--bad);stroke-dasharray:3 3;stroke-width:2}
+  .now{stroke:var(--ink);stroke-width:2;transition:transform .4s}
+  .chk{fill:var(--paper);stroke:var(--ink);stroke-width:2}
+  .chk.pass{fill:var(--good)} .chk.fail{fill:var(--bad)}
+  .cells{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;font:600 14px var(--font-mono)}
+  .cells span{border:1px solid var(--line);border-radius:var(--radius,6px);padding:4px 10px;background:var(--paper)}
+  .cells .yes{border-color:var(--good);color:var(--good)} .cells .no{border-color:var(--bad);color:var(--bad)}
+  .verdict{font:var(--display-weight,700) 28px var(--font-display)}
+  .verdict.pass{color:var(--good)} .verdict.fail{color:var(--bad)}
+  .dot{transition:cx .4s,cy .4s}
+  .dot.ok{fill:var(--good)} .dot.bad{fill:var(--bad)}
+  .limit{stroke:var(--ink);stroke-width:2;stroke-dasharray:5 4}
+  .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px}
+  .stat{border:1px solid var(--line);border-radius:var(--radius,6px);background:var(--paper);padding:6px 8px;min-width:0}
+  .stat b{display:block;font:var(--display-weight,700) 18px/1.2 var(--font-display)}
+  .stat span{font-size:13px;color:var(--muted)}
+  .choices{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .choices button{font:inherit;font-size:15px;border:var(--border-width,1px) solid var(--accent);border-radius:var(--radius,6px);background:var(--paper);color:var(--ink);padding:8px 12px;cursor:pointer}
+  .choices button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+</style>
+</head>
+<body>
+<main>
+  <header class="col stack">
+    <h1 class="hook">Why did the same test pass, then fail, with no code change?</h1>
+    <p>Green yesterday, red this morning, green again when you rerun it. Nothing changed in the code, so something else is deciding the result.</p>
+  </header>
+
+  <section class="wide">
+    <figure class="scene" id="main">
+      <div class="stage">
+        <section data-scene="runs" data-title="Two runs">
+          <p class="run" id="runname"></p>
+          <div id="tl"></div>
+          <div class="cells"><span id="c-saved"></span><span id="c-read"></span><span class="verdict" id="verdict"></span></div>
+        </section>
+        <section data-scene="replay" data-title="200 runs">
+          <div id="dots"></div>
+          <div class="stats" id="stats"></div>
+          <div class="choices" id="pick" role="group" aria-label="How should the test wait?"></div>
+        </section>
+      </div>
+    </figure>
+  </section>
+
+  <section class="col stack">
+    <p class="payoff">The code never changed. The timing did, and <mark>the test was measuring the timing</mark>.</p>
+    <p>The fix is to wait for the thing itself: join the thread, await the result, or poll until the condition is true.
+      Retries make the dashboard green but leave the race in place, and users can't rerun production.</p>
+    <h2>Other causes with the same shape</h2>
+    <ul>
+      <li><b>Shared state.</b> One test leaves a row, a file or a global behind, and another test reads it.</li>
+      <li><b>Test order.</b> A test passes only when another one ran first. Shuffle the suite and it breaks.</li>
+      <li><b>The real clock.</b> Code that reads the time fails near midnight, at month end, or on a server set to UTC.</li>
+      <li><b>The network.</b> A call to a real service inherits its slowness and outages.</li>
+    </ul>
+    <p>When one does flake, move it out of the blocking checks, give it an owner and a deadline, and count every pass-after-retry so you know which test to fix first.</p>
+  </section>
+</main>
+
+<script src="explainer:player.js"></script>
+<script>
+(function () {
+  var WORK = 40, RUNS = 200;
+  // Each replay: the save takes 40 ms plus a random pause from the machine (an exponential tail, seeded).
+  function replay(jitter, seed) {
+    var rng = mulberry(seed), out = [];
+    for (var i = 0; i < RUNS; i++) out.push({ t: WORK + jitter * -Math.log(1 - rng()), y: rng() });
+    return out;
+  }
+  function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function stats(s) {
+    var runs = replay(s.jitter, 7), fails = 0, total = 0;
+    runs.forEach(function (r) {
+      if (s.wait === "join") total += r.t; else { total += s.sleep; if (r.t > s.sleep) fails++; }
+    });
+    var rate = fails / RUNS;
+    return { runs: runs, failed: fails, avg: Math.round(total / RUNS), rate: rate, pct: Math.round(rate * 100), triple: rate ? Math.round(1 / Math.pow(rate, 3)) : 0 };
+  }
+
+  var X0 = 70, X1 = 345, MS = 80;
+  function x(ms) { return X0 + (X1 - X0) * ms / MS; }
+  // Run 1: the save runs 0-40 ms. Run 2: it runs 0-15, is paused 15-37, then runs 37-62.
+  var RUN = { 1: { segs: [[0, 40]], pause: null, done: 40 }, 2: { segs: [[0, 15], [37, 62]], pause: [15, 37], done: 62 } };
+
+  function after(choice, auto) {
+    var lead = auto ? "Say you pick “" : "You picked “";
+    if (choice === "sleep")
+      return [{ scene: "replay", say: lead + "sleep longer”. Now {failed} of 200 fail: fewer, not none. And every run waits {avg} ms.", set: { wait: "sleep", sleep: 100, picked: 0 } },
+              { scene: "replay", say: "Wait for the save instead, and none fail. That run averages {joinavg} ms, faster than any sleep that is long enough.", set: { wait: "join", picked: 1 } }];
+    return [{ scene: "replay", say: lead + "wait for the save”. None of 200 fail, and runs average {avg} ms, because each one waits exactly as long as its save.", set: { wait: "join", picked: 1 } }];
+  }
+
+  var el = {}, dotEls = [], buttons = [];
+  var api = Explainer.scene("#main", {
+    title: "A test's timeline on two runs, then 200 replays",
+    initial: { run: 1, now: 0, jitter: 3, sleep: 50, wait: "sleep", picked: -1, ask: false },
+    steps: [
+      { scene: "runs", say: "A test hands an order to a second thread to save. Then it sleeps 50 ms and checks that the order was saved." },
+      { scene: "runs", say: "The save takes 40 ms. At 40 ms the order is saved.", set: { now: 40 } },
+      { scene: "runs", say: "At 50 ms the test wakes up and checks. Saved. The test passes.", set: { now: 50 } },
+      { scene: "runs", say: "Run it again: same code, same machine.", set: { run: 2, now: 15 } },
+      { scene: "runs", say: "This time the computer pauses the save thread for 22 ms to run something else.", set: { now: 37 } },
+      { scene: "runs", say: "At 50 ms the test checks. Not saved yet. The test fails.", set: { now: 50 } },
+      { scene: "runs", say: "At 62 ms the save finishes. The code worked. The test just checked too early.", set: { now: 62 } },
+      { scene: "replay", say: "Now replay it 200 times. Each dot is one run, placed where its save finished. Dots right of the line fail: {failed} of 200 here." },
+      { scene: "replay", say: "On a busy build server the pauses get longer. Now {failed} of 200 fail, the same test, the same code.", set: { jitter: 12 } },
+      { scene: "replay", say: "Rerunning a failure twice hides it: all three tries fail only once in {triple} runs. The bug is still there.", mark: { retry: true } },
+      { scene: "replay", say: "Your turn: how should the test wait for the save?", set: { ask: true }, wait: true }
+    ].concat(after("sleep", true)),
+    compute: function (s) {
+      var st = stats(s), j = stats({ jitter: s.jitter, wait: "join", sleep: s.sleep });
+      return { failed: st.failed, avg: st.avg, triple: st.triple, joinavg: j.avg };
+    },
+    scenes: {
+      runs: {
+        setup: function (sec, api) {
+          var g = api.svg("svg", { class: "tl", viewBox: "0 0 360 130", role: "img", "aria-label": "Timeline of the test thread and the save thread" }, sec.querySelector("#tl"));
+          api.svg("text", { class: "lane", x: 4, y: 34 }, g).textContent = "test";
+          api.svg("text", { class: "lane", x: 4, y: 84 }, g).textContent = "save";
+          api.svg("line", { class: "axis", x1: X0, x2: X1, y1: 108, y2: 108 }, g);
+          [0, 20, 40, 60, 80].forEach(function (ms) { api.svg("text", { class: "tick", x: x(ms), y: 124 }, g).textContent = ms + " ms"; });
+          el.sleep = api.svg("rect", { class: "bar sleep", x: x(0), y: 20, height: 20, rx: 4 }, g);
+          el.chk = api.svg("circle", { class: "chk", cx: x(50), cy: 30, r: 9 }, g);
+          el.segs = [0, 1].map(function () { return api.svg("rect", { class: "bar", y: 70, height: 20, rx: 4 }, g); });
+          el.gap = api.svg("rect", { class: "gap", y: 70, height: 20, rx: 4 }, g);
+          el.now = api.svg("line", { class: "now", x1: 0, x2: 0, y1: 10, y2: 100 }, g);
+          el.name = sec.querySelector("#runname"); el.saved = sec.querySelector("#c-saved");
+          el.read = sec.querySelector("#c-read"); el.verdict = sec.querySelector("#verdict");
+        },
+        draw: function (s) {
+          var R = RUN[s.run], now = s.now;
+          el.name.textContent = "Run " + s.run + " · now " + now + " ms";
+          el.sleep.setAttribute("width", x(Math.min(now, 50)) - x(0));
+          R.segs.forEach(function (sg, i) {
+            var end = Math.min(now, sg[1]), w = Math.max(0, x(end) - x(sg[0]));
+            el.segs[i].setAttribute("x", x(sg[0])); el.segs[i].setAttribute("width", w);
+          });
+          if (R.segs.length < 2) el.segs[1].setAttribute("width", 0);
+          var p = R.pause, pw = p && now > p[0] ? x(Math.min(now, p[1])) - x(p[0]) : 0;
+          el.gap.setAttribute("x", p ? x(p[0]) : 0); el.gap.setAttribute("width", pw);
+          el.now.style.transform = "translateX(" + x(now) + "px)";
+          var saved = now >= R.done, checked = now >= 50, pass = checked && R.done <= 50;
+          el.chk.setAttribute("class", "chk" + (checked ? (pass ? " pass" : " fail") : ""));
+          el.saved.textContent = "saved: " + saved; el.saved.className = saved ? "yes" : "no";
+          el.read.textContent = "test saw: " + (checked ? String(R.done <= 50) : "not yet");
+          el.read.className = checked ? (pass ? "yes" : "no") : "";
+          el.verdict.textContent = checked ? (pass ? "PASS" : "FAIL") : "";
+          el.verdict.className = "verdict" + (checked ? (pass ? " pass" : " fail") : "");
+        }
+      },
+      replay: {
+        setup: function (sec, api) {
+          var g = api.svg("svg", { class: "dots", viewBox: "0 0 360 170", role: "img", "aria-label": "200 runs, each a dot at the time its save finished" }, sec.querySelector("#dots"));
+          el.dx = function (ms) { return 20 + 320 * Math.min(ms - 30, 110) / 110; };
+          api.svg("line", { class: "axis", x1: 20, x2: 340, y1: 140, y2: 140 }, g);
+          [40, 60, 80, 100, 120, 140].forEach(function (ms) { api.svg("text", { class: "tick", x: el.dx(ms), y: 158 }, g).textContent = ms; });
+          for (var i = 0; i < RUNS; i++) dotEls.push(api.svg("circle", { class: "dot", r: 3.2, cx: 20, cy: 70 }, g));
+          el.limit = api.svg("line", { class: "limit", y1: 4, y2: 140 }, g);
+          el.stats = sec.querySelector("#stats"); el.pick = sec.querySelector("#pick");
+          [["Sleep longer (100 ms)", "sleep"], ["Wait for the save", "join"]].forEach(function (c, i) {
+            var b = api.h("button", { type: "button", text: c[0], "aria-pressed": "false" }, el.pick);
+            b.addEventListener("click", function () { api.goWhere(function (st) { return st.wait; }); api.branch(after(c[1], false)); });
+            buttons.push(b);
+          });
+        },
+        draw: function (s) {
+          var st = stats(s);
+          st.runs.forEach(function (r, i) {
+            var bad = s.wait !== "join" && r.t > s.sleep;
+            dotEls[i].setAttribute("cx", el.dx(r.t)); dotEls[i].setAttribute("cy", 10 + r.y * 124);
+            dotEls[i].setAttribute("class", "dot " + (bad ? "bad" : "ok"));
+          });
+          var lx = s.wait === "join" ? -10 : el.dx(s.sleep);
+          el.limit.setAttribute("x1", lx); el.limit.setAttribute("x2", lx);
+          el.stats.innerHTML =
+            '<div class="stat"><b>' + st.failed + ' / ' + RUNS + '</b><span>runs fail</span></div>' +
+            '<div class="stat"><b>' + st.avg + ' ms</b><span>average time per run</span></div>' +
+            '<div class="stat"><b>' + (s.wait === "join" ? "waits" : s.sleep + " ms") + '</b><span>sleep before the check</span></div>';
+          el.pick.style.display = s.ask ? "" : "none";
+          buttons.forEach(function (b, i) { b.setAttribute("aria-pressed", String(i === s.picked)); });
+        }
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>

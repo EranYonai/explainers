@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How a dictionary finds your key</title>
+<meta name="description" content="A hash table turns the key itself into a box number, so finding it takes one look instead of a search.">
+<link rel="stylesheet" href="explainer:player.css">
+<link rel="stylesheet" href="explainer:theme/inkwell">
+<style>
+  #main .stage{min-height:560px}
+  .sum{font-family:var(--font-mono);font-size:15px;min-height:3.2em;margin:0 0 12px;line-height:1.6}
+  .sum b{background:var(--hl);color:var(--hl-ink);padding:0 4px;border-radius:3px}
+  .rows{display:grid;gap:4px}
+  .row{display:flex;align-items:center;gap:8px;min-height:36px;border-radius:var(--radius,6px);padding:2px 4px;transition:background .3s,opacity .3s}
+  .row.off{display:none}
+  .row.look{background:color-mix(in srgb,var(--hl) 35%,transparent)}
+  .idx{flex:none;width:40px;height:34px;display:grid;place-items:center;border:2px solid var(--ink);border-radius:var(--radius,6px);font:600 15px var(--font-mono);background:var(--surface)}
+  .chip{font:600 15px var(--font-mono);border:1.5px solid var(--accent);color:var(--ink);background:var(--paper);border-radius:999px;padding:4px 12px;transition:box-shadow .3s}
+  .chip.new{box-shadow:0 0 0 3px var(--hl)}
+  .chip.found{background:var(--good);border-color:var(--good);color:var(--accent-ink)}
+  .arrow{color:var(--muted);font-size:14px}
+  .list{display:flex;flex-wrap:wrap;gap:8px}
+  .list .chip.look{box-shadow:0 0 0 3px var(--hl)}
+  .list .chip.seen{opacity:.45}
+  .meter{font-family:var(--font-mono);font-size:14px;margin:12px 0 0;color:var(--muted)}
+  .meter b{color:var(--ink)}
+  .meter.over b{color:var(--bad)}
+  .choices{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .choices button{font:600 15px var(--font-mono);border:var(--border-width,1px) solid var(--accent);border-radius:var(--radius,6px);background:var(--paper);color:var(--ink);padding:8px 14px;cursor:pointer}
+  .choices button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+</style>
+</head>
+<body>
+<main>
+  <header class="col stack">
+    <h1 class="hook">You ask for <code>users["dana"]</code>. How does it come back without searching?</h1>
+    <p>With ten keys or ten million, a dictionary answers in about the same time. Here is how, with numbers small enough to check by hand.</p>
+  </header>
+
+  <section class="wide">
+    <figure class="scene" id="main">
+      <div class="stage">
+        <section data-scene="list" data-title="A plain list">
+          <div class="list" id="list"></div>
+          <p class="meter" id="scan"></p>
+        </section>
+        <section data-scene="table" data-title="Buckets">
+          <p class="sum" id="sum" aria-live="off"></p>
+          <div class="rows" id="rows"></div>
+          <p class="meter" id="load"></p>
+          <div class="choices" id="pick" role="group" aria-label="Add a key"></div>
+        </section>
+      </div>
+    </figure>
+  </section>
+
+  <section class="col stack">
+    <p class="payoff">The key's own letters say <mark>which box to open</mark>.</p>
+    <p>Real hash functions mix each letter with its position, so <code>cat</code> and <code>act</code> no longer collide. Python's
+      <code>dict</code> and Java's <code>HashMap</code> both grow their tables before the lines get long.</p>
+  </section>
+</main>
+
+<script src="explainer:player.js"></script>
+<script>
+(function () {
+  // The hash on this page: add up the letter codes, then keep the remainder after dividing by the box count.
+  function codes(k) { return k.split("").map(function (c) { return c.charCodeAt(0); }); }
+  function sum(k) { return codes(k).reduce(function (a, b) { return a + b; }, 0); }
+  function box(k, m) { return sum(k) % m; }
+  var LIMIT = 0.75;
+  var LIST = ["ant", "bee", "cat", "dog", "elk", "fox", "gnu", "owl"];
+  var PICKS = ["dog", "owl", "act"];
+
+  function place(keys, m) {
+    var rows = []; for (var i = 0; i < m; i++) rows.push([]);
+    keys.forEach(function (k) { rows[box(k, m)].push(k); });
+    return rows;
+  }
+  function steps(pick, auto) {
+    var keys = ["cat", "fox", "bee", pick], who = auto ? "Say you add " : "You added ";
+    var shared = place(keys, 8).filter(function (r) { return r.length > 1; })[0];
+    var last = shared
+      ? { scene: "table", say: shared.join(" and ") + " still share box " + box(shared[0], 8) + ". Their letters add up to the same number, " + sum(shared[0]) + ", so no size can split them.", mark: { look: box(shared[0], 8) } }
+      : { scene: "table", say: "Now every key has a box to itself. Finding any of them is one sum and one box.", mark: {} };
+    return [
+      { scene: "table", say: who + pick + ". Its letters add up to {psum}, and {psum} mod 4 = {pbox}, so it goes in box {pbox}.", set: { keys: keys, calc: pick, picked: PICKS.indexOf(pick) }, mark: { fresh: pick } },
+      { scene: "table", say: "Now 4 keys share 4 boxes. Keys divided by boxes is the load: {load}. Above {limit}, lines start getting long.", set: { calc: null } },
+      { scene: "table", say: "So the table doubles to 8 boxes and places every key again, using mod 8 this time.", set: { m: 8 } },
+      last
+    ];
+  }
+
+  var listEls = [], rowEls = [], buttons = [], scanEl, sumEl, loadEl, pickEl;
+  var api = Explainer.scene("#main", {
+    title: "Keys being placed into numbered boxes",
+    initial: { scan: -1, keys: [], m: 4, calc: null, part: 0, picked: -1 },
+    steps: [
+      { scene: "list", say: "In a plain list, finding owl means checking each key from the top." },
+      { scene: "list", say: "It takes {scanned} checks. Double the list and it takes about twice as many.", set: { scan: LIST.indexOf("owl") } },
+      { scene: "table", say: "A hash table is a row of numbered boxes, called buckets. This one has 4." },
+      { scene: "table", say: "To store cat, turn each letter into its character code.", set: { calc: "cat", part: 1 } },
+      { scene: "table", say: "Add them up: {csum}.", set: { part: 2 } },
+      { scene: "table", say: "Divide by 4 and keep the remainder: {cbox}. So cat goes in box {cbox}.", set: { part: 3, keys: ["cat"] }, mark: { fresh: "cat" } },
+      { scene: "table", say: "fox adds up to {fsum}, which lands in box {fbox}.", set: { calc: "fox", keys: ["cat", "fox"] }, mark: { fresh: "fox" } },
+      { scene: "table", say: "bee adds up to {bsum}, which lands in box {bbox}, next to cat. Two keys in one box is a collision; they form a short line.", set: { calc: "bee", keys: ["cat", "fox", "bee"] }, mark: { fresh: "bee" } },
+      { scene: "table", say: "To find fox later, do the same sum. It says box {fbox}. One box to open, no search.", set: { calc: "fox" }, mark: { look: box("fox", 4), found: "fox" } },
+      { scene: "table", say: "Your turn: add one more key. Where will it land?", set: { calc: null, ask: true }, wait: true }
+    ].concat(steps("dog", true)),
+    compute: function (s) {
+      var p = PICKS[s.picked] || "dog";
+      return { scanned: LIST.indexOf("owl") + 1, csum: sum("cat"), cbox: box("cat", 4), fsum: sum("fox"), fbox: box("fox", 4),
+               bsum: sum("bee"), bbox: box("bee", 4), psum: sum(p), pbox: box(p, 4),
+               load: (s.keys.length / s.m).toFixed(2), limit: LIMIT };
+    },
+    scenes: {
+      list: {
+        setup: function (sec, api) {
+          var box = sec.querySelector("#list");
+          LIST.forEach(function (k) { listEls.push(api.h("span", { class: "chip", text: k }, box)); });
+          scanEl = sec.querySelector("#scan");
+        },
+        draw: function (s) {
+          listEls.forEach(function (c, i) { c.classList.toggle("seen", s.scan >= 0 && i < s.scan); c.classList.toggle("look", i === s.scan); });
+          scanEl.innerHTML = s.scan < 0 ? "&nbsp;" : "checks: <b>" + (s.scan + 1) + "</b> of " + LIST.length;
+        }
+      },
+      table: {
+        setup: function (sec, api) {
+          var rows = sec.querySelector("#rows");
+          for (var i = 0; i < 8; i++) {
+            var r = api.h("div", { class: "row" }, rows);
+            api.h("span", { class: "idx", text: String(i) }, r);
+            rowEls.push(r);
+          }
+          sumEl = sec.querySelector("#sum"); loadEl = sec.querySelector("#load");
+          var pick = sec.querySelector("#pick");
+          PICKS.forEach(function (k, i) {
+            var b = api.h("button", { type: "button", text: "+ " + k, "aria-pressed": "false" }, pick);
+            b.addEventListener("click", function () { api.goWhere(function (st) { return st.wait; }); api.branch(steps(k, false)); });
+            buttons.push(b);
+          });
+          pickEl = pick;
+        },
+        draw: function (s) {
+          var placed = place(s.keys, s.m);
+          rowEls.forEach(function (r, i) {
+            r.classList.toggle("off", i >= s.m);
+            r.classList.toggle("look", i === s.look);
+            [].slice.call(r.querySelectorAll(".chip,.arrow")).forEach(function (n) { n.remove(); });
+            (placed[i] || []).forEach(function (k, j) {
+              if (j > 0) r.appendChild(Object.assign(document.createElement("span"), { className: "arrow", textContent: "→" }));
+              var c = document.createElement("span");
+              c.className = "chip" + (k === s.fresh ? " new" : "") + (k === s.found ? " found" : "");
+              c.textContent = k; r.appendChild(c);
+            });
+          });
+          var t = "&nbsp;";
+          if (s.calc) {
+            var cs = codes(s.calc), part = s.calc === "cat" ? s.part : 3;
+            t = s.calc + " → " + cs.join(" + ");
+            if (part >= 2) t += " = " + sum(s.calc);
+            if (part >= 3) t += "<br>" + sum(s.calc) + " mod " + s.m + " = <b>" + box(s.calc, s.m) + "</b>";
+          }
+          sumEl.innerHTML = t;
+          var lf = s.keys.length / s.m;
+          loadEl.className = "meter" + (lf > LIMIT ? " over" : "");
+          loadEl.innerHTML = s.keys.length ? "load: " + s.keys.length + " keys / " + s.m + " boxes = <b>" + lf.toFixed(2) + "</b>" : "&nbsp;";
+          pickEl.style.display = s.ask ? "" : "none";
+          buttons.forEach(function (b, i) { b.setAttribute("aria-pressed", String(i === s.picked)); });
+        }
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>
