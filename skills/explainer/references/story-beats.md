@@ -15,10 +15,11 @@ Every explainer is four beats. Write them as four lines before any code.
 - A number that sounds wrong: "A thousand requests arrive at once. Why do only ten fail?"
 - A choice: "Your agent wants to run `rm -rf build/`. Do you let it?"
 
-Avoid hooks that are a topic ("Understanding caches") or a promise ("Learn how X works").
+Avoid hooks that need a term the reader does not know yet. Avoid hooks that are a topic ("Understanding caches") or a promise ("Learn how X works").
 
 ## Mechanism steps
 
+- Each step changes something visible. The first step of the scene is already a picture.
 - Each caption says what is **true now**: "The worker holds r5. Three requests wait." Not "the worker moves".
 - One new fact per step. If a caption needs "and then", split the step.
 - Name the wrong idea the reader came in with, and let one step break it.

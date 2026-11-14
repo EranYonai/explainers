@@ -32,7 +32,16 @@ Write these down before any code (see `references/story-beats.md`):
 - **Payoff:** one sentence, stamped large, that answers the hook.
 
 Pick the **reader action**: choose an input, approve a step, pick a route, drag a value. It should change
-what happens next, with real logic behind it.
+what happens next, with real logic behind it, and it is about the topic: the reader plays with the thing
+being explained, never with how the page was made.
+
+Rules that keep it readable for someone who knows nothing yet:
+- **One topic per page.** If you need a second subject to illustrate the first, you have two pages.
+- **Show first, explain after.** The first scene step is a picture, not text. Every step changes
+  something the reader can see; a step that only changes the caption is a paragraph, so cut it.
+- **No undefined words.** Use the reader's words. A term the reader needs gets one plain sentence the
+  first time it appears; jargon from this skill (beat, frame, state, brief) never reaches the page.
+- **Little code on screen.** A short line at most, and only when the code is the topic.
 
 ## 3. Build
 
@@ -72,6 +81,11 @@ prints PASS or FAIL with a short list (JS errors, missing caption values, sidewa
 than its scene), plus a contact sheet image of every step. Look at the contact sheet. Fix with targeted
 edits, rebuild, re-run once. See `references/checks.md` for what it cannot catch and you must eyeball.
 If it prints SKIP, Playwright is not installed; say so and open the page yourself if you can.
+
+Then do a **cold read**: read only the hook, the captions in order and the payoff, as someone who has never
+heard of the topic. Can you say in one sentence what you learned? Does any caption lean on a word that was
+never explained, or on a picture you cannot see yet? If yes, fix that step. If you can start a fresh agent,
+give it only that text and ask the same question.
 
 ## 5. Hand over
 
