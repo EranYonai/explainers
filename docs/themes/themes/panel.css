@@ -1,0 +1,72 @@
+/* Panel (panel)
+   A comic page. Thick outlines, flat primaries, hard shadows.
+   Best for: Stories with a villain: flaky tests, race conditions, incident retros.
+   Fonts: Bangers / Comic Neue / Ubuntu Mono
+   Google Fonts: https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:ital,wght@0,400;0,700;1,400&family=Ubuntu+Mono:wght@400;700&display=swap
+   Mode: light and dark
+   --sketch is the feDisplacementMap scale for hand-drawn wobble (0 = off).
+*/
+:root {
+  --font-display: "Bangers","Impact",sans-serif;
+  --font-body: "Comic Neue","Comic Sans MS",sans-serif;
+  --font-mono: "Ubuntu Mono",ui-monospace,Menlo,Consolas,monospace;
+  --radius: 0px;
+  --stroke-width: 3.6;
+  --sketch: 0.8;
+  --display-scale: 1.4;
+  --display-weight: 400;
+  --display-transform: uppercase;
+  --display-tracking: .04em;
+  --border-width: 3px;
+  --linecap: round;
+  --node-rx: 13px;
+  --body-scale: 1.05;
+  --paper: #eef4ff;
+  --surface: #ffffff;
+  --ink: #111111;
+  --muted: #4a4a4a;
+  --line: #111111;
+  --accent: #1a5fe0;
+  --hl: #ffd60a;
+  --good: #128a3e;
+  --bad: #e02020;
+  --accent-ink: #ffffff;
+  --hl-ink: #111111;
+  --texture: radial-gradient(color-mix(in srgb,var(--accent) 18%,transparent) 1.5px,transparent 1.7px);
+  --texture-size: 10px 10px;
+  --shadow: 5px 5px 0 var(--ink);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14141c;
+    --surface: #1f1f2b;
+    --ink: #ffffff;
+    --muted: #b9b9c6;
+    --line: #ffffff;
+    --accent: #7fb0ff;
+    --hl: #ffd60a;
+    --good: #4fe07f;
+    --bad: #ff6464;
+    --accent-ink: #14141c;
+    --hl-ink: #111111;
+    --texture: radial-gradient(color-mix(in srgb,var(--accent) 22%,transparent) 1.5px,transparent 1.7px);
+    --texture-size: 10px 10px;
+    --shadow: 5px 5px 0 var(--hl);
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14141c;
+  --surface: #1f1f2b;
+  --ink: #ffffff;
+  --muted: #b9b9c6;
+  --line: #ffffff;
+  --accent: #7fb0ff;
+  --hl: #ffd60a;
+  --good: #4fe07f;
+  --bad: #ff6464;
+  --accent-ink: #14141c;
+  --hl-ink: #111111;
+  --texture: radial-gradient(color-mix(in srgb,var(--accent) 22%,transparent) 1.5px,transparent 1.7px);
+  --texture-size: 10px 10px;
+  --shadow: 5px 5px 0 var(--hl);
+}

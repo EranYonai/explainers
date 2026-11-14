@@ -1,0 +1,66 @@
+/* TM-9 (tm-9)
+   A service manual. Numbered figures, stamp blue, safety orange.
+   Best for: Runbooks, CI gate guides, procedures, how-to for on-call engineers.
+   Fonts: Big Shoulders Display / Public Sans / Red Hat Mono
+   Google Fonts: https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Public+Sans:ital,wght@0,400;0,600;1,400&family=Red+Hat+Mono:wght@400;600&display=swap
+   Mode: light and dark
+   --sketch is the feDisplacementMap scale for hand-drawn wobble (0 = off).
+*/
+:root {
+  --font-display: "Big Shoulders Display","Oswald","Arial Narrow",sans-serif;
+  --font-body: "Public Sans","Segoe UI",sans-serif;
+  --font-mono: "Red Hat Mono",ui-monospace,Menlo,Consolas,monospace;
+  --radius: 1px;
+  --stroke-width: 2;
+  --sketch: 0;
+  --shadow: none;
+  --texture: none;
+  --display-scale: 1.3;
+  --display-weight: 800;
+  --display-transform: uppercase;
+  --display-tracking: .03em;
+  --border-width: 2px;
+  --linecap: butt;
+  --node-rx: 3px;
+  --paper: #e9e9e1;
+  --surface: #f6f6f0;
+  --ink: #1e2a22;
+  --muted: #535c4e;
+  --line: #a9ad9c;
+  --accent: #24406e;
+  --hl: #ff7a00;
+  --good: #2f7d32;
+  --bad: #b3202a;
+  --accent-ink: #ffffff;
+  --hl-ink: #111111;
+  --texture-size: auto;
+  --body-scale: 1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #1a1e1a;
+    --surface: #232823;
+    --ink: #e6e6da;
+    --muted: #a5aa98;
+    --line: #474e43;
+    --accent: #9fbce8;
+    --hl: #ff8f1f;
+    --good: #7fcf7a;
+    --bad: #ff7d78;
+    --accent-ink: #141714;
+    --hl-ink: #111111;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #1a1e1a;
+  --surface: #232823;
+  --ink: #e6e6da;
+  --muted: #a5aa98;
+  --line: #474e43;
+  --accent: #9fbce8;
+  --hl: #ff8f1f;
+  --good: #7fcf7a;
+  --bad: #ff7d78;
+  --accent-ink: #141714;
+  --hl-ink: #111111;
+}

@@ -1,0 +1,38 @@
+/* Phosphor (phosphor)
+   A green CRT at 2 a.m. Everything is a character cell.
+   Best for: Shells, CI logs, kernels, bytes and bits. Engineers who live in a terminal.
+   Fonts: VT323 / JetBrains Mono / JetBrains Mono
+   Google Fonts: https://fonts.googleapis.com/css2?family=VT323&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap
+   Mode: single. Dark only. The glow is the identity.
+   --sketch is the feDisplacementMap scale for hand-drawn wobble (0 = off).
+*/
+:root {
+  --font-display: "VT323","Courier New",monospace;
+  --font-body: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --radius: 0px;
+  --stroke-width: 2;
+  --sketch: 0;
+  --display-scale: 1.5;
+  --display-weight: 400;
+  --display-transform: uppercase;
+  --display-tracking: .03em;
+  --border-width: 1px;
+  --linecap: butt;
+  --node-rx: 0px;
+  --body-scale: .9;
+  --paper: #07100a;
+  --surface: #0c1a10;
+  --ink: #8bf7a3;
+  --muted: #58b672;
+  --line: #1f4d2d;
+  --accent: #c4ffd3;
+  --hl: #ffb000;
+  --good: #4dff88;
+  --bad: #ff6a60;
+  --accent-ink: #07100a;
+  --hl-ink: #111111;
+  --texture: repeating-linear-gradient(to bottom,transparent 0 2px,rgba(0,0,0,.28) 2px 3px);
+  --shadow: 0 0 18px rgba(77,255,136,.12);
+  --texture-size: auto;
+}

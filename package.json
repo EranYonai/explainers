@@ -1,0 +1,15 @@
+{
+  "name": "explainers",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Turn a topic into an interactive, silent, mobile-first HTML explainer. A skill for Claude Code and Pi.",
+  "keywords": ["pi-package", "claude-code-plugin", "explainer", "teaching", "html"],
+  "license": "Apache-2.0",
+  "author": "Eran Yonai",
+  "repository": { "type": "git", "url": "git+https://github.com/EranYonai/explainers.git" },
+  "homepage": "https://github.com/EranYonai/explainers#readme",
+  "files": ["skills", "README.md", "LICENSE"],
+  "pi": {
+    "skills": ["./skills"]
+  }
+}

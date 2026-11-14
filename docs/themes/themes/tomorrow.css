@@ -1,0 +1,69 @@
+/* Tomorrow (tomorrow)
+   Plain white with muted primaries. Tomorrow Night for the dark side.
+   Best for: Clean, neutral explainers. The safest pick if you want a theme nobody argues about.
+   Fonts: Space Grotesk / Figtree / JetBrains Mono
+   Google Fonts: https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&family=Figtree:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap
+   Source: https://github.com/chriskempson/tomorrow-theme
+   File: tomorrow-theme/vim/colors/Tomorrow.vim, tomorrow-theme/vim/colors/Tomorrow-Night.vim
+   License: MIT (LICENSE.md)
+   Mode: light and dark
+   --sketch is the feDisplacementMap scale for hand-drawn wobble (0 = off).
+*/
+:root {
+  --font-display: "Space Grotesk","Segoe UI",sans-serif;
+  --font-body: "Figtree","Segoe UI",sans-serif;
+  --font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --radius: 6px;
+  --stroke-width: 2.4;
+  --sketch: 0;
+  --texture: none;
+  --display-scale: 1.1;
+  --display-weight: 600;
+  --display-transform: none;
+  --display-tracking: -.01em;
+  --border-width: 1.5px;
+  --linecap: round;
+  --node-rx: 6px;
+  --paper: #ffffff;
+  --surface: #ffffff;
+  --ink: #4d4d4c;
+  --muted: #666666;
+  --line: #d6d6d6;
+  --accent: #4271ae;
+  --hl: #eab700;
+  --good: #718c00;
+  --bad: #c82829;
+  --accent-ink: #ffffff;
+  --hl-ink: #4d4d4c;
+  --texture-size: auto;
+  --shadow: none;
+  --body-scale: 1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #1d1f21;
+    --surface: #282a2e;
+    --ink: #c5c8c6;
+    --muted: #969896;
+    --line: #373b41;
+    --accent: #81a2be;
+    --hl: #f0c674;
+    --good: #b5bd68;
+    --bad: #cc6666;
+    --accent-ink: #1d1f21;
+    --hl-ink: #1d1f21;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #1d1f21;
+  --surface: #282a2e;
+  --ink: #c5c8c6;
+  --muted: #969896;
+  --line: #373b41;
+  --accent: #81a2be;
+  --hl: #f0c674;
+  --good: #b5bd68;
+  --bad: #cc6666;
+  --accent-ink: #1d1f21;
+  --hl-ink: #1d1f21;
+}

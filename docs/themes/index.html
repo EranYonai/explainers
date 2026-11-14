@@ -1,0 +1,1886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explainer themes: 25 drafts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;600&family=Barlow+Condensed:wght@500;600&family=Barlow:ital,wght@0,400;0,600;1,400&family=Share+Tech+Mono&family=Gochi+Hand&family=Figtree:ital,wght@0,400;0,600;1,400&family=Fira+Code:wght@400;600&family=VT323&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&family=Archivo:ital,wght@0,400;0,600;0,900;1,400&family=DM+Mono:wght@400;500&family=Dela+Gothic+One&family=Space+Grotesk:wght@400;600&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Cabin+Sketch:wght@400;700&family=Patrick+Hand&family=Cutive+Mono&family=Marcellus&family=Spectral:ital,wght@0,400;0,600;1,400&family=Courier+Prime:wght@400;700&family=Bangers&family=Comic+Neue:ital,wght@0,400;0,700;1,400&family=Ubuntu+Mono:wght@400;700&family=Big+Shoulders+Display:wght@700;800&family=Public+Sans:ital,wght@0,400;0,600;1,400&family=Red+Hat+Mono:wght@400;600&family=Fredoka:wght@500;600&family=Nunito:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* gallery chrome */
+:root{--g-bg:#e4e5e7;--g-card:#ffffff;--g-ink:#15171a;--g-muted:#555a63;--g-line:#c9ccd1;--g-mark:#15171a;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--g-bg:#0e0f11;--g-card:#17191c;--g-ink:#eceef0;--g-muted:#a3a8b0;--g-line:#2e3136;--g-mark:#eceef0;color-scheme:dark}}
+:root[data-theme="dark"]{--g-bg:#0e0f11;--g-card:#17191c;--g-ink:#eceef0;--g-muted:#a3a8b0;--g-line:#2e3136;--g-mark:#eceef0;color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--g-bg);color:var(--g-ink);font:16px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;overflow-wrap:anywhere}
+.wrap{max-width:1120px;margin:0 auto;padding:16px 14px 64px}
+header.top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:6px 0 14px}
+header.top h1{font-size:1.5rem;line-height:1.15;margin:0;letter-spacing:-.02em}
+header.top p{margin:.3rem 0 0;color:var(--g-muted);font-size:.92rem}
+#mode{flex:none;font:inherit;font-size:.85rem;font-weight:600;padding:9px 12px;min-height:44px;border:2px solid var(--g-mark);background:transparent;color:var(--g-ink);border-radius:999px;cursor:pointer}
+.rec{background:var(--g-card);border:1px solid var(--g-line);border-left:6px solid var(--g-mark);padding:14px 16px;margin:0 0 14px}
+.rec h2{font-size:1rem;margin:0 0 .4rem;text-transform:uppercase;letter-spacing:.08em}
+.rec ol{margin:.4rem 0 .5rem;padding-left:1.3rem}
+.rec li{margin:.35rem 0}
+.rec p{margin:.4rem 0;color:var(--g-muted);font-size:.92rem}
+.rec a,.jump a{color:inherit}
+.jump{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 22px;padding:0;list-style:none}
+.jump a{display:block;padding:7px 11px;border:1px solid var(--g-line);background:var(--g-card);border-radius:999px;font-size:.85rem;text-decoration:none}
+.grid{display:grid;gap:30px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:34px 26px}}
+.theme{min-width:0;scroll-margin-top:12px}
+.meta{padding:14px 2px 0}
+.meta h2{margin:0;font-size:1.25rem;letter-spacing:-.01em}
+.meta .num{font:600 .8rem ui-monospace,Menlo,monospace;color:var(--g-muted);margin-right:4px}
+.meta .mood{margin:.15rem 0 .6rem;color:var(--g-muted)}
+.meta dl{display:grid;grid-template-columns:88px minmax(0,1fr);gap:7px 10px;margin:0;font-size:.9rem}
+.meta dt{color:var(--g-muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.07em;padding-top:.2em}
+.meta dd{margin:0;min-width:0}
+.meta small{color:var(--g-muted)}
+.meta code{font:.85em ui-monospace,Menlo,monospace}
+.sws{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:3px;background:none!important;max-width:330px}
+.sw{display:block;aspect-ratio:1;border:1px solid var(--g-line);border-radius:3px;position:relative}
+.sw i{position:absolute;left:0;right:0;top:calc(100% + 2px);font:normal 8px/1 ui-monospace,Menlo,monospace;color:var(--g-muted);text-align:center;overflow:hidden;white-space:nowrap}
+.badge{display:inline-block;margin-top:16px;font-size:.78rem;color:var(--g-muted);border:1px solid var(--g-line);border-radius:999px;padding:1px 9px}
+.hand{display:inline-flex;gap:3px;vertical-align:middle;margin-right:4px}
+.hand span{width:11px;height:11px;border:1.5px solid var(--g-mark);border-radius:50%}
+.hand span.on{background:var(--g-mark)}
+/* theme tokens, scoped per sample */
+.t-inkwell{--font-display: "Caveat","Segoe Print",cursive;
+--font-body: "Newsreader",Georgia,serif;
+--font-mono: "IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+--radius: 3px;
+--stroke-width: 2;
+--sketch: 2.4;
+--display-scale: 1.45;
+--display-weight: 700;
+--display-transform: none;
+--display-tracking: 0;
+--border-width: 1px;
+--linecap: round;
+--node-rx: 13px;
+--paper: #f1f1ee;
+--surface: #fbfbf9;
+--ink: #1d1d22;
+--muted: #55565f;
+--line: #c4cbd8;
+--accent: #1456b8;
+--hl: #c8f03c;
+--good: #1d7a45;
+--bad: #c8322b;
+--accent-ink: #ffffff;
+--hl-ink: #111111;
+--texture: repeating-linear-gradient(to bottom,transparent 0 25px,color-mix(in srgb,var(--accent) 22%,transparent) 25px 26px);
+--shadow: 0 1px 0 rgba(0,0,0,.08);
+--texture-size: auto;
+--body-scale: 1;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-inkwell{--paper: #161618;
+--surface: #1f1f23;
+--ink: #ecebe6;
+--muted: #a5a49c;
+--line: #3a3a40;
+--accent: #7fb2ff;
+--hl: #c8f03c;
+--good: #5fd38a;
+--bad: #ff7b6e;
+--accent-ink: #101014;
+--hl-ink: #111111;
+--texture: repeating-linear-gradient(to bottom,transparent 0 25px,color-mix(in srgb,var(--accent) 16%,transparent) 25px 26px);
+--shadow: none;
+}}
+:root[data-theme="dark"] .t-inkwell{--paper: #161618;
+--surface: #1f1f23;
+--ink: #ecebe6;
+--muted: #a5a49c;
+--line: #3a3a40;
+--accent: #7fb2ff;
+--hl: #c8f03c;
+--good: #5fd38a;
+--bad: #ff7b6e;
+--accent-ink: #101014;
+--hl-ink: #111111;
+--texture: repeating-linear-gradient(to bottom,transparent 0 25px,color-mix(in srgb,var(--accent) 16%,transparent) 25px 26px);
+--shadow: none;
+}
+.t-whiteprint{--font-display: "Barlow Condensed","Arial Narrow",sans-serif;
+--font-body: "Barlow","Helvetica Neue",sans-serif;
+--font-mono: "Share Tech Mono",ui-monospace,Menlo,Consolas,monospace;
+--radius: 0px;
+--stroke-width: 1.25;
+--sketch: 0;
+--shadow: none;
+--display-scale: 1.15;
+--display-weight: 600;
+--display-transform: uppercase;
+--display-tracking: .06em;
+--border-width: 1px;
+--linecap: butt;
+--node-rx: 0px;
+--paper: #eaf1f8;
+--surface: #f6f9fc;
+--ink: #0f3a78;
+--muted: #44648f;
+--line: #a9c0de;
+--accent: #0b55c8;
+--hl: #ff8a1f;
+--good: #0a7a5a;
+--bad: #c62a3a;
+--accent-ink: #ffffff;
+--hl-ink: #111111;
+--texture: linear-gradient(color-mix(in srgb,var(--line) 45%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--line) 45%,transparent) 1px,transparent 1px);
+--texture-size: 20px 20px;
+--body-scale: 1;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-whiteprint{--paper: #0d3b78;
+--surface: #114487;
+--ink: #eaf3ff;
+--muted: #b9cff0;
+--line: #3f6cab;
+--accent: #a8d4ff;
+--hl: #ffc14d;
+--good: #7ff0c0;
+--bad: #ffaaa8;
+--accent-ink: #0a2c5c;
+--hl-ink: #111111;
+--texture: linear-gradient(color-mix(in srgb,var(--line) 45%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--line) 45%,transparent) 1px,transparent 1px);
+--texture-size: 20px 20px;
+}}
+:root[data-theme="dark"] .t-whiteprint{--paper: #0d3b78;
+--surface: #114487;
+--ink: #eaf3ff;
+--muted: #b9cff0;
+--line: #3f6cab;
+--accent: #a8d4ff;
+--hl: #ffc14d;
+--good: #7ff0c0;
+--bad: #ffaaa8;
+--accent-ink: #0a2c5c;
+--hl-ink: #111111;
+--texture: linear-gradient(color-mix(in srgb,var(--line) 45%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--line) 45%,transparent) 1px,transparent 1px);
+--texture-size: 20px 20px;
+}
+.t-dry-erase{--font-display: "Gochi Hand","Comic Sans MS",cursive;
+--font-body: "Figtree","Segoe UI",sans-serif;
+--font-mono: "Fira Code",ui-monospace,Menlo,Consolas,monospace;
+--radius: 14px;
+--stroke-width: 3.4;
+--sketch: 1.6;
+--texture: none;
+--display-scale: 1.25;
+--display-weight: 400;
+--display-transform: none;
+--display-tracking: 0;
+--border-width: 2px;
+--linecap: round;
+--node-rx: 13px;
+--paper: #f4f6f7;
+--surface: #ffffff;
+--ink: #16181d;
+--muted: #5b616e;
+--line: #d0d5dd;
+--accent: #0a63d8;
+--hl: #ff9a1f;
+--good: #0f8a3c;
+--bad: #d92626;
+--accent-ink: #ffffff;
+--hl-ink: #111111;
+--shadow: 0 2px 10px rgba(20,30,50,.10);
+--texture-size: auto;
+--body-scale: 1;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-dry-erase{--paper: #1b1f24;
+--surface: #242a31;
+--ink: #f2f4f6;
+--muted: #a6aebb;
+--line: #3d4550;
+--accent: #5cb0ff;
+--hl: #ffb347;
+--good: #5ad67d;
+--bad: #ff6b6b;
+--accent-ink: #0e1114;
+--hl-ink: #111111;
+--shadow: 0 2px 10px rgba(0,0,0,.35);
+}}
+:root[data-theme="dark"] .t-dry-erase{--paper: #1b1f24;
+--surface: #242a31;
+--ink: #f2f4f6;
+--muted: #a6aebb;
+--line: #3d4550;
+--accent: #5cb0ff;
+--hl: #ffb347;
+--good: #5ad67d;
+--bad: #ff6b6b;
+--accent-ink: #0e1114;
+--hl-ink: #111111;
+--shadow: 0 2px 10px rgba(0,0,0,.35);
+}
+.t-phosphor{--font-display: "VT323","Courier New",monospace;
+--font-body: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+--font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+--radius: 0px;
+--stroke-width: 2;
+--sketch: 0;
+--display-scale: 1.5;
+--display-weight: 400;
+--display-transform: uppercase;
+--display-tracking: .03em;
+--border-width: 1px;
+--linecap: butt;
+--node-rx: 0px;
+--body-scale: .9;
+--paper: #07100a;
+--surface: #0c1a10;
+--ink: #8bf7a3;
+--muted: #58b672;
+--line: #1f4d2d;
+--accent: #c4ffd3;
+--hl: #ffb000;
+--good: #4dff88;
+--bad: #ff6a60;
+--accent-ink: #07100a;
+--hl-ink: #111111;
+--texture: repeating-linear-gradient(to bottom,transparent 0 2px,rgba(0,0,0,.28) 2px 3px);
+--shadow: 0 0 18px rgba(77,255,136,.12);
+--texture-size: auto;
+}
+.t-raster{--font-display: "Archivo","Helvetica Neue",Arial,sans-serif;
+--font-body: "Archivo","Helvetica Neue",Arial,sans-serif;
+--font-mono: "DM Mono",ui-monospace,Menlo,Consolas,monospace;
+--radius: 0px;
+--stroke-width: 2.5;
+--sketch: 0;
+--shadow: none;
+--texture: none;
+--display-scale: 1.2;
+--display-weight: 900;
+--display-transform: none;
+--display-tracking: -.025em;
+--border-width: 3px;
+--linecap: butt;
+--node-rx: 13px;
+--paper: #ffffff;
+--surface: #f2f2f2;
+--ink: #0a0a0a;
+--muted: #595959;
+--line: #0a0a0a;
+--accent: #1433d6;
+--hl: #ffd400;
+--good: #00804a;
+--bad: #d4001a;
+--accent-ink: #ffffff;
+--hl-ink: #111111;
+--texture-size: auto;
+--body-scale: 1;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-raster{--paper: #0b0b0b;
+--surface: #191919;
+--ink: #f5f5f5;
+--muted: #a8a8a8;
+--line: #f5f5f5;
+--accent: #8ea2ff;
+--hl: #ffd400;
+--good: #35d68a;
+--bad: #ff5a5f;
+--accent-ink: #0b0b0b;
+--hl-ink: #111111;
+}}
+:root[data-theme="dark"] .t-raster{--paper: #0b0b0b;
+--surface: #191919;
+--ink: #f5f5f5;
+--muted: #a8a8a8;
+--line: #f5f5f5;
+--accent: #8ea2ff;
+--hl: #ffd400;
+--good: #35d68a;
+--bad: #ff5a5f;
+--accent-ink: #0b0b0b;
+--hl-ink: #111111;
+}
+.t-two-ink{--font-display: "Dela Gothic One","Arial Black",sans-serif;
+--font-body: "Space Grotesk","Trebuchet MS",sans-serif;
+--font-mono: "Space Mono",ui-monospace,Menlo,Consolas,monospace;
+--radius: 2px;
+--stroke-width: 3;
+--sketch: 1;
+--display-scale: 1.05;
+--display-weight: 400;
+--display-transform: none;
+--display-tracking: -.01em;
+--border-width: 2px;
+--linecap: square;
+--node-rx: 5px;
+--paper: #f1ece1;
+--surface: #f9f5ec;
+--ink: #1b1f4b;
+--muted: #4f5488;
+--line: #b9bde0;
+--accent: #2438cf;
+--hl: #ff6fa8;
+--good: #00795c;
+--bad: #b3261e;
+--accent-ink: #ffffff;
+--hl-ink: #111111;
+--texture: radial-gradient(color-mix(in srgb,var(--hl) 24%,transparent) 1.2px,transparent 1.4px);
+--texture-size: 9px 9px;
+--shadow: 5px 5px 0 var(--hl);
+--body-scale: 1;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-two-ink{--paper: #15163a;
+--surface: #1d1f4d;
+--ink: #f3efe4;
+--muted: #b7b8da;
+--line: #3e4180;
+--accent: #9db8ff;
+--hl: #ff6fa8;
+--good: #49d6b0;
+--bad: #ff8a6b;
+--accent-ink: #15163a;
+--hl-ink: #111111;
+--texture: radial-gradient(color-mix(in srgb,var(--hl) 22%,transparent) 1.2px,transparent 1.4px);
+--texture-size: 9px 9px;
+--shadow: 5px 5px 0 var(--hl);
+}}
+:root[data-theme="dark"] .t-two-ink{--paper: #15163a;
+--surface: #1d1f4d;
+--ink: #f3efe4;
+--muted: #b7b8da;
+--line: #3e4180;
+--accent: #9db8ff;
+--hl: #ff6fa8;
+--good: #49d6b0;
+--bad: #ff8a6b;
+--accent-ink: #15163a;
+--hl-ink: #111111;
+--texture: radial-gradient(color-mix(in srgb,var(--hl) 22%,transparent) 1.2px,transparent 1.4px);
+--texture-size: 9px 9px;
+--shadow: 5px 5px 0 var(--hl);
+}
+.t-slate{--font-display: "Cabin Sketch","Chalkduster",cursive;
+--font-body: "Patrick Hand","Comic Sans MS",cursive;
+--font-mono: "Cutive Mono",ui-monospace,Menlo,Consolas,monospace;
+--radius: 4px;
+--stroke-width: 3;
+--sketch: 3.2;
+--display-scale: 1.2;
+--display-weight: 700;
+--display-transform: none;
+--display-tracking: .01em;
+--border-width: 2px;
+--linecap: round;
+--node-rx: 13px;
+--body-scale: 1.1;
+--paper: #23302b;
+--surface: #2a3832;
+--ink: #f1efe6;
+--muted: #bcc4b9;
+--line: #56675f;
+--accent: #a9dcff;
+--hl: #ffe27a;
+--good: #a5e8a0;
+--bad: #ffa39a;
+--accent-ink: #1a2420;
+--hl-ink: #111111;
+--texture: radial-gradient(ellipse at 20% 10%,rgba(255,255,255,.06),transparent 55%),radial-gradient(ellipse at 85% 90%,rgba(255,255,255,.05),transparent 50%);
+--shadow: none;
+--texture-size: auto;
+}
+.t-placard{--font-display: "Marcellus","Trajan Pro",serif;
+--font-body: "Spectral",Georgia,serif;
+--font-mono: "Courier Prime","Courier New",monospace;
+--radius: 2px;
+--stroke-width: 1.4;
+--sketch: 0;
+--texture: none;
+--display-scale: 1.1;
+--display-weight: 400;
+--display-transform: uppercase;
+--display-tracking: .09em;
+--border-width: 1px;
+--linecap: butt;
+--node-rx: 13px;
+--paper: #e9e8e4;
+--surface: #f7f6f3;
+--ink: #22252a;
+--muted: #595d64;
+--line: #c6c4bd;
+--accent: #2b4a7a;
+--hl: #c79a2b;
+--good: #2e6e45;
+--bad: #a8322d;
+--accent-ink: #ffffff;
+--hl-ink: #111111;
+--shadow: 0 10px 24px -14px rgba(0,0,0,.35);
+--texture-size: auto;
+--body-scale: 1;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-placard{--paper: #1c1d20;
+--surface: #26282c;
+--ink: #e9e6df;
+--muted: #a9a69e;
+--line: #43464c;
+--accent: #9db8e6;
+--hl: #d9b45a;
+--good: #7fc494;
+--bad: #e88a80;
+--accent-ink: #16171a;
+--hl-ink: #111111;
+--shadow: 0 10px 24px -14px rgba(0,0,0,.8);
+}}
+:root[data-theme="dark"] .t-placard{--paper: #1c1d20;
+--surface: #26282c;
+--ink: #e9e6df;
+--muted: #a9a69e;
+--line: #43464c;
+--accent: #9db8e6;
+--hl: #d9b45a;
+--good: #7fc494;
+--bad: #e88a80;
+--accent-ink: #16171a;
+--hl-ink: #111111;
+--shadow: 0 10px 24px -14px rgba(0,0,0,.8);
+}
+.t-panel{--font-display: "Bangers","Impact",sans-serif;
+--font-body: "Comic Neue","Comic Sans MS",sans-serif;
+--font-mono: "Ubuntu Mono",ui-monospace,Menlo,Consolas,monospace;
+--radius: 0px;
+--stroke-width: 3.6;
+--sketch: 0.8;
+--display-scale: 1.4;
+--display-weight: 400;
+--display-transform: uppercase;
+--display-tracking: .04em;
+--border-width: 3px;
+--linecap: round;
+--node-rx: 13px;
+--body-scale: 1.05;
+--paper: #eef4ff;
+--surface: #ffffff;
+--ink: #111111;
+--muted: #4a4a4a;
+--line: #111111;
+--accent: #1a5fe0;
+--hl: #ffd60a;
+--good: #128a3e;
+--bad: #e02020;
+--accent-ink: #ffffff;
+--hl-ink: #111111;
+--texture: radial-gradient(color-mix(in srgb,var(--accent) 18%,transparent) 1.5px,transparent 1.7px);
+--texture-size: 10px 10px;
+--shadow: 5px 5px 0 var(--ink);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-panel{--paper: #14141c;
+--surface: #1f1f2b;
+--ink: #ffffff;
+--muted: #b9b9c6;
+--line: #ffffff;
+--accent: #7fb0ff;
+--hl: #ffd60a;
+--good: #4fe07f;
+--bad: #ff6464;
+--accent-ink: #14141c;
+--hl-ink: #111111;
+--texture: radial-gradient(color-mix(in srgb,var(--accent) 22%,transparent) 1.5px,transparent 1.7px);
+--texture-size: 10px 10px;
+--shadow: 5px 5px 0 var(--hl);
+}}
+:root[data-theme="dark"] .t-panel{--paper: #14141c;
+--surface: #1f1f2b;
+--ink: #ffffff;
+--muted: #b9b9c6;
+--line: #ffffff;
+--accent: #7fb0ff;
+--hl: #ffd60a;
+--good: #4fe07f;
+--bad: #ff6464;
+--accent-ink: #14141c;
+--hl-ink: #111111;
+--texture: radial-gradient(color-mix(in srgb,var(--accent) 22%,transparent) 1.5px,transparent 1.7px);
+--texture-size: 10px 10px;
+--shadow: 5px 5px 0 var(--hl);
+}
+.t-tm-9{--font-display: "Big Shoulders Display","Oswald","Arial Narrow",sans-serif;
+--font-body: "Public Sans","Segoe UI",sans-serif;
+--font-mono: "Red Hat Mono",ui-monospace,Menlo,Consolas,monospace;
+--radius: 1px;
+--stroke-width: 2;
+--sketch: 0;
+--shadow: none;
+--texture: none;
+--display-scale: 1.3;
+--display-weight: 800;
+--display-transform: uppercase;
+--display-tracking: .03em;
+--border-width: 2px;
+--linecap: butt;
+--node-rx: 3px;
+--paper: #e9e9e1;
+--surface: #f6f6f0;
+--ink: #1e2a22;
+--muted: #535c4e;
+--line: #a9ad9c;
+--accent: #24406e;
+--hl: #ff7a00;
+--good: #2f7d32;
+--bad: #b3202a;
+--accent-ink: #ffffff;
+--hl-ink: #111111;
+--texture-size: auto;
+--body-scale: 1;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-tm-9{--paper: #1a1e1a;
+--surface: #232823;
+--ink: #e6e6da;
+--muted: #a5aa98;
+--line: #474e43;
+--accent: #9fbce8;
+--hl: #ff8f1f;
+--good: #7fcf7a;
+--bad: #ff7d78;
+--accent-ink: #141714;
+--hl-ink: #111111;
+}}
+:root[data-theme="dark"] .t-tm-9{--paper: #1a1e1a;
+--surface: #232823;
+--ink: #e6e6da;
+--muted: #a5aa98;
+--line: #474e43;
+--accent: #9fbce8;
+--hl: #ff8f1f;
+--good: #7fcf7a;
+--bad: #ff7d78;
+--accent-ink: #141714;
+--hl-ink: #111111;
+}
+.t-catppuccin{--font-display: "Fredoka","Nunito","Segoe UI",sans-serif;
+--font-body: "Nunito","Segoe UI",sans-serif;
+--font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+--radius: 14px;
+--stroke-width: 2.6;
+--sketch: 0;
+--texture: none;
+--display-scale: 1.2;
+--display-weight: 600;
+--display-transform: none;
+--display-tracking: -.01em;
+--border-width: 1.5px;
+--linecap: round;
+--node-rx: 13px;
+--paper: #e6e9ef;
+--surface: #eff1f5;
+--ink: #4c4f69;
+--muted: #5c5f77;
+--line: #bcc0cc;
+--accent: #8839ef;
+--hl: #df8e1d;
+--good: #179299;
+--bad: #d20f39;
+--accent-ink: #eff1f5;
+--hl-ink: #4c4f69;
+--shadow: 0 2px 12px rgba(76,79,105,.10);
+--texture-size: auto;
+--body-scale: 1;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-catppuccin{--paper: #1e1e2e;
+--surface: #313244;
+--ink: #cdd6f4;
+--muted: #a6adc8;
+--line: #45475a;
+--accent: #cba6f7;
+--hl: #f9e2af;
+--good: #a6e3a1;
+--bad: #f38ba8;
+--accent-ink: #11111b;
+--hl-ink: #11111b;
+--shadow: 0 2px 14px rgba(0,0,0,.35);
+}}
+:root[data-theme="dark"] .t-catppuccin{--paper: #1e1e2e;
+--surface: #313244;
+--ink: #cdd6f4;
+--muted: #a6adc8;
+--line: #45475a;
+--accent: #cba6f7;
+--hl: #f9e2af;
+--good: #a6e3a1;
+--bad: #f38ba8;
+--accent-ink: #11111b;
+--hl-ink: #11111b;
+--shadow: 0 2px 14px rgba(0,0,0,.35);
+}
+.t-catppuccin-frappe{--font-display: "Fredoka","Nunito","Segoe UI",sans-serif;
+--font-body: "Nunito","Segoe UI",sans-serif;
+--font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+--radius: 14px;
+--stroke-width: 2.6;
+--sketch: 0;
+--texture: none;
+--display-scale: 1.2;
+--display-weight: 600;
+--display-transform: none;
+--display-tracking: -.01em;
+--border-width: 1.5px;
+--linecap: round;
+--node-rx: 13px;
+--paper: #303446;
+--surface: #292c3c;
+--ink: #c6d0f5;
+--muted: #a5adce;
+--line: #51576d;
+--accent: #ca9ee6;
+--hl: #e5c890;
+--good: #a6d189;
+--bad: #e78284;
+--accent-ink: #232634;
+--hl-ink: #232634;
+--shadow: 0 2px 14px rgba(0,0,0,.30);
+--texture-size: auto;
+--body-scale: 1;
+}
+.t-catppuccin-macchiato{--font-display: "Fredoka","Nunito","Segoe UI",sans-serif;
+--font-body: "Nunito","Segoe UI",sans-serif;
+--font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+--radius: 14px;
+--stroke-width: 2.6;
+--sketch: 0;
+--texture: none;
+--display-scale: 1.2;
+--display-weight: 600;
+--display-transform: none;
+--display-tracking: -.01em;
+--border-width: 1.5px;
+--linecap: round;
+--node-rx: 13px;
+--paper: #24273a;
+--surface: #363a4f;
+--ink: #cad3f5;
+--muted: #a5adcb;
+--line: #494d64;
+--accent: #c6a0f6;
+--hl: #eed49f;
+--good: #a6da95;
+--bad: #ed8796;
+--accent-ink: #181926;
+--hl-ink: #181926;
+--shadow: 0 2px 14px rgba(0,0,0,.35);
+--texture-size: auto;
+--body-scale: 1;
+}
+.t-rose-pine{--font-display: "Space Grotesk","Segoe UI",sans-serif;
+--font-body: "Figtree","Segoe UI",sans-serif;
+--font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+--radius: 6px;
+--stroke-width: 2.4;
+--sketch: 0;
+--texture: none;
+--display-scale: 1.1;
+--display-weight: 600;
+--display-transform: none;
+--display-tracking: -.01em;
+--border-width: 1.5px;
+--linecap: round;
+--node-rx: 6px;
+--paper: #faf4ed;
+--surface: #fffaf3;
+--ink: #464261;
+--muted: #6e6a86;
+--line: #f2e9e1;
+--accent: #286983;
+--hl: #ea9d34;
+--good: #56949f;
+--bad: #b4637a;
+--accent-ink: #faf4ed;
+--hl-ink: #191724;
+--texture-size: auto;
+--shadow: none;
+--body-scale: 1;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-rose-pine{--paper: #191724;
+--surface: #1f1d2e;
+--ink: #e0def4;
+--muted: #908caa;
+--line: #26233a;
+--accent: #ebbcba;
+--hl: #f6c177;
+--good: #9ccfd8;
+--bad: #eb6f92;
+--accent-ink: #191724;
+--hl-ink: #191724;
+}}
+:root[data-theme="dark"] .t-rose-pine{--paper: #191724;
+--surface: #1f1d2e;
+--ink: #e0def4;
+--muted: #908caa;
+--line: #26233a;
+--accent: #ebbcba;
+--hl: #f6c177;
+--good: #9ccfd8;
+--bad: #eb6f92;
+--accent-ink: #191724;
+--hl-ink: #191724;
+}
+.t-tokyo-night{--font-display: "Space Grotesk","Segoe UI",sans-serif;
+--font-body: "Figtree","Segoe UI",sans-serif;
+--font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+--radius: 6px;
+--stroke-width: 2.4;
+--sketch: 0;
+--texture: none;
+--display-scale: 1.1;
+--display-weight: 600;
+--display-transform: none;
+--display-tracking: -.01em;
+--border-width: 1.5px;
+--linecap: round;
+--node-rx: 6px;
+--paper: #e1e2e7;
+--surface: #e1e2e7;
+--ink: #3760bf;
+--muted: #006a83;
+--line: #b4b5b9;
+--accent: #7847bd;
+--hl: #b15c00;
+--good: #587539;
+--bad: #c64343;
+--accent-ink: #e1e2e7;
+--hl-ink: #ffffff;
+--texture-size: auto;
+--shadow: none;
+--body-scale: 1;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-tokyo-night{--paper: #1a1b26;
+--surface: #292e42;
+--ink: #c0caf5;
+--muted: #a9b1d6;
+--line: #3b4261;
+--accent: #7aa2f7;
+--hl: #e0af68;
+--good: #9ece6a;
+--bad: #f7768e;
+--accent-ink: #1a1b26;
+--hl-ink: #1a1b26;
+}}
+:root[data-theme="dark"] .t-tokyo-night{--paper: #1a1b26;
+--surface: #292e42;
+--ink: #c0caf5;
+--muted: #a9b1d6;
+--line: #3b4261;
+--accent: #7aa2f7;
+--hl: #e0af68;
+--good: #9ece6a;
+--bad: #f7768e;
+--accent-ink: #1a1b26;
+--hl-ink: #1a1b26;
+}
+.t-dracula{--font-display: "Space Grotesk","Segoe UI",sans-serif;
+--font-body: "Figtree","Segoe UI",sans-serif;
+--font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+--radius: 6px;
+--stroke-width: 2.4;
+--sketch: 0;
+--texture: none;
+--display-scale: 1.1;
+--display-weight: 600;
+--display-transform: none;
+--display-tracking: -.01em;
+--border-width: 1.5px;
+--linecap: round;
+--node-rx: 6px;
+--paper: #fffbeb;
+--surface: #fffbeb;
+--ink: #1f1f1f;
+--muted: #6c664b;
+--line: #cfcfde;
+--accent: #644ac9;
+--hl: #a34d14;
+--good: #14710a;
+--bad: #cb3a2a;
+--accent-ink: #fffbeb;
+--hl-ink: #fffbeb;
+--texture-size: auto;
+--shadow: none;
+--body-scale: 1;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-dracula{--paper: #282a36;
+--surface: #282a36;
+--ink: #f8f8f2;
+--muted: #bd93f9;
+--line: #44475a;
+--accent: #ff79c6;
+--hl: #ffb86c;
+--good: #50fa7b;
+--bad: #ff5555;
+--accent-ink: #282a36;
+--hl-ink: #282a36;
+}}
+:root[data-theme="dark"] .t-dracula{--paper: #282a36;
+--surface: #282a36;
+--ink: #f8f8f2;
+--muted: #bd93f9;
+--line: #44475a;
+--accent: #ff79c6;
+--hl: #ffb86c;
+--good: #50fa7b;
+--bad: #ff5555;
+--accent-ink: #282a36;
+--hl-ink: #282a36;
+}
+.t-nord{--font-display: "Space Grotesk","Segoe UI",sans-serif;
+--font-body: "Figtree","Segoe UI",sans-serif;
+--font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+--radius: 6px;
+--stroke-width: 2.4;
+--sketch: 0;
+--texture: none;
+--display-scale: 1.1;
+--display-weight: 600;
+--display-transform: none;
+--display-tracking: -.01em;
+--border-width: 1.5px;
+--linecap: round;
+--node-rx: 6px;
+--paper: #2e3440;
+--surface: #2e3440;
+--ink: #d8dee9;
+--muted: #81a1c1;
+--line: #434c5e;
+--accent: #88c0d0;
+--hl: #ebcb8b;
+--good: #a3be8c;
+--bad: #bf616a;
+--accent-ink: #2e3440;
+--hl-ink: #2e3440;
+--texture-size: auto;
+--shadow: none;
+--body-scale: 1;
+}
+.t-solarized{--font-display: "Space Grotesk","Segoe UI",sans-serif;
+--font-body: "Figtree","Segoe UI",sans-serif;
+--font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+--radius: 6px;
+--stroke-width: 2.4;
+--sketch: 0;
+--texture: none;
+--display-scale: 1.1;
+--display-weight: 600;
+--display-transform: none;
+--display-tracking: -.01em;
+--border-width: 1.5px;
+--linecap: round;
+--node-rx: 6px;
+--paper: #fdf6e3;
+--surface: #fdf6e3;
+--ink: #073642;
+--muted: #586e75;
+--line: #eee8d5;
+--accent: #cb4b16;
+--hl: #b58900;
+--good: #859900;
+--bad: #dc322f;
+--accent-ink: #fdf6e3;
+--hl-ink: #002b36;
+--texture-size: auto;
+--shadow: none;
+--body-scale: 1;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-solarized{--paper: #002b36;
+--surface: #002b36;
+--ink: #eee8d5;
+--muted: #93a1a1;
+--line: #073642;
+--accent: #2aa198;
+--hl: #b58900;
+--good: #859900;
+--bad: #dc322f;
+--accent-ink: #002b36;
+--hl-ink: #002b36;
+}}
+:root[data-theme="dark"] .t-solarized{--paper: #002b36;
+--surface: #002b36;
+--ink: #eee8d5;
+--muted: #93a1a1;
+--line: #073642;
+--accent: #2aa198;
+--hl: #b58900;
+--good: #859900;
+--bad: #dc322f;
+--accent-ink: #002b36;
+--hl-ink: #002b36;
+}
+.t-oceanic-next{--font-display: "Space Grotesk","Segoe UI",sans-serif;
+--font-body: "Figtree","Segoe UI",sans-serif;
+--font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+--radius: 6px;
+--stroke-width: 2.4;
+--sketch: 0;
+--texture: none;
+--display-scale: 1.1;
+--display-weight: 600;
+--display-transform: none;
+--display-tracking: -.01em;
+--border-width: 1.5px;
+--linecap: round;
+--node-rx: 6px;
+--paper: #1b2b34;
+--surface: #343d46;
+--ink: #d8dee9;
+--muted: #a7adba;
+--line: #4f5b66;
+--accent: #5fb3b3;
+--hl: #fac863;
+--good: #99c794;
+--bad: #ec5f67;
+--accent-ink: #1b2b34;
+--hl-ink: #1b2b34;
+--texture-size: auto;
+--shadow: none;
+--body-scale: 1;
+}
+.t-tomorrow{--font-display: "Space Grotesk","Segoe UI",sans-serif;
+--font-body: "Figtree","Segoe UI",sans-serif;
+--font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+--radius: 6px;
+--stroke-width: 2.4;
+--sketch: 0;
+--texture: none;
+--display-scale: 1.1;
+--display-weight: 600;
+--display-transform: none;
+--display-tracking: -.01em;
+--border-width: 1.5px;
+--linecap: round;
+--node-rx: 6px;
+--paper: #ffffff;
+--surface: #ffffff;
+--ink: #4d4d4c;
+--muted: #666666;
+--line: #d6d6d6;
+--accent: #4271ae;
+--hl: #eab700;
+--good: #718c00;
+--bad: #c82829;
+--accent-ink: #ffffff;
+--hl-ink: #4d4d4c;
+--texture-size: auto;
+--shadow: none;
+--body-scale: 1;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-tomorrow{--paper: #1d1f21;
+--surface: #282a2e;
+--ink: #c5c8c6;
+--muted: #969896;
+--line: #373b41;
+--accent: #81a2be;
+--hl: #f0c674;
+--good: #b5bd68;
+--bad: #cc6666;
+--accent-ink: #1d1f21;
+--hl-ink: #1d1f21;
+}}
+:root[data-theme="dark"] .t-tomorrow{--paper: #1d1f21;
+--surface: #282a2e;
+--ink: #c5c8c6;
+--muted: #969896;
+--line: #373b41;
+--accent: #81a2be;
+--hl: #f0c674;
+--good: #b5bd68;
+--bad: #cc6666;
+--accent-ink: #1d1f21;
+--hl-ink: #1d1f21;
+}
+.t-iceberg{--font-display: "Space Grotesk","Segoe UI",sans-serif;
+--font-body: "Figtree","Segoe UI",sans-serif;
+--font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+--radius: 6px;
+--stroke-width: 2.4;
+--sketch: 0;
+--texture: none;
+--display-scale: 1.1;
+--display-weight: 600;
+--display-transform: none;
+--display-tracking: -.01em;
+--border-width: 1.5px;
+--linecap: round;
+--node-rx: 6px;
+--paper: #dcdfe7;
+--surface: #e8e9ec;
+--ink: #33374c;
+--muted: #505695;
+--line: #c9cdd7;
+--accent: #2d539e;
+--hl: #eac6ad;
+--good: #668e3d;
+--bad: #cc517a;
+--accent-ink: #e8e9ec;
+--hl-ink: #33374c;
+--texture-size: auto;
+--shadow: none;
+--body-scale: 1;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-iceberg{--paper: #161821;
+--surface: #1e2132;
+--ink: #c6c8d1;
+--muted: #8389a3;
+--line: #2a3158;
+--accent: #84a0c6;
+--hl: #e2a478;
+--good: #b4be82;
+--bad: #e27878;
+--accent-ink: #161821;
+--hl-ink: #161821;
+}}
+:root[data-theme="dark"] .t-iceberg{--paper: #161821;
+--surface: #1e2132;
+--ink: #c6c8d1;
+--muted: #8389a3;
+--line: #2a3158;
+--accent: #84a0c6;
+--hl: #e2a478;
+--good: #b4be82;
+--bad: #e27878;
+--accent-ink: #161821;
+--hl-ink: #161821;
+}
+.t-one-half{--font-display: "Space Grotesk","Segoe UI",sans-serif;
+--font-body: "Figtree","Segoe UI",sans-serif;
+--font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+--radius: 6px;
+--stroke-width: 2.4;
+--sketch: 0;
+--texture: none;
+--display-scale: 1.1;
+--display-weight: 600;
+--display-transform: none;
+--display-tracking: -.01em;
+--border-width: 1.5px;
+--linecap: round;
+--node-rx: 6px;
+--paper: #f0f0f0;
+--surface: #fafafa;
+--ink: #383a42;
+--muted: #0184bc;
+--line: #d4d4d4;
+--accent: #a626a4;
+--hl: #bfceff;
+--good: #50a14f;
+--bad: #e45649;
+--accent-ink: #fafafa;
+--hl-ink: #383a42;
+--texture-size: auto;
+--shadow: none;
+--body-scale: 1;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-one-half{--paper: #282c34;
+--surface: #282c34;
+--ink: #dcdfe4;
+--muted: #919baa;
+--line: #474e5d;
+--accent: #61afef;
+--hl: #e5c07b;
+--good: #98c379;
+--bad: #e06c75;
+--accent-ink: #282c34;
+--hl-ink: #282c34;
+}}
+:root[data-theme="dark"] .t-one-half{--paper: #282c34;
+--surface: #282c34;
+--ink: #dcdfe4;
+--muted: #919baa;
+--line: #474e5d;
+--accent: #61afef;
+--hl: #e5c07b;
+--good: #98c379;
+--bad: #e06c75;
+--accent-ink: #282c34;
+--hl-ink: #282c34;
+}
+.t-kanagawa{--font-display: "Marcellus","Trajan Pro",serif;
+--font-body: "Spectral",Georgia,serif;
+--font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+--radius: 6px;
+--stroke-width: 2.4;
+--sketch: 0;
+--texture: none;
+--display-scale: 1.2;
+--display-weight: 400;
+--display-transform: none;
+--display-tracking: -.01em;
+--border-width: 1.5px;
+--linecap: round;
+--node-rx: 6px;
+--paper: #e5ddb0;
+--surface: #f2ecbc;
+--ink: #43436c;
+--muted: #545464;
+--line: #d5cea3;
+--accent: #5d57a3;
+--hl: #f9d791;
+--good: #6f894e;
+--bad: #c84053;
+--accent-ink: #f2ecbc;
+--hl-ink: #43436c;
+--texture-size: auto;
+--shadow: none;
+--body-scale: 1;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-kanagawa{--paper: #1f1f28;
+--surface: #2a2a37;
+--ink: #dcd7ba;
+--muted: #c8c093;
+--line: #363646;
+--accent: #7e9cd8;
+--hl: #e6c384;
+--good: #98bb6c;
+--bad: #e46876;
+--accent-ink: #1f1f28;
+--hl-ink: #1f1f28;
+}}
+:root[data-theme="dark"] .t-kanagawa{--paper: #1f1f28;
+--surface: #2a2a37;
+--ink: #dcd7ba;
+--muted: #c8c093;
+--line: #363646;
+--accent: #7e9cd8;
+--hl: #e6c384;
+--good: #98bb6c;
+--bad: #e46876;
+--accent-ink: #1f1f28;
+--hl-ink: #1f1f28;
+}
+.t-onedark{--font-display: "Space Grotesk","Segoe UI",sans-serif;
+--font-body: "Figtree","Segoe UI",sans-serif;
+--font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+--radius: 6px;
+--stroke-width: 2.4;
+--sketch: 0;
+--texture: none;
+--display-scale: 1.1;
+--display-weight: 600;
+--display-transform: none;
+--display-tracking: -.01em;
+--border-width: 1.5px;
+--linecap: round;
+--node-rx: 6px;
+--paper: #f0f0f0;
+--surface: #fafafa;
+--ink: #383a42;
+--muted: #818387;
+--line: #dcdcdc;
+--accent: #a626a4;
+--hl: #986801;
+--good: #50a14f;
+--bad: #e45649;
+--accent-ink: #fafafa;
+--hl-ink: #fafafa;
+--texture-size: auto;
+--shadow: none;
+--body-scale: 1;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-onedark{--paper: #282c34;
+--surface: #282c34;
+--ink: #abb2bf;
+--muted: #848b98;
+--line: #3b3f4c;
+--accent: #61afef;
+--hl: #e5c07b;
+--good: #98c379;
+--bad: #e86671;
+--accent-ink: #21252b;
+--hl-ink: #21252b;
+}}
+:root[data-theme="dark"] .t-onedark{--paper: #282c34;
+--surface: #282c34;
+--ink: #abb2bf;
+--muted: #848b98;
+--line: #3b3f4c;
+--accent: #61afef;
+--hl: #e5c07b;
+--good: #98c379;
+--bad: #e86671;
+--accent-ink: #21252b;
+--hl-ink: #21252b;
+}
+.t-gruvbox{--font-display: "Space Grotesk","Segoe UI",sans-serif;
+--font-body: "Figtree","Segoe UI",sans-serif;
+--font-mono: "Fira Code",ui-monospace,Menlo,Consolas,monospace;
+--radius: 6px;
+--stroke-width: 2.4;
+--sketch: 0;
+--texture: none;
+--display-scale: 1.1;
+--display-weight: 600;
+--display-transform: none;
+--display-tracking: -.01em;
+--border-width: 1.5px;
+--linecap: round;
+--node-rx: 6px;
+--paper: #f2e5bc;
+--surface: #fbf1c7;
+--ink: #3c3836;
+--muted: #665c54;
+--line: #d5c4a1;
+--accent: #af3a03;
+--hl: #d79921;
+--good: #79740e;
+--bad: #9d0006;
+--accent-ink: #fbf1c7;
+--hl-ink: #282828;
+--texture-size: auto;
+--shadow: none;
+--body-scale: 1;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-gruvbox{--paper: #282828;
+--surface: #3c3836;
+--ink: #ebdbb2;
+--muted: #bdae93;
+--line: #504945;
+--accent: #fe8019;
+--hl: #fabd2f;
+--good: #b8bb26;
+--bad: #fb4934;
+--accent-ink: #282828;
+--hl-ink: #282828;
+}}
+:root[data-theme="dark"] .t-gruvbox{--paper: #282828;
+--surface: #3c3836;
+--ink: #ebdbb2;
+--muted: #bdae93;
+--line: #504945;
+--accent: #fe8019;
+--hl: #fabd2f;
+--good: #b8bb26;
+--bad: #fb4934;
+--accent-ink: #282828;
+--hl-ink: #282828;
+}
+
+/* shared sample structure: reads tokens only */
+.sample{background-color:var(--paper);background-image:var(--texture);background-size:var(--texture-size);color:var(--ink);font-family:var(--font-body);font-size:calc(1.02rem * var(--body-scale));line-height:1.5;padding:18px 16px 20px;border:var(--border-width) solid var(--line);border-radius:var(--radius);overflow:hidden}
+.sample .kicker{margin:0;font-family:var(--font-mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sample h3{margin:.1rem 0 .7rem;font-family:var(--font-display);font-weight:var(--display-weight);font-size:calc(1.4rem * var(--display-scale));line-height:1.08;letter-spacing:var(--display-tracking);text-transform:var(--display-transform);color:var(--ink)}
+.sample figure{margin:0 0 .9rem;background:var(--surface);border:var(--border-width) solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:10px 6px 0}
+.sample .scene{display:block;width:100%;height:auto}
+.sample figcaption{margin:6px -6px 0;padding:9px 12px;border-top:var(--border-width) solid var(--line);font-weight:600;font-size:.98em}
+.sample figcaption::before{content:"";display:inline-block;width:.6em;height:.6em;margin-right:.5em;background:var(--hl);border:1px solid var(--ink);border-radius:var(--radius)}
+.sample .prose{margin:0 0 .8rem}
+.sample .prose b{background:color-mix(in srgb,var(--hl) 45%,transparent);padding:0 .2em;font-weight:600}
+.sample .code{margin:0 0 1rem;padding:9px 12px;background:var(--surface);border:var(--border-width) solid var(--line);border-left:4px solid var(--accent);border-radius:var(--radius);font-family:var(--font-mono);font-size:.84rem;white-space:pre-wrap;color:var(--ink)}
+.sample .code code{font:inherit}
+.sample .code .pr{color:var(--muted)}
+.sample .ctl{display:flex;align-items:center;gap:10px}
+.sample button{font-family:var(--font-display);font-weight:var(--display-weight);font-size:calc(.95rem * var(--display-scale));letter-spacing:var(--display-tracking);text-transform:var(--display-transform);min-height:44px;padding:6px 18px;border-radius:var(--radius);border:var(--border-width) solid var(--ink);cursor:pointer;line-height:1}
+.sample .ghost{background:transparent;color:var(--ink)}
+.sample .next{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);box-shadow:var(--shadow)}
+.sample .dots{margin-left:auto;display:flex;gap:5px}
+.sample .dots i{width:9px;height:9px;border:1.5px solid var(--muted);border-radius:var(--radius)}
+.sample .dots i.on{background:var(--hl);border-color:var(--ink)}
+/* scene */
+.scene .shapes *{fill:none;stroke-width:var(--stroke-width);stroke-linecap:var(--linecap);stroke-linejoin:round}
+.scene .rail{stroke:var(--muted)}
+.scene .node{fill:var(--surface);rx:var(--node-rx)}
+.scene .node.good,.scene .glyph.good,.scene .brk.good{stroke:var(--good)}
+.scene .node.bad,.scene .glyph.bad,.scene .brk.bad{stroke:var(--bad)}
+.scene .node.unk{stroke:var(--ink);stroke-dasharray:4 3}
+.scene .sus{fill:color-mix(in srgb,var(--hl) 30%,transparent)!important;stroke:var(--hl);stroke-dasharray:6 4;rx:var(--radius)}
+.scene .ptr{stroke:var(--accent)}
+.scene .brk{stroke-width:calc(var(--stroke-width) * .6)!important}
+.scene text{text-anchor:middle;font-family:var(--font-mono);font-size:11px;fill:var(--ink)}
+.scene .unkq{font-weight:700;font-size:13px}
+.scene .ptrl{fill:var(--accent);font-family:var(--font-display);font-size:calc(12px * var(--display-scale));font-weight:var(--display-weight);letter-spacing:var(--display-tracking);text-transform:var(--display-transform)}
+.scene .grp{fill:var(--muted);font-size:10px}
+.scene .grp.strong{fill:var(--ink);font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div><h1>Explainer themes</h1><p>Twenty-five draft design languages, including three Catppuccin flavors and twelve editor color schemes. Same bisect sample in each.</p></div>
+  <button id="mode" type="button" aria-label="Switch color mode">Mode: auto</button>
+</header>
+<section class="rec">
+  <h2>My top three for you</h2>
+  <ol>
+    <li><b><a href="#inkwell">Inkwell</a>.</b> It looks like your own notebook. Your drawings fit without redrawing, and the green highlighter is a mark people will remember.</li>
+    <li><b><a href="#whiteprint">Whiteprint</a>.</b> The best fit for low-level and CI topics. Exact lines suit memory layouts and pipelines, and engineers trust it on sight.</li>
+    <li><b><a href="#two-ink">Two-Ink</a>.</b> The most recognizable in a feed. Navy and pink read well in 9:16 reels and look like nobody else's AI output.</li>
+  </ol>
+  <p>If you want one house look, take Inkwell and borrow Whiteprint's grid for dense diagrams. Skip Dry Erase as a signature: it is pleasant but common. Phosphor and Slate are dark only on purpose, so the toggle does not change them.</p>
+  <p><b>New: Catppuccin.</b> The open-source (MIT) pastel palette, using only its official colors, checked against the @catppuccin/palette package v1.8.0. <a href="#catppuccin">Catppuccin</a> switches between Latte (light) and Mocha (dark) with the toggle. <a href="#catppuccin-frappe">Frappé</a> and <a href="#catppuccin-macchiato">Macchiato</a> are the other two dark flavors. A good fit for agent and tooling topics, since many readers already use it in their editor.</p>
+  <p><b>New: Editor color schemes.</b> Twelve schemes from the list in Nathan Long, <a href="https://nathan-long.com/blog/colorschemes-for-the-discerning-developer/">"Colorschemes for the discerning developer"</a>: <a href="#rose-pine">Rosé Pine</a>, <a href="#tokyo-night">Tokyo Night</a>, <a href="#dracula">Dracula</a>, <a href="#nord">Nord</a>, <a href="#solarized">Solarized</a>, <a href="#oceanic-next">Oceanic Next</a>, <a href="#tomorrow">Tomorrow</a>, <a href="#iceberg">Iceberg</a>, <a href="#one-half">One Half</a>, <a href="#kanagawa">Kanagawa</a>, <a href="#onedark">OneDark</a> and <a href="#gruvbox">Gruvbox</a>. Every color comes from the scheme's own source palette, and each CSS file names the source file and license. Nord and Oceanic Next are dark only, since their sources define no light palette. The others switch between their light and dark variants with the toggle.</p>
+</section>
+<ul class="jump"><li><a href="#inkwell">Inkwell</a></li><li><a href="#whiteprint">Whiteprint</a></li><li><a href="#dry-erase">Dry Erase</a></li><li><a href="#phosphor">Phosphor</a></li><li><a href="#raster">Raster</a></li><li><a href="#two-ink">Two-Ink</a></li><li><a href="#slate">Slate</a></li><li><a href="#placard">Placard</a></li><li><a href="#panel">Panel</a></li><li><a href="#tm-9">TM-9</a></li><li><a href="#catppuccin">Catppuccin</a></li><li><a href="#catppuccin-frappe">Catppuccin Frappé</a></li><li><a href="#catppuccin-macchiato">Catppuccin Macchiato</a></li><li><a href="#rose-pine">Rosé Pine</a></li><li><a href="#tokyo-night">Tokyo Night</a></li><li><a href="#dracula">Dracula</a></li><li><a href="#nord">Nord</a></li><li><a href="#solarized">Solarized</a></li><li><a href="#oceanic-next">Oceanic Next</a></li><li><a href="#tomorrow">Tomorrow</a></li><li><a href="#iceberg">Iceberg</a></li><li><a href="#one-half">One Half</a></li><li><a href="#kanagawa">Kanagawa</a></li><li><a href="#onedark">OneDark</a></li><li><a href="#gruvbox">Gruvbox</a></li></ul>
+<main class="grid">
+<article class="theme" id="inkwell">
+<div class="sample t-inkwell">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-inkwell" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-inkwell"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">01</span> Inkwell</h2>
+  <p class="mood">A ruled notebook, a black fineliner and one green highlighter.</p>
+  <dl>
+    <dt>Best for</dt><dd>Step-by-step reasoning, debugging stories, anything Eran would sketch by hand.</dd>
+    <dt>Fonts</dt><dd>Caveat / Newsreader / IBM Plex Mono <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-inkwell"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Light and dark</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class=""></span></span> 4/5</dd>
+    <dt>Risk</dt><dd>Handwritten titles get hard to read when they run long. Keep them under six words.</dd>
+    <dt>File</dt><dd><code>themes/inkwell.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="whiteprint">
+<div class="sample t-whiteprint">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-whiteprint" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-whiteprint"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">02</span> Whiteprint</h2>
+  <p class="mood">An engineering drawing. Thin exact lines on a measured grid.</p>
+  <dl>
+    <dt>Best for</dt><dd>Architecture, memory layouts, protocols, low-level and systems topics.</dd>
+    <dt>Fonts</dt><dd>Barlow Condensed / Barlow / Share Tech Mono <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-whiteprint"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Light and dark</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></span> 0/5</dd>
+    <dt>Risk</dt><dd>Everything is blue, so good and bad lean on glyphs and labels more than on color.</dd>
+    <dt>File</dt><dd><code>themes/whiteprint.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="dry-erase">
+<div class="sample t-dry-erase">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-dry-erase" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-dry-erase"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">03</span> Dry Erase</h2>
+  <p class="mood">A whiteboard after a good design review. Fat markers, four colors.</p>
+  <dl>
+    <dt>Best for</dt><dd>Agent loops, pipelines, informal walk-throughs for a team.</dd>
+    <dt>Fonts</dt><dd>Gochi Hand / Figtree / Fira Code <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-dry-erase"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Light and dark</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class="on"></span><span class="on"></span><span class="on"></span><span class=""></span><span class=""></span></span> 3/5</dd>
+    <dt>Risk</dt><dd>Closest to the common Excalidraw look. Least distinctive of the hand-drawn set.</dd>
+    <dt>File</dt><dd><code>themes/dry-erase.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="phosphor">
+<div class="sample t-phosphor">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-phosphor" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-phosphor"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">04</span> Phosphor</h2>
+  <p class="mood">A green CRT at 2 a.m. Everything is a character cell.</p>
+  <dl>
+    <dt>Best for</dt><dd>Shells, CI logs, kernels, bytes and bits. Engineers who live in a terminal.</dd>
+    <dt>Fonts</dt><dd>VT323 / JetBrains Mono / JetBrains Mono <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-phosphor"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Dark only. The glow is the identity.</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></span> 0/5</dd>
+    <dt>Risk</dt><dd>Long prose in mono green is tiring. Keep paragraphs to two or three lines.</dd>
+    <dt>File</dt><dd><code>themes/phosphor.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="raster">
+<div class="sample t-raster">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-raster" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-raster"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">05</span> Raster</h2>
+  <p class="mood">Swiss poster discipline. Black rules, one heavy grotesque, lots of air.</p>
+  <dl>
+    <dt>Best for</dt><dd>Concepts and comparisons, conference-grade explainers, senior audiences.</dd>
+    <dt>Fonts</dt><dd>Archivo / Archivo / DM Mono <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-raster"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Light and dark</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></span> 0/5</dd>
+    <dt>Risk</dt><dd>Can feel cold and corporate. The least personal of the ten.</dd>
+    <dt>File</dt><dd><code>themes/raster.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="two-ink">
+<div class="sample t-two-ink">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-two-ink" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-two-ink"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">06</span> Two-Ink</h2>
+  <p class="mood">A risograph zine. Navy and hot pink, slightly off register.</p>
+  <dl>
+    <dt>Best for</dt><dd>Opinionated essays, reels, short punchy explainers that get shared.</dd>
+    <dt>Fonts</dt><dd>Dela Gothic One / Space Grotesk / Space Mono <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-two-ink"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Light and dark</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class="on"></span><span class="on"></span><span class=""></span><span class=""></span><span class=""></span></span> 2/5</dd>
+    <dt>Risk</dt><dd>The pink highlight sits near the red of bad. Keep the cross glyph on bad states.</dd>
+    <dt>File</dt><dd><code>themes/two-ink.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="slate">
+<div class="sample t-slate">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-slate" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-slate"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">07</span> Slate</h2>
+  <p class="mood">A classroom board. Dusty chalk, four sticks of color.</p>
+  <dl>
+    <dt>Best for</dt><dd>Fundamentals, algorithms, first-principles lessons for newcomers.</dd>
+    <dt>Fonts</dt><dd>Cabin Sketch / Patrick Hand / Cutive Mono <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-slate"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Dark only. A white chalkboard is a whiteboard.</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span></span> 5/5</dd>
+    <dt>Risk</dt><dd>Reads as school. Senior engineers may find it cute rather than serious.</dd>
+    <dt>File</dt><dd><code>themes/slate.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="placard">
+<div class="sample t-placard">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-placard" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-placard"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">08</span> Placard</h2>
+  <p class="mood">A museum wall label. Quiet, exact, a little ceremonial.</p>
+  <dl>
+    <dt>Best for</dt><dd>History of an idea, deep dives, reference pieces people return to.</dd>
+    <dt>Fonts</dt><dd>Marcellus / Spectral / Courier Prime <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-placard"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Light and dark</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></span> 0/5</dd>
+    <dt>Risk</dt><dd>Hairline strokes thin out on a phone and in reels. Diagrams need generous size.</dd>
+    <dt>File</dt><dd><code>themes/placard.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="panel">
+<div class="sample t-panel">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-panel" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-panel"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">09</span> Panel</h2>
+  <p class="mood">A comic page. Thick outlines, flat primaries, hard shadows.</p>
+  <dl>
+    <dt>Best for</dt><dd>Stories with a villain: flaky tests, race conditions, incident retros.</dd>
+    <dt>Fonts</dt><dd>Bangers / Comic Neue / Ubuntu Mono <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-panel"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Light and dark</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class="on"></span><span class="on"></span><span class="on"></span><span class=""></span><span class=""></span></span> 3/5</dd>
+    <dt>Risk</dt><dd>Loud. It can undercut serious material and tires over a long explainer.</dd>
+    <dt>File</dt><dd><code>themes/panel.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="tm-9">
+<div class="sample t-tm-9">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-tm-9" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-tm-9"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">10</span> TM-9</h2>
+  <p class="mood">A service manual. Numbered figures, stamp blue, safety orange.</p>
+  <dl>
+    <dt>Best for</dt><dd>Runbooks, CI gate guides, procedures, how-to for on-call engineers.</dd>
+    <dt>Fonts</dt><dd>Big Shoulders Display / Public Sans / Red Hat Mono <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-tm-9"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Light and dark</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class=""></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></span> 0/5</dd>
+    <dt>Risk</dt><dd>Dry by design. It teaches procedure well and wonder badly.</dd>
+    <dt>File</dt><dd><code>themes/tm-9.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="catppuccin">
+<div class="sample t-catppuccin">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-catppuccin" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-catppuccin"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">11</span> Catppuccin</h2>
+  <p class="mood">Soft pastels from the editor theme many developers already run. Latte by day, Mocha by night.</p>
+  <dl>
+    <dt>Best for</dt><dd>Developer tooling, agents, editors and terminals. Readers who already use Catppuccin will feel at home.</dd>
+    <dt>Fonts</dt><dd>Fredoka / Nunito / JetBrains Mono <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-catppuccin"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Light and dark</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></span> 1/5</dd>
+    <dt>Risk</dt><dd>It is a popular palette, so it reads as &quot;dev setup&quot; more than as your own look. In Latte, green is too faint, so &quot;good&quot; uses teal, and text on the yellow highlight is only 3:1, so keep it bold.</dd>
+    <dt>File</dt><dd><code>themes/catppuccin.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="catppuccin-frappe">
+<div class="sample t-catppuccin-frappe">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-catppuccin-frappe" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-catppuccin-frappe"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">12</span> Catppuccin Frappé</h2>
+  <p class="mood">The softest dark flavor. Muted, low glare, easy on long reads.</p>
+  <dl>
+    <dt>Best for</dt><dd>Long-form explainers read at night, slower conceptual pieces.</dd>
+    <dt>Fonts</dt><dd>Fredoka / Nunito / JetBrains Mono <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-catppuccin-frappe"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Dark only. Frappé is a dark flavor; use Catppuccin for Latte in light mode.</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></span> 1/5</dd>
+    <dt>Risk</dt><dd>The lowest contrast of the dark flavors. Thin strokes fade on a phone in sunlight.</dd>
+    <dt>File</dt><dd><code>themes/catppuccin-frappe.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="catppuccin-macchiato">
+<div class="sample t-catppuccin-macchiato">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-catppuccin-macchiato" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-catppuccin-macchiato"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">13</span> Catppuccin Macchiato</h2>
+  <p class="mood">Between Frappé and Mocha. Deeper navy, a little more pop.</p>
+  <dl>
+    <dt>Best for</dt><dd>Agent and AI topics, demos shown on a big screen.</dd>
+    <dt>Fonts</dt><dd>Fredoka / Nunito / JetBrains Mono <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-catppuccin-macchiato"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Dark only. Macchiato is a dark flavor; use Catppuccin for Latte in light mode.</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></span> 1/5</dd>
+    <dt>Risk</dt><dd>Close to Mocha. Pick one dark flavor as a house default rather than mixing them.</dd>
+    <dt>File</dt><dd><code>themes/catppuccin-macchiato.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="rose-pine">
+<div class="sample t-rose-pine">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-rose-pine" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-rose-pine"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">14</span> Rosé Pine</h2>
+  <p class="mood">Soft rose and iris on deep plum. Dawn by day, the main dark by night.</p>
+  <dl>
+    <dt>Best for</dt><dd>Calm, design-minded explainers about tools and craft. Readers who like a quiet, warm editor theme.</dd>
+    <dt>Fonts</dt><dd>Space Grotesk / Figtree / JetBrains Mono <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-rose-pine"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Light and dark</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></span> 1/5</dd>
+    <dt>Risk</dt><dd>Rosé Pine has no green, so &quot;good&quot; uses foam teal. The Moon variant is not included. Muted text uses the main variant gray because the Dawn subtle tone is too faint.</dd>
+    <dt>File</dt><dd><code>themes/rose-pine.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="tokyo-night">
+<div class="sample t-tokyo-night">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-tokyo-night" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-tokyo-night"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">15</span> Tokyo Night</h2>
+  <p class="mood">Cool indigo with neon blue. Night by night, Day for the light toggle.</p>
+  <dl>
+    <dt>Best for</dt><dd>Agent and AI topics, demos on a big screen, anything with a late-night terminal feel.</dd>
+    <dt>Fonts</dt><dd>Space Grotesk / Figtree / JetBrains Mono <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-tokyo-night"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Light and dark</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></span> 1/5</dd>
+    <dt>Risk</dt><dd>Very popular, so it reads as a dev setup. Storm is not included. Day is a cool blue-gray, and its signature blue is too faint, so the accent is purple.</dd>
+    <dt>File</dt><dd><code>themes/tokyo-night.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="dracula">
+<div class="sample t-dracula">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-dracula" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-dracula"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">16</span> Dracula</h2>
+  <p class="mood">Vivid pink and purple on a dark slate. Alucard is the light twin.</p>
+  <dl>
+    <dt>Best for</dt><dd>Punchy, high-energy explainers and reels. Readers who already run Dracula everywhere.</dd>
+    <dt>Fonts</dt><dd>Space Grotesk / Figtree / JetBrains Mono <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-dracula"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Light and dark</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></span> 1/5</dd>
+    <dt>Risk</dt><dd>Dracula defines one background, so paper and surface share it. Muted text uses purple because the official comment blue is too faint.</dd>
+    <dt>File</dt><dd><code>themes/dracula.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="nord">
+<div class="sample t-nord">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-nord" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-nord"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">17</span> Nord</h2>
+  <p class="mood">Arctic blue-gray with frost accents. Calm, cool and low glare.</p>
+  <dl>
+    <dt>Best for</dt><dd>Long reads and technical docs. Anything that should feel quiet and tidy.</dd>
+    <dt>Fonts</dt><dd>Space Grotesk / Figtree / JetBrains Mono <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-nord"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Dark only. Nord defines only a dark palette; the toggle does not change it.</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></span> 1/5</dd>
+    <dt>Risk</dt><dd>Dark only. Nord has one background shade here, so paper and surface match. Muted text is blue-gray, so keep long passages in the main ink.</dd>
+    <dt>File</dt><dd><code>themes/nord.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="solarized">
+<div class="sample t-solarized">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-solarized" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-solarized"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">18</span> Solarized</h2>
+  <p class="mood">Warm paper and teal-blue ink, tuned for low eye strain. Light and dark share one set.</p>
+  <dl>
+    <dt>Best for</dt><dd>Long reading sessions and print-like pages. Readers who know Solarized from their terminal.</dd>
+    <dt>Fonts</dt><dd>Space Grotesk / Figtree / JetBrains Mono <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-solarized"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Light and dark</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></span> 1/5</dd>
+    <dt>Risk</dt><dd>Its contrast is low by design. Paper and surface match. In light mode the accent is 4.3:1 and green is 3:1, so keep them bold.</dd>
+    <dt>File</dt><dd><code>themes/solarized.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="oceanic-next">
+<div class="sample t-oceanic-next">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-oceanic-next" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-oceanic-next"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">19</span> Oceanic Next</h2>
+  <p class="mood">Deep sea slate with a soft blue accent. A calm base16 dark.</p>
+  <dl>
+    <dt>Best for</dt><dd>Tooling and infrastructure topics. A steady, low-drama dark look.</dd>
+    <dt>Fonts</dt><dd>Space Grotesk / Figtree / JetBrains Mono <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-oceanic-next"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Dark only. The Oceanic Next repo defines only a dark palette.</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></span> 1/5</dd>
+    <dt>Risk</dt><dd>Dark only. The repo has no light variant. The accent is teal because the signature blue is too faint on the surface.</dd>
+    <dt>File</dt><dd><code>themes/oceanic-next.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="tomorrow">
+<div class="sample t-tomorrow">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-tomorrow" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-tomorrow"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">20</span> Tomorrow</h2>
+  <p class="mood">Plain white with muted primaries. Tomorrow Night for the dark side.</p>
+  <dl>
+    <dt>Best for</dt><dd>Clean, neutral explainers. The safest pick if you want a theme nobody argues about.</dd>
+    <dt>Fonts</dt><dd>Space Grotesk / Figtree / JetBrains Mono <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-tomorrow"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Light and dark</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></span> 1/5</dd>
+    <dt>Risk</dt><dd>Light and Night come from the same author but different files. Paper and surface are both white.</dd>
+    <dt>File</dt><dd><code>themes/tomorrow.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="iceberg">
+<div class="sample t-iceberg">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-iceberg" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-iceberg"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">21</span> Iceberg</h2>
+  <p class="mood">Cool blue-gray with soft pastels. Easy on the eyes in both modes.</p>
+  <dl>
+    <dt>Best for</dt><dd>Dense diagrams and code-heavy steps where you want little color noise.</dd>
+    <dt>Fonts</dt><dd>Space Grotesk / Figtree / JetBrains Mono <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-iceberg"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Light and dark</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></span> 1/5</dd>
+    <dt>Risk</dt><dd>The palette is muted, so status colors are close in hue. Do not rely on color alone for good and bad.</dd>
+    <dt>File</dt><dd><code>themes/iceberg.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="one-half">
+<div class="sample t-one-half">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-one-half" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-one-half"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">22</span> One Half</h2>
+  <p class="mood">Atom-style gray with bright, friendly accents. Light and dark pair.</p>
+  <dl>
+    <dt>Best for</dt><dd>General dev explainers. A familiar look for readers coming from Atom or VS Code One Dark.</dd>
+    <dt>Fonts</dt><dd>Space Grotesk / Figtree / JetBrains Mono <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-one-half"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Light and dark</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></span> 1/5</dd>
+    <dt>Risk</dt><dd>The light version has no readable mid gray, so muted text is blue at 3.7:1 and the accent is purple. In dark mode paper and surface match.</dd>
+    <dt>File</dt><dd><code>themes/one-half.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="kanagawa">
+<div class="sample t-kanagawa">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-kanagawa" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-kanagawa"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">23</span> Kanagawa</h2>
+  <p class="mood">Ink and paper after Hokusai. Wave by night, Lotus by day.</p>
+  <dl>
+    <dt>Best for</dt><dd>Story-driven explainers with a craft feel. Works well with the serif fonts.</dd>
+    <dt>Fonts</dt><dd>Marcellus / Spectral / JetBrains Mono <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-kanagawa"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Light and dark</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></span> 1/5</dd>
+    <dt>Risk</dt><dd>Lotus is a warm yellow paper, not white. Wave accents are soft, so thin lines need the heavier stroke.</dd>
+    <dt>File</dt><dd><code>themes/kanagawa.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="onedark">
+<div class="sample t-onedark">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-onedark" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-onedark"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">24</span> OneDark</h2>
+  <p class="mood">The classic Atom dark with blue, green and yellow. A light style exists too.</p>
+  <dl>
+    <dt>Best for</dt><dd>Mainstream developer topics. The most familiar editor look for many readers.</dd>
+    <dt>Fonts</dt><dd>Space Grotesk / Figtree / JetBrains Mono <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-onedark"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Light and dark</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></span> 1/5</dd>
+    <dt>Risk</dt><dd>It is everywhere, so it adds no personality. Muted gray is faint in both styles, around 3.3 to 4.1:1.</dd>
+    <dt>File</dt><dd><code>themes/onedark.css</code></dd>
+  </dl>
+</div>
+</article>
+<article class="theme" id="gruvbox">
+<div class="sample t-gruvbox">
+  <p class="kicker">Step 3 of 5</p>
+  <h3>Halve the suspects</h3>
+  <figure><svg class="scene" viewBox="0 0 340 142" role="img" aria-label="Eight commits in a row. c1 to c4 are good, c6 to c8 are bad, c5 is untested. The test pointer is on c5. The suspects are c5 and c6."><defs><filter id="sk-gruvbox" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g class="shapes" data-filter="sk-gruvbox"><rect class="sus" x="169" y="50" width="82" height="60"/><line class="rail" x1="30" y1="72" x2="310" y2="72"/><rect class="node good" x="17" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M24 72 l4 5 l8 -10"/><rect class="node good" x="57" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M64 72 l4 5 l8 -10"/><rect class="node good" x="97" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M104 72 l4 5 l8 -10"/><rect class="node good" x="137" y="59" width="26" height="26" rx="13"/><path class="glyph good" d="M144 72 l4 5 l8 -10"/><rect class="node unk" x="177" y="59" width="26" height="26" rx="13"/><rect class="node bad" x="217" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M225 67 l10 10 M235 67 l-10 10"/><rect class="node bad" x="257" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M265 67 l10 10 M275 67 l-10 10"/><rect class="node bad" x="297" y="59" width="26" height="26" rx="13"/><path class="glyph bad" d="M305 67 l10 10 M315 67 l-10 10"/><path class="ptr" d="M190 27 V48 M184 42 l6 7 l6 -7"/><path class="brk good" d="M20 116 v5 h140 v-5"/><path class="brk bad" d="M260 116 v5 h60 v-5"/></g><text class="unkq" x="190" y="77">?</text><text class="lbl" x="30" y="102">c1</text><text class="lbl" x="70" y="102">c2</text><text class="lbl" x="110" y="102">c3</text><text class="lbl" x="150" y="102">c4</text><text class="lbl" x="190" y="102">c5</text><text class="lbl" x="230" y="102">c6</text><text class="lbl" x="270" y="102">c7</text><text class="lbl" x="310" y="102">c8</text><text class="ptrl" x="190" y="20">test</text><text class="grp" x="90" y="136">good</text><text class="grp" x="290" y="136">bad</text><text class="grp strong" x="210" y="126">suspects</text></svg><figcaption>c6 fails. The bug is c5 or c6.</figcaption></figure>
+  <p class="prose">Each test cuts the suspect range in half. Seven suspects need three tests, not six. One more test on <b>c5</b> names the commit.</p>
+  <pre class="code"><code><span class="pr">$</span> git bisect start c8 c1</code></pre>
+  <div class="ctl"><button type="button" class="ghost">Back</button><button type="button" class="next">Next</button><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div>
+<div class="meta">
+  <h2><span class="num">25</span> Gruvbox</h2>
+  <p class="mood">Warm retro cream and brown with orange accents. Dark and light.</p>
+  <dl>
+    <dt>Best for</dt><dd>Terminal and Unix topics. A cozy, retro look that suits shell sessions.</dd>
+    <dt>Fonts</dt><dd>Space Grotesk / Figtree / Fira Code <small>(display / body / mono)</small></dd>
+    <dt>Palette</dt><dd><div class="sws t-gruvbox"><span class="sw" style="background:var(--paper)" title="--paper"><i>paper</i></span><span class="sw" style="background:var(--surface)" title="--surface"><i>surface</i></span><span class="sw" style="background:var(--ink)" title="--ink"><i>ink</i></span><span class="sw" style="background:var(--muted)" title="--muted"><i>muted</i></span><span class="sw" style="background:var(--line)" title="--line"><i>line</i></span><span class="sw" style="background:var(--accent)" title="--accent"><i>accent</i></span><span class="sw" style="background:var(--hl)" title="--hl"><i>hl</i></span><span class="sw" style="background:var(--good)" title="--good"><i>good</i></span><span class="sw" style="background:var(--bad)" title="--bad"><i>bad</i></span></div><span class="badge">Light and dark</span></dd>
+    <dt>Hand-drawn</dt><dd><span class="hand"><span class="on"></span><span class=""></span><span class=""></span><span class=""></span><span class=""></span></span> 1/5</dd>
+    <dt>Risk</dt><dd>The warm browns can look muddy on cheap screens. Orange and green are close in lightness.</dd>
+    <dt>File</dt><dd><code>themes/gruvbox.css</code></dd>
+  </dl>
+</div>
+</article>
+</main>
+</div>
+<script>
+(function(){
+  var root=document.documentElement,btn=document.getElementById('mode'),order=['auto','light','dark'],cur='auto';
+  function sketch(){
+    document.querySelectorAll('.sample').forEach(function(s){
+      var v=parseFloat(getComputedStyle(s).getPropertyValue('--sketch'))||0,g=s.querySelector('.shapes'),id=g.getAttribute('data-filter');
+      s.querySelector('feDisplacementMap').setAttribute('scale',v);
+      if(v>0)g.setAttribute('filter','url(#'+id+')');else g.removeAttribute('filter');
+    });
+  }
+  btn.addEventListener('click',function(){
+    cur=order[(order.indexOf(cur)+1)%3];
+    if(cur==='auto')root.removeAttribute('data-theme');else root.setAttribute('data-theme',cur);
+    btn.textContent='Mode: '+cur;sketch();
+  });
+  sketch();
+})();
+</script>
+</body>
+</html>

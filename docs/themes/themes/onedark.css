@@ -1,0 +1,69 @@
+/* OneDark (onedark)
+   The classic Atom dark with blue, green and yellow. A light style exists too.
+   Best for: Mainstream developer topics. The most familiar editor look for many readers.
+   Fonts: Space Grotesk / Figtree / JetBrains Mono
+   Google Fonts: https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&family=Figtree:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap
+   Source: https://github.com/navarasu/onedark.nvim
+   File: onedark.nvim/lua/onedark/palette.lua
+   License: MIT (LICENSE, Copyright (c) 2021 Navarasu)
+   Mode: light and dark
+   --sketch is the feDisplacementMap scale for hand-drawn wobble (0 = off).
+*/
+:root {
+  --font-display: "Space Grotesk","Segoe UI",sans-serif;
+  --font-body: "Figtree","Segoe UI",sans-serif;
+  --font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --radius: 6px;
+  --stroke-width: 2.4;
+  --sketch: 0;
+  --texture: none;
+  --display-scale: 1.1;
+  --display-weight: 600;
+  --display-transform: none;
+  --display-tracking: -.01em;
+  --border-width: 1.5px;
+  --linecap: round;
+  --node-rx: 6px;
+  --paper: #f0f0f0;
+  --surface: #fafafa;
+  --ink: #383a42;
+  --muted: #818387;
+  --line: #dcdcdc;
+  --accent: #a626a4;
+  --hl: #986801;
+  --good: #50a14f;
+  --bad: #e45649;
+  --accent-ink: #fafafa;
+  --hl-ink: #fafafa;
+  --texture-size: auto;
+  --shadow: none;
+  --body-scale: 1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #282c34;
+    --surface: #282c34;
+    --ink: #abb2bf;
+    --muted: #848b98;
+    --line: #3b3f4c;
+    --accent: #61afef;
+    --hl: #e5c07b;
+    --good: #98c379;
+    --bad: #e86671;
+    --accent-ink: #21252b;
+    --hl-ink: #21252b;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #282c34;
+  --surface: #282c34;
+  --ink: #abb2bf;
+  --muted: #848b98;
+  --line: #3b3f4c;
+  --accent: #61afef;
+  --hl: #e5c07b;
+  --good: #98c379;
+  --bad: #e86671;
+  --accent-ink: #21252b;
+  --hl-ink: #21252b;
+}

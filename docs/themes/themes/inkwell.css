@@ -1,0 +1,70 @@
+/* Inkwell (inkwell)
+   A ruled notebook, a black fineliner and one green highlighter.
+   Best for: Step-by-step reasoning, debugging stories, anything Eran would sketch by hand.
+   Fonts: Caveat / Newsreader / IBM Plex Mono
+   Google Fonts: https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;600&display=swap
+   Mode: light and dark
+   --sketch is the feDisplacementMap scale for hand-drawn wobble (0 = off).
+*/
+:root {
+  --font-display: "Caveat","Segoe Print",cursive;
+  --font-body: "Newsreader",Georgia,serif;
+  --font-mono: "IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --radius: 3px;
+  --stroke-width: 2;
+  --sketch: 2.4;
+  --display-scale: 1.45;
+  --display-weight: 700;
+  --display-transform: none;
+  --display-tracking: 0;
+  --border-width: 1px;
+  --linecap: round;
+  --node-rx: 13px;
+  --paper: #f1f1ee;
+  --surface: #fbfbf9;
+  --ink: #1d1d22;
+  --muted: #55565f;
+  --line: #c4cbd8;
+  --accent: #1456b8;
+  --hl: #c8f03c;
+  --good: #1d7a45;
+  --bad: #c8322b;
+  --accent-ink: #ffffff;
+  --hl-ink: #111111;
+  --texture: repeating-linear-gradient(to bottom,transparent 0 25px,color-mix(in srgb,var(--accent) 22%,transparent) 25px 26px);
+  --shadow: 0 1px 0 rgba(0,0,0,.08);
+  --texture-size: auto;
+  --body-scale: 1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #161618;
+    --surface: #1f1f23;
+    --ink: #ecebe6;
+    --muted: #a5a49c;
+    --line: #3a3a40;
+    --accent: #7fb2ff;
+    --hl: #c8f03c;
+    --good: #5fd38a;
+    --bad: #ff7b6e;
+    --accent-ink: #101014;
+    --hl-ink: #111111;
+    --texture: repeating-linear-gradient(to bottom,transparent 0 25px,color-mix(in srgb,var(--accent) 16%,transparent) 25px 26px);
+    --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #161618;
+  --surface: #1f1f23;
+  --ink: #ecebe6;
+  --muted: #a5a49c;
+  --line: #3a3a40;
+  --accent: #7fb2ff;
+  --hl: #c8f03c;
+  --good: #5fd38a;
+  --bad: #ff7b6e;
+  --accent-ink: #101014;
+  --hl-ink: #111111;
+  --texture: repeating-linear-gradient(to bottom,transparent 0 25px,color-mix(in srgb,var(--accent) 16%,transparent) 25px 26px);
+  --shadow: none;
+}

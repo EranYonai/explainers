@@ -1,0 +1,154 @@
+# Hash tables and collisions: four scenes, written in the states layer only.
+# Every number below was typed by hand (codes, sums, bucket indexes, numbers inside captions).
+# verify.py replays this file against a real hash table (hash_trace.py) and reports any drift.
+# build.py turns this file into JSON and drops it into index.html, where a small runtime plays it.
+
+explainer: hash-tables            # NEW: a page holds several scenes; `scenes:` is a list
+theme: ink
+hook: "How does a dictionary find your key without searching?"          # NEW: opening question, big type
+payoff: "The key's own characters say which bucket to open."            # NEW: closing line that answers the hook
+
+shared:                           # NEW: data shared by all scenes on the page
+  hash: sum of character codes, mod bucket count
+  keys:                           # NEW: item data the calc primitive prints. Hand-typed.
+    cat: { codes: [99, 97, 116],   sum: 312 }
+    fox: { codes: [102, 111, 120], sum: 333 }
+    bee: { codes: [98, 101, 101],  sum: 300 }
+    ant: { codes: [97, 110, 116],  sum: 323 }
+    act: { codes: [97, 99, 116],   sum: 312 }
+    cow: { codes: [99, 111, 119],  sum: 329 }
+
+# Verbs used in `do`
+#   put K T.i        K is in bucket i of T, at the end of its chain      (fact, persists)
+#   hold K           K is waiting above the table, not stored yet        (fact, persists until put)
+#   resize T n       T has n buckets; keys placed earlier become stale   (fact, persists)  # NEW
+#   calc K codes|sum       worksheet shows K's hash up to that line      (fact, persists)  # NEW
+#   calc K index i         ...and the final line "sum mod count = i"
+#   calc-rows K=i K=i      worksheet shows one compact line per key      (fact, persists)  # NEW
+#   calc none              worksheet is empty
+#   flag T.i target|look|collision|taken|free    highlight a bucket     (mark, this step only)  # NEW
+#   miss K / hit K         K was compared and differed / matched         (mark, this step only)  # NEW
+
+scenes:
+
+  - scene: scan
+    beat: setup                                          # NEW: hook | setup | mechanism | payoff
+    title: Finding a key in a plain list
+    objects:
+      - buckets: { id: list, count: 6, mode: list }      # NEW: mode list = plain array, no hashing
+      - items:   { from: shared.keys }
+    steps:
+      - say: "Six keys in a plain list. Is act in there?"
+        do: [put cat list.0, put fox list.1, put bee list.2, put ant list.3, put act list.4, put cow list.5]
+      - say: "A list knows nothing about where a key lives. Start at the top and compare."
+        do: [flag list.0 look, miss cat]
+      - say: "Still comparing."
+        do: [flag list.3 look, miss cat, miss fox, miss bee, miss ant]
+      - say: "Found, after 5 comparisons. With a million keys this can take a million."
+        do: [flag list.4 look, miss cat, miss fox, miss bee, miss ant, hit act]
+
+  - scene: hash
+    beat: mechanism
+    title: From key to bucket index
+    objects:
+      - buckets: { id: table, count: 4, mode: chain }    # NEW: vertical array; mode chain | open
+      - items:   { from: shared.keys }                   # NEW: one pill per key
+      - calc:    { id: work, of: table }                 # NEW: hash worksheet bound to a table
+    steps:
+      - say: "A table with 4 buckets, numbered 0 to 3. The key cat needs one of them."
+        do: [hold cat]
+      - say: "Take the character code of each letter."
+        do: [calc cat codes]
+      - say: "Add the codes. 312 is the hash of cat."
+        do: [calc cat sum]
+      - say: "Divide by the bucket count and keep the remainder. 312 mod 4 is 0."
+        do: [calc cat index 0, flag table.0 target]
+      - say: "cat is stored in bucket 0. The same key always produces the same index, so a lookup can repeat the sum and go straight there."
+        do: [put cat table.0]
+
+  - scene: chain
+    beat: mechanism
+    title: Collisions and chaining
+    objects:
+      - buckets: { id: table, count: 4, mode: chain, load: true, threshold: 0.75 }   # NEW: load readout derived from the table
+      - items:   { from: shared.keys }
+      - calc:    { id: work, of: table }
+    steps:
+      - say: "cat sits in bucket 0. Three buckets are empty. Five more keys are coming."
+        do: [put cat table.0]
+      - say: "fox: 333 mod 4 is 1. Bucket 1 is free."
+        do: [calc fox index 1, put fox table.1]
+      - say: "bee: 300 mod 4 is 0. Bucket 0 already holds cat. That is a collision."
+        do: [calc bee index 0, hold bee, flag table.0 collision]
+      - say: "Separate chaining: each bucket is the head of a linked list. bee is appended after cat."
+        do: [put bee table.0]
+      - say: "ant: 323 mod 4 is 3. Four keys in four buckets."
+        do: [calc ant index 3, put ant table.3]
+      - say: "act has the same letters as cat, so the same sum. 312 mod 4 is 0 again, and the chain is three long."
+        do: [calc act index 0, put act table.0]
+      - say: "cow: 329 mod 4 is 1. It chains behind fox. Six keys in four buckets, and bucket 2 is still empty."
+        do: [calc cow index 1, put cow table.1]
+      - say: "Now look up act. Hash it first: 312 mod 4 is 0. Only bucket 0 can hold it."
+        do: [calc act index 0, flag table.0 look]
+      - say: "Compare with the first key in the chain. cat is a different key."
+        do: [flag table.0 look, miss cat]
+      - say: "Follow the pointer. bee is a different key too."
+        do: [flag table.0 look, miss cat, miss bee]
+      - say: "The third node matches. Found in 3 comparisons, and the keys in the other buckets were never touched."
+        do: [flag table.0 look, miss cat, miss bee, hit act]
+
+  - scene: resize
+    beat: mechanism
+    title: Resizing and rehashing
+    start: { from: chain }          # NEW: begin with the facts another scene ended on
+    objects:
+      - buckets: { id: table, count: 4, grows_to: 8, mode: chain, load: true, threshold: 0.75 }   # NEW: grows_to reserves room
+      - items:   { from: shared.keys }
+      - calc:    { id: work, of: table }
+    steps:
+      - say: "Six keys in four buckets is a load factor of 1.5. A lookup in bucket 0 can cost three comparisons."
+        do: [calc none]
+      - say: "Double the array to 8 buckets. Every position was computed with mod 4, so every key is now in a stale spot."
+        do: [resize table 8]
+      - say: "Rehash the old bucket 0 with mod 8. cat and act stay. bee moves to bucket 4."
+        do: [calc-rows cat=0 bee=4 act=0, put cat table.0, put bee table.4, put act table.0]
+      - say: "Old bucket 1: cow stays, fox moves to bucket 5."
+        do: [calc-rows fox=5 cow=1, put fox table.5, put cow table.1]
+      - say: "Old bucket 3: 323 mod 8 is 3, so ant stays."
+        do: [calc-rows ant=3, put ant table.3]
+      - say: "Load factor 0.75, longest chain 2. cat and act still share a bucket. Equal sums collide at every table size."
+        do: [calc-rows cat=0 act=0, flag table.0 collision]
+
+  - scene: probe
+    beat: mechanism
+    title: Open addressing with linear probing
+    objects:
+      - buckets: { id: slots, count: 8, mode: open, load: true, threshold: 0.75 }
+      - items:   { from: shared.keys }
+      - calc:    { id: work, of: slots }
+    steps:
+      - say: "Open addressing: one key per slot and no lists. fox, bee, ant and cat are in their home slots."
+        do: [put fox slots.5, put bee slots.4, put ant slots.3, put cat slots.0]
+      - say: "act hashes to slot 0. cat is already there."
+        do: [calc act index 0, hold act, flag slots.0 taken]
+      - say: "Linear probing: try the next slot. Slot 1 is free, so act is stored there."
+        do: [flag slots.0 taken, flag slots.1 free, put act slots.1]
+      - say: "cow: 329 mod 8 is 1. Slot 1 is its home, and act is sitting in it."
+        do: [calc cow index 1, hold cow, flag slots.1 taken]
+      - say: "cow steps on to slot 2. It has a different hash from cat and act and was still pushed along. A run of filled slots like this is a cluster."
+        do: [flag slots.1 taken, flag slots.2 free, put cow slots.2]
+      - say: "Looking up cow starts at slot 1 and walks forward until it finds the key or an empty slot. Found at slot 2, in 2 comparisons."
+        do: [calc cow index 1, flag slots.1 look, flag slots.2 look, miss act, hit cow]
+
+# ---------------------------------------------------------------------------------------------
+# For comparison, the same resize scene if a trace layer existed. Not used by the page.
+#
+#   - scene: resize
+    beat: mechanism
+#     start: { from: chain }
+#     trace:                                  # NEW
+#       run: hash_trace.py                    # real code, emits events
+#       events: resize.moves                  # one event per rehashed key: {key, sum, mod, index, from, to}
+#       group_by: from                        # one step per old bucket
+#       say: "Old bucket {from}: {stays} stay, {moves} move."   # caption is a template, voice suffers
+#       do: [calc-rows "{key}={index}", put "{key}" "table.{to}"]
