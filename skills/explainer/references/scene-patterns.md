@@ -22,12 +22,18 @@ var api = Explainer.scene("#main", {
 
 - `set` carries forward, `mark` lasts one step. `draw` must work from any step (Back, jumps), so it sets every
   class it owns, every time.
-- `api.branch(steps)` replaces what comes after the current step: use it for any reader choice.
+- `api.branch(steps)` replaces what comes after the current step: use it for any reader choice. List every
+  outcome in `branches: function () { return CHOICES.map(function (c, i) { return outcome(i); }); }` so
+  the player measures them up front and the controls do not move after a choice.
 - `api.say(text)` replaces the caption after a click inside a scene. `api.goWhere(fn)` jumps (tabs).
 - Reader input that should NOT advance (answering several questions on one step): keep the answers in a
   variable of your own, rebuild the steps from them, and call `api.setSteps(makeSteps(answers), api.index)`.
   `api.state` is derived from the steps and read-only; never write to it.
-- Give every scene section the same `min-height` (e.g. `#main .stage{min-height:420px}`) so controls do not jump.
+- The player measures every step and reserves the tallest stage and caption, so the controls never move.
+  Never set a height or `min-height` on `.stage` or `.caption` yourself; the check fails if you do.
+- Anything that grows with the steps (a chat, a log, a message list) goes in a well:
+  `api.well(listEl)` gives it a fixed height (`--well-h`, default 9.5em) and keeps the newest row in view.
+- `api.say(text)` must fit the reserved caption: keep it no longer than the longest step caption.
 - `api.rng(seed)` for anything random. `api.h(tag, attrs, parent)` and `api.svg(...)` build elements.
 - `<button data-theme-toggle>` anywhere on the page flips light and dark.
 
@@ -36,7 +42,7 @@ var api = Explainer.scene("#main", {
 **Stations (a process or loop).** An `<ol>` of steps; `draw` adds `.on` to `state.k`. Pair it with a
 "tape" panel that fills as the process runs: rows with `data-at`, hidden while `at > k`.
 
-**Chat (an interview, an agent, a support thread).** Bubbles in a column. State is how many are visible;
+**Chat (an interview, an agent, a support thread).** Bubbles in a column, inside a well. State is how many are visible;
 `draw` shows the first `n` and pops the newest. Name who speaks with a small tag, not color alone.
 
 **Proposal and decision (the reader approves).** A card with the proposed action, its risk, and
@@ -63,6 +69,7 @@ result in state, and write `{name}` in the caption.
 
 - The stage is a column on a phone. Use `grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr))`
   or a `@media (min-width: 760px)` two-column split. Never a fixed width.
-- Keep every scene in a deck about the same height so the controls do not jump; set a `min-height` on the stage.
+- Deck sections share one grid cell, so the stage is as tall as the tallest section. Keep sections close in
+  height anyway: a short section in a tall stage leaves empty space on a phone.
 - Text in SVG: viewBox about 360 wide on a phone; labels at least 12 units; hide secondary labels on narrow
   screens instead of shrinking them.

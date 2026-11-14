@@ -55,7 +55,7 @@
 .scene .sec { border-bottom: 1px solid var(--rule); }
 .scene .sec .no::before { content: "SEC "; }
 .caption { margin: 12px 20px 0; padding: 8px 12px; border-left: 6px solid var(--hl); background: var(--paper);
-  font-family: var(--font-body); font-weight: 500; font-size: 1rem; line-height: 1.45; min-height: 4.6em; }
+  font-family: var(--font-body); font-weight: 500; font-size: 1rem; line-height: 1.45; min-height: var(--caption-h, 4.6em); }
 .controls button { border-color: var(--rule); font-family: var(--font-display); font-weight: 800; font-size: 1.05rem;
   letter-spacing: .08em; text-transform: uppercase; }
 .controls button.primary { background: var(--ink); color: var(--surface); border-color: var(--ink); }

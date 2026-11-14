@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="explainer:player.css">
 <link rel="stylesheet" href="explainer:theme/inkwell">
 <style>
-  #main .stage{min-height:640px}
+
   .phone{width:min(300px,100%);margin:4px auto 0;border:2px solid var(--ink);border-radius:26px;background:var(--surface);padding:16px 14px 18px;box-sizing:border-box;display:grid;gap:10px}
   .phone .bar{width:60px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 2px}
   .piece{transition:opacity .35s,max-height .45s,box-shadow .35s;overflow:hidden;max-height:240px;border-radius:var(--radius,6px)}
@@ -41,13 +41,13 @@
 </head>
 <body>
 <main>
-  <header class="col stack">
+  <header class="col stack" data-slot="intro">
     <h1 class="hook">You type one sentence. What comes back?</h1>
-    <p>You ask Claude to explain something. A few minutes later you get one web page that anyone can open on a phone.
+    <p class="dek">You ask Claude to explain something. A few minutes later you get one web page that anyone can open on a phone.
       Below, that page builds itself one piece at a time. Press Next.</p>
   </header>
 
-  <section class="wide">
+  <section class="wide" data-slot="scene">
     <figure class="scene" id="main">
       <div class="stage">
         <section data-scene="page" data-title="The page">
@@ -75,13 +75,20 @@
     </figure>
   </section>
 
-  <section class="col stack">
+  <section class="col stack" data-slot="payoff">
     <p class="payoff">An explainer is a question, a picture that <mark>changes with every step</mark>, one choice for the reader, and a one-line answer.</p>
+  </section>
+
+  <section class="prose col" data-slot="prose">
+    <h2>When to make one</h2>
     <p>It is worth it when a picture beats a paragraph: how a system behaves, why a bug happened, what a change does.
       It is not worth it for a fact that fits in one sentence.</p>
-    <p>To try it, install the skill from <a href="https://github.com/EranYonai/explainers">github.com/EranYonai/explainers</a>
-      and ask for "an explainer of" whatever you want to teach.</p>
   </section>
+
+  <nav class="next col" data-slot="next" aria-label="Next">
+    <p>To try it, install the skill and ask for "an explainer of" whatever you want to teach.</p>
+    <a href="https://github.com/EranYonai/explainers">Get the skill on GitHub</a>
+  </nav>
 </main>
 
 <script src="explainer:player.js"></script>

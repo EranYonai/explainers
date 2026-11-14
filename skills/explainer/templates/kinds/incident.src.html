@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TITLE: what the reader saw go wrong, as a question</title>
+<meta name="description" content="One sentence: what failed, why, and what changed so it does not happen again.">
+<!-- Build: node <skill>/scripts/build.mjs <slug>.src.html -o <slug>.html   (inlines the player and theme) -->
+<link rel="stylesheet" href="explainer:player.css">
+<link rel="stylesheet" href="explainer:theme/flight-deck">
+<style>
+  /* Page-specific styles only. Theme tokens, never hard-coded colors. */
+  .log{margin:0;padding:0 0 0 .2em;list-style:none;display:grid;gap:4px;align-content:start;font-family:var(--font-mono);font-size:.88rem;--well-h:8.5em}
+  .log li{display:grid;grid-template-columns:5.5em minmax(0,1fr);gap:8px}
+  .log time{color:var(--muted)}
+  .log li.new{background:color-mix(in srgb,var(--hl) 35%,transparent)}
+  .path{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:10px}
+  .part{border:var(--border-width,1px) solid var(--line);border-radius:var(--radius,8px);background:var(--paper);padding:10px 12px;transition:opacity .3s,border-color .3s}
+  .part h3{font-size:1rem;margin:0 0 4px}
+  .part p{font-size:.9rem;color:var(--muted)}
+  .part.on{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--hl)}
+  .part.bad{border-color:var(--bad)}
+  .part.bad h3::after{content:" \2715 failed here";font-family:var(--font-mono);font-size:.72rem;color:var(--bad)}
+  .part.saved h3::after{content:" \2713 caught here";font-family:var(--font-mono);font-size:.72rem;color:var(--good)}
+  .choices{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+</style>
+</head>
+<!-- Starter: INCIDENT REVIEW. What happened, on a timeline, then the path the failure took, then the reader
+     picks where to stop it. Blameless and generic: no hosts, customers, names or ticket ids.
+     Page parts keep a fixed order (data-slot). Delete what you do not need, never reorder. -->
+<body data-kind="incident">
+<main>
+  <header class="masthead col" data-slot="masthead">
+    <span class="kind">Incident review</span>
+    <button type="button" data-theme-toggle>Day / Night</button>
+  </header>
+
+  <header class="col stack" data-slot="intro">
+    <h1 class="hook">HEADLINE: why did THE VISIBLE SYMPTOM happen?</h1>
+    <p class="dek">HOOK: what users saw, in one or two sentences.</p>
+    <p class="meta">DATE · 4 min read</p>
+  </header>
+
+  <dl class="tldr col" data-slot="summary">
+    <dt>Impact</dt><dd>ONE LINE: who was affected and how.</dd>
+    <dt>Duration</dt><dd>ONE LINE: from first symptom to recovery.</dd>
+    <dt>Cause</dt><dd>ONE LINE: the mechanism, not a person.</dd>
+    <dt>Status</dt><dd>ONE LINE: resolved, and what is still open.</dd>
+  </dl>
+
+  <section class="wide" data-slot="scene">
+    <figure class="scene" id="main">
+      <div class="stage">
+        <section data-scene="timeline" data-title="What happened">
+          <!-- The log grows with the steps, so it lives in a well: fixed height, newest row in view. -->
+          <ol class="log" id="log"></ol>
+        </section>
+        <section data-scene="path" data-title="The path it took">
+          <div class="path" id="path"></div>
+        </section>
+        <section data-scene="stop" data-title="Your turn">
+          <p>Where would you stop it?</p>
+          <div class="choices" id="choices" role="group" aria-label="Where to stop the failure"></div>
+        </section>
+      </div>
+    </figure>
+  </section>
+
+  <section class="col stack" data-slot="payoff">
+    <p class="payoff">PAYOFF: the cause in one sentence, with the lesson <mark>marked</mark>.</p>
+  </section>
+
+  <section class="prose col" data-slot="prose">
+    <h2>What we changed</h2>
+    <p>ONE SHORT PARAGRAPH: the fix, and the guard that catches this earlier next time <a class="cite" href="#src-1">[1]</a>.</p>
+  </section>
+
+  <section class="prose col" data-slot="prose">
+    <h2>Follow-ups</h2>
+    <ul>
+      <li>FOLLOW-UP: what, and why it matters.</li>
+    </ul>
+  </section>
+
+  <section class="sources col" data-slot="sources">
+    <h2>Sources</h2>
+    <ol>
+      <li id="src-1"><a href="https://example.com/postmortem">THE POSTMORTEM OR DASHBOARD</a>, DATE</li>
+    </ol>
+  </section>
+</main>
+
+<script src="explainer:player.js"></script>
+<script>
+(function () {
+  // Content as data. Times are minutes from the first event; durations in captions come from them.
+  var EVENTS = [
+    { t: 0, text: "A CHANGE ships." },
+    { t: 4, text: "THE FIRST SYMPTOM shows up." },
+    { t: 11, text: "AN ALERT fires." },
+    { t: 23, text: "The change is rolled back." },
+    { t: 31, text: "Everything is back to normal." }
+  ];
+  // The path the failure took, in order. `fails` marks where it broke; `guard` is what each stop could check.
+  var PARTS = [
+    { name: "Change", note: "Where it started.", guard: "A test before merge" },
+    { name: "Rollout", note: "How it spread.", guard: "A slower rollout" },
+    { name: "SERVICE", note: "Where it broke.", guard: "A limit in the service", fails: true },
+    { name: "Users", note: "Who saw it.", guard: "Nothing: too late" }
+  ];
+  var FAIL = PARTS.findIndex(function (p) { return p.fails; });
+  var rows = [], parts = [];
+
+  function outcome(pick) {
+    var stops = pick <= FAIL;
+    return [
+      { scene: "path", say: stops
+          ? PARTS[pick].guard + " stops it at " + PARTS[pick].name + ", before it reaches users."
+          : PARTS[pick].guard + ". By " + PARTS[pick].name + " the failure has already happened.",
+        set: { picked: pick, at: pick } },
+      { scene: "path", say: "Every stop before " + PARTS[FAIL].name + " could have caught it. The fix adds a guard at {guards} of them.", set: { picked: pick } }
+    ];
+  }
+
+  var api = Explainer.scene("#main", {
+    title: "What happened, and where it could have been stopped",
+    initial: { shown: 0, at: -1, picked: -1 },
+    steps: EVENTS.map(function (e, i) {
+      return { scene: "timeline", say: "Minute " + e.t + ": " + e.text, set: { shown: i + 1 }, mark: { fresh: true } };
+    }).concat([
+      { scene: "timeline", say: "{minutes} minutes from the change to recovery, {detect} of them before anyone was alerted.", set: { shown: EVENTS.length } },
+      { scene: "path", say: "Here is the path the failure took.", set: { at: -1 } },
+      { scene: "path", say: "It broke at " + PARTS[FAIL].name + ".", set: { at: FAIL } },
+      { scene: "stop", say: "Your turn: pick the stop where you would catch it.", wait: true }
+    ]),
+    compute: function (s) {
+      return { minutes: EVENTS[EVENTS.length - 1].t - EVENTS[0].t, detect: EVENTS[2].t - EVENTS[0].t, guards: 2 };
+    },
+    // every outcome a choice can add, so the player reserves room for them up front
+    branches: function () { return PARTS.map(function (p, i) { return outcome(i); }); },
+    scenes: {
+      timeline: {
+        setup: function (el, api) {
+          var log = api.well(el.querySelector("#log"));
+          EVENTS.forEach(function (e) {
+            var li = api.h("li", {}, log);
+            api.h("time", { text: "+" + e.t + " min" }, li);
+            api.h("span", { text: e.text }, li);
+            rows.push(li);
+          });
+        },
+        draw: function (s) {
+          rows.forEach(function (r, i) {
+            r.hidden = i >= s.shown;
+            r.classList.toggle("new", !!s.fresh && i === s.shown - 1);
+          });
+        }
+      },
+      path: {
+        setup: function (el, api) {
+          var box = el.querySelector("#path");
+          PARTS.forEach(function (p) {
+            var c = api.h("article", { class: "part" }, box);
+            api.h("h3", { text: p.name }, c);
+            api.h("p", { text: p.note }, c);
+            parts.push(c);
+          });
+        },
+        draw: function (s) {
+          parts.forEach(function (c, i) {
+            var saved = s.picked >= 0 && s.picked <= FAIL && i === s.picked;
+            c.classList.toggle("on", i === s.at);
+            c.classList.toggle("saved", saved);
+            c.classList.toggle("bad", i === FAIL && !(s.picked >= 0 && s.picked <= FAIL) && s.at >= FAIL);
+          });
+        }
+      },
+      stop: {
+        setup: function (el, api) {
+          var box = el.querySelector("#choices");
+          PARTS.forEach(function (p, i) {
+            var b = api.h("button", { type: "button", text: p.name }, box);
+            b.addEventListener("click", function () { api.branch(outcome(i)); });
+          });
+        }
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>

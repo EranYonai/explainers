@@ -23,12 +23,21 @@
  * `set` carries forward; `mark` is true for one step only (highlights, "look here", a probe).
  * Captions may use {name}: filled from compute(state), then state. A missing name renders [?name] and is
  * reported in window.__explainer.errors, so the check script fails instead of shipping a wrong number.
+ *
+ * Layout is steady: the player draws every step once, then reserves the tallest stage and caption, so
+ * Back / Next / Play never move between steps. Deck sections share one grid cell (the tallest wins).
+ * Content that grows with the steps (a message list, a log) goes in an element with class "well":
+ * a fixed-height box that scrolls inside; api.well(el) keeps its newest row in view.
+ * Call api.reserve() if a scene changes size after async work.
+ * If a reader's choice adds steps (api.branch), list every outcome up front so they are measured too:
+ *   branches: function (api) { return CHOICES.map(function (c, i) { return outcome(i); }); }
  */
 (function () {
   "use strict";
   var NS = "http://www.w3.org/2000/svg";
   var reduce = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  var registry = (window.__explainer = window.__explainer || { scenes: [], errors: [] });
+  var VERSION = "1";
+  var registry = (window.__explainer = window.__explainer || { scenes: [], errors: [], version: VERSION });
   if (reduce) document.documentElement.classList.add("reduce-motion");
 
   // Playback speed, shared by every scene on the page and remembered per viewer.
@@ -115,8 +124,10 @@
       head = h("div", { class: "sec" }, null);
       stage.parentNode.insertBefore(head, stage);
     }
-    var caption = h("p", { class: "caption", "aria-live": "polite" }, fig);
-    var bar = h("div", { class: "controls" }, fig);
+    // Caption and controls share a dock: below the stage, sticky at the bottom of a phone screen.
+    var dock = h("div", { class: "dock" }, fig);
+    var caption = h("p", { class: "caption", "aria-live": "polite" }, dock);
+    var bar = h("div", { class: "controls" }, dock);
     var prev = h("button", { type: "button", class: "prev", text: "Back" }, bar);
     var next = h("button", { type: "button", class: "next primary", text: "Next" }, bar);
     // Play is a split control: the main part plays and pauses, the chip shows the speed and opens the choices.
@@ -156,6 +167,7 @@
     var dots = h("div", { class: "dots", "aria-hidden": "true" }, bar);
 
     var steps = [], idx = 0, timer = null, state = {};
+    var reserved = { stage: 0, caption: 0 }, maxCount = 0, lastWidth = 0;
     var api = {
       el: fig, stage: stage, reduce: reduce, animate: false,
       get index() { return idx; },
@@ -172,13 +184,18 @@
       get speed() { return speed; },
       setSpeed: setSpeed,
       // Replace the steps, e.g. after the reader picks an input and real code generates a new trace.
-      setSteps: function (s, at) { steps = s || []; buildDots(); stop(); show(at || 0, true); },
+      setSteps: function (s, at) { steps = s || []; buildDots(); stop(); reserve(false); show(at || 0, true); },
       // Keep steps up to the current one, replace everything after it, and move on: a reader's choice
       // that changes what happens next (pick a route, approve a call).
-      branch: function (s) { steps = steps.slice(0, idx + 1).concat(s || []); buildDots(); stop(); show(idx + 1, true); },
+      branch: function (s) { steps = steps.slice(0, idx + 1).concat(s || []); buildDots(); stop(); reserve(false); show(idx + 1, true); },
       // Jump to the first step that matches, e.g. api.goWhere(function (s) { return s.scene === "panel"; }).
       goWhere: function (pred) { for (var i = 0; i < steps.length; i++) if (pred(steps[i], i)) { stop(); show(i, true); return i; } return -1; },
       redraw: function () { show(idx, false); },
+      // Measure every step again and reserve the tallest (grow only). Use after async content changes size.
+      reserve: function () { reserve(false); },
+      // A box that grows with the steps: keep it at a fixed height and its newest row in view.
+      well: function (el) { return well(el); },
+      get layout() { return { stage: reserved.stage, caption: reserved.caption, dots: dots.classList.contains("many") ? "bar" : "dots" }; },
       // Replace the caption until the next step, e.g. after the reader clicks something inside a scene.
       say: function (text) { setCaption(text); },
       stateAt: stateAt,
@@ -200,16 +217,18 @@
       return String(text || "").replace(/\{(\w+)\}/g, function (all, key) {
         var v = key in vals ? vals[key] : s[key];
         if (v === undefined || v === null || (typeof v === "number" && !isFinite(v))) {
-          if (!quiet) report(name, "caption needs {" + key + "} but compute() and state do not provide it");
+          if (!quiet && !measuring) report(name, "caption needs {" + key + "} but compute() and state do not provide it");
           return "[?" + key + "]";
         }
         return fmt(v);
       });
     }
 
+    // The dot style is chosen from the most steps this scene has had, so it never flips back and forth.
     function buildDots() {
       dots.innerHTML = "";
-      dots.classList.toggle("many", steps.length > 12);
+      maxCount = Math.max(maxCount, steps.length, steps.length + branchLists().reduce(function (m, b) { return Math.max(m, b.length); }, 0));
+      dots.classList.toggle("many", maxCount > 12);
       for (var i = 0; i < steps.length; i++) h("i", {}, dots);
     }
 
@@ -221,7 +240,7 @@
       var sc = steps[idx].scene;
       if (names.length) {
         if (sc && !sections[sc]) report(name, "step " + (idx + 1) + " names scene '" + sc + "' but there is no [data-scene=" + sc + "]");
-        names.forEach(function (n) { sections[n].classList.toggle("on", n === sc); });
+        names.forEach(function (n) { sections[n].classList.toggle("on", n === sc); sections[n].inert = n !== sc; });
         var pos = names.indexOf(sc) + 1, title = sc && sections[sc] ? sections[sc].getAttribute("data-title") || "" : "";
         head.innerHTML = "";
         h("span", { class: "no", text: pos + " / " + names.length }, head);
@@ -232,6 +251,7 @@
         if (part && part.draw) part.draw(state, api);
         if (opts.draw) opts.draw(state, api);
       } catch (e) { report(name, "draw() failed at step " + (idx + 1) + ": " + e.message); }
+      if (!measuring) scrollWells(api.animate);
       setCaption(fill(steps[idx].say, state));
       for (var d = 0; d < dots.children.length; d++) {
         dots.children[d].classList.toggle("on", d === idx);
@@ -239,6 +259,57 @@
       }
       prev.disabled = idx === 0;
       next.textContent = idx === steps.length - 1 ? "Restart" : "Next";
+    }
+
+    // Draw every step without motion, record the tallest stage and caption, reserve that much.
+    // grow only: during a session the box may get taller (after a reader's choice), never shorter,
+    // except when the width changes.
+    var measuring = false;
+    function branchLists() {
+      if (typeof opts.branches !== "function") return [];
+      try { return (opts.branches(api) || []).filter(function (b) { return b && b.length; }); }
+      catch (e) { report(name, "branches() failed: " + e.message); return []; }
+    }
+    function reserve(allowShrink) {
+      if (!steps.length || !fig.isConnected) return;
+      var keep = idx, real = steps, sy = window.scrollY, ms = 0, mc = 0;
+      // the steps as they are, plus each declared reader outcome added after them
+      var runs = [{ list: steps, from: 0 }].concat(branchLists().map(function (b) { return { list: real.concat(b), from: real.length }; }));
+      measuring = true;
+      fig.classList.add("measuring");
+      try {
+        runs.forEach(function (run) {
+          steps = run.list;
+          for (var i = run.from; i < steps.length; i++) {
+            show(i, false);
+            ms = Math.max(ms, stage.getBoundingClientRect().height);
+            mc = Math.max(mc, caption.getBoundingClientRect().height);
+          }
+        });
+      } finally {
+        steps = real;
+        if (!allowShrink) { ms = Math.max(ms, reserved.stage); mc = Math.max(mc, reserved.caption); }
+        reserved.stage = Math.ceil(ms); reserved.caption = Math.ceil(mc);
+        fig.style.setProperty("--stage-h", reserved.stage + "px");
+        fig.style.setProperty("--caption-h", reserved.caption + "px");
+        show(keep, false);
+        void fig.offsetHeight;
+        fig.classList.remove("measuring");
+        measuring = false;
+        if (window.scrollY !== sy) window.scrollTo(window.scrollX, sy);
+      }
+    }
+
+    // Wells scroll to their newest row after every draw.
+    var wells = [];
+    function well(el) {
+      if (!el) return el;
+      el.classList.add("well");
+      if (wells.indexOf(el) < 0) wells.push(el);
+      return el;
+    }
+    function scrollWells(animate) {
+      wells.forEach(function (el) { el.scrollTo({ top: el.scrollHeight, behavior: animate ? "smooth" : "auto" }); });
     }
 
     function setCaption(text) {
@@ -304,7 +375,21 @@
     steps = typeof opts.steps === "function" ? opts.steps(api) : opts.steps || [];
     if (!steps.length) report(name, "no steps");
     buildDots();
+    reserve(true);
     show(0, false);
+    lastWidth = Math.round(fig.getBoundingClientRect().width);
+    // Fonts change text size, and a new width changes everything: measure again (may shrink).
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { reserve(true); });
+    if (window.ResizeObserver) {
+      var rt = null;
+      new ResizeObserver(function () {
+        var w = Math.round(fig.getBoundingClientRect().width);
+        if (w === lastWidth) return;
+        lastWidth = w;
+        clearTimeout(rt);
+        rt = setTimeout(function () { reserve(true); }, 120);
+      }).observe(fig);
+    }
     registry.scenes.push({ name: name, api: api });
     return api;
   }
@@ -326,5 +411,5 @@
     r.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
   });
 
-  window.Explainer = { scene: scene, svg: svg, h: h, rng: rng, fmt: fmt, reduce: reduce };
+  window.Explainer = { scene: scene, svg: svg, h: h, rng: rng, fmt: fmt, reduce: reduce, version: VERSION };
 })();

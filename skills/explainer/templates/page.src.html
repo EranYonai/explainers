@@ -18,16 +18,35 @@
   .choices{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 </style>
 </head>
-<body>
+<!-- Page parts, in a fixed order. Each has a data-slot name. Keep the ones you need, delete the rest,
+     never reorder them. Required: intro (h1.hook + p.dek), scene, payoff. Sources when facts are current.
+     Starters for common kinds, with the right parts already kept: templates/kinds/*.src.html -->
+<body data-kind="concept">
 <main>
-  <!-- Beat 1: hook. A question in big type that the page will answer. -->
-  <header class="col stack">
-    <h1 class="hook">HOOK: a question the reader cannot answer yet?</h1>
-    <p>SETUP: one or two sentences of common knowledge the reader already has.</p>
+  <!-- masthead (optional): what kind of page this is, and the day/night toggle. -->
+  <header class="masthead col" data-slot="masthead">
+    <span class="kind">KIND: Explainer</span>
+    <button type="button" data-theme-toggle>Day / Night</button>
   </header>
 
-  <!-- Beat 2-3: setup and mechanism, as one deck: one stepper drives the sections, only the active one shows. -->
-  <section class="wide">
+  <!-- intro (required). Beat 1, the hook: a question in big type that the page will answer. -->
+  <header class="col stack" data-slot="intro">
+    <h1 class="hook">HEADLINE: a question the reader cannot answer yet?</h1>
+    <p class="dek">HOOK: one or two sentences of common knowledge the reader already has.</p>
+    <!-- optional: reading time, and for current tech what you checked against and when -->
+    <p class="meta">4 min read · checked against VERSION on DATE</p>
+  </header>
+
+  <!-- summary (optional): key facts as label and value. A PR: What, Why, Risk, How to test. -->
+  <dl class="tldr col" data-slot="summary">
+    <dt>What</dt><dd>ONE LINE.</dd>
+    <dt>Why</dt><dd>ONE LINE.</dd>
+  </dl>
+
+  <!-- scene (required). Beats 2-3, setup and mechanism, as one deck: one stepper drives the sections,
+       only the active one shows. The stage reserves the height of its tallest step: never set a height on
+       it. Anything that grows with the steps (a list, a log) goes in a .well: api.well(element). -->
+  <section class="wide" data-slot="scene">
     <figure class="scene" id="main">
       <div class="stage">
         <section data-scene="parts" data-title="The parts">
@@ -41,10 +60,38 @@
     </figure>
   </section>
 
-  <!-- Beat 4: payoff, one sentence stamped large. -->
-  <section class="col stack">
+  <!-- payoff (required). Beat 4: one sentence stamped large that answers the headline. -->
+  <section class="col stack" data-slot="payoff">
     <p class="payoff">PAYOFF: the one sentence to <mark>remember</mark>.</p>
   </section>
+
+  <!-- prose (optional, up to 3): short sections. Current facts cite a source with a .cite link. -->
+  <section class="prose col" data-slot="prose">
+    <h2>Where you will see this</h2>
+    <p>ONE SHORT PARAGRAPH on where this matters in practice <a class="cite" href="#src-1">[1]</a>.</p>
+  </section>
+
+  <!-- glossary (optional): only the terms the page uses, one plain sentence each. -->
+  <section class="col stack" data-slot="glossary">
+    <h2>Words on this page</h2>
+    <dl class="glossary">
+      <dt>TERM</dt><dd>One plain sentence.</dd>
+    </dl>
+  </section>
+
+  <!-- sources (required when facts are current: tools, libraries, services). Each li has an id that
+       .cite links point to, a real link, and a version or date. Timeless topics can delete this. -->
+  <section class="sources col" data-slot="sources">
+    <h2>Sources</h2>
+    <ol>
+      <li id="src-1"><a href="https://example.com/docs">SOURCE TITLE</a>, VERSION OR DATE</li>
+    </ol>
+  </section>
+
+  <!-- next (optional): where to go after this page. -->
+  <nav class="next col" data-slot="next" aria-label="Next">
+    <a href="https://example.com">NEXT: the PR, the runbook, the next part</a>
+  </nav>
 </main>
 
 <script src="explainer:player.js"></script>
@@ -75,6 +122,8 @@
       { scene: "choose", say: "Your turn: pick one.", wait: true }
     ],
     compute: function (s) { return { count: PARTS.length }; },
+    // every outcome a choice can add, so the player reserves room for them up front
+    branches: function () { return PARTS.map(function (p, i) { return outcome(i); }); },
     scenes: {
       parts: {
         setup: function (el, api) {

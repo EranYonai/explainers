@@ -12,8 +12,9 @@
 .strip{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:4px solid var(--rule,var(--ink));border-bottom:1px solid var(--rule,var(--ink));padding:6px 0;font-family:var(--font-mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.08em}
 .strip b{font-weight:600}
 .daynight{border:1.5px solid var(--rule,var(--ink));background:transparent;padding:4px 8px;font-family:var(--font-mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border-radius:2px}
-h1{font-family:var(--font-display);font-weight:900;text-transform:uppercase;font-size:clamp(2rem,9vw,3.6rem);line-height:.92;margin:16px 0 8px;letter-spacing:.005em}
-.lede{max-width:62ch;margin:0 0 14px;color:var(--muted)}
+h1.hook{font-family:var(--font-display);font-weight:900;text-transform:uppercase;font-size:clamp(2rem,9vw,3.6rem);line-height:.92;margin:16px 0 8px;letter-spacing:.005em}
+.lede{max-width:62ch;margin:0 0 14px;color:var(--muted);font-size:1em}
+.payoff-wrap{margin-top:26px}
 
 .prose{max-width:64ch;margin:0 0 12px;font-size:.95rem}
 /* hook */
@@ -123,16 +124,18 @@ h1{font-family:var(--font-display);font-weight:900;text-transform:uppercase;font
 .src li{margin:0 0 5px;overflow-wrap:anywhere}
 .src a{color:inherit}
 .src p{font-size:.8rem;color:var(--muted);margin:8px 0 0;max-width:70ch}
-#manual .stage{min-height:460px;padding:14px 20px 4px}
+#manual .stage{padding:14px 20px 4px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="strip"><span><b>Harness operating manual</b> / draft</span><button class="daynight" data-theme-toggle type="button" aria-label="Switch between day and night theme">Day / Night</button></div>
-  <h1>What is an AI coding harness?</h1>
-  <p class="lede">A step-through briefing. The model is the pilot. Everything else in the cockpit is the harness. Use Next, the arrow keys, or Play.</p>
+  <div class="strip" data-slot="masthead"><span><b>Harness operating manual</b> / draft</span><button class="daynight" data-theme-toggle type="button" aria-label="Switch between day and night theme">Day / Night</button></div>
+  <header data-slot="intro">
+    <h1 class="hook">What is an AI coding harness?</h1>
+    <p class="lede dek">A step-through briefing. The model is the pilot. Everything else in the cockpit is the harness. Use Next, the arrow keys, or Play.</p>
+  </header>
 
-  <figure id="manual">
+  <figure id="manual" data-slot="scene">
     <div class="stage">
 
     <section data-scene="hook" data-title="The puzzle">
@@ -215,15 +218,19 @@ h1{font-family:var(--font-display);font-weight:900;text-transform:uppercase;font
     </div>
   </figure>
 
-  <section class="src">
+  <section class="payoff-wrap" data-slot="payoff">
+    <p class="payoff">Same model, different tool: <mark>the harness is the difference</mark>.</p>
+  </section>
+
+  <section class="src sources" data-slot="sources">
     <h2>Sources</h2>
     <ol>
-      <li><a href="https://code.claude.com/docs/en/how-claude-code-works">Claude Code docs: How Claude Code works</a> (agentic loop, "agentic harness", tools, compaction)</li>
-      <li><a href="https://code.claude.com/docs/en/features-overview">Claude Code docs: Extend Claude Code</a> (CLAUDE.md, skills, subagents, hooks, MCP, plugins)</li>
-      <li><a href="https://code.claude.com/docs/en/permission-modes">Claude Code docs: Permission modes</a> (six modes, Bash sandbox)</li>
-      <li><a href="https://cdn.jsdelivr.net/npm/@mariozechner/pi-coding-agent@0.73.1/README.md">Pi coding agent README, v0.73.1</a> (default tools, context files, extensions, what is left out)</li>
-      <li><a href="https://developers.openai.com/codex/agent-approvals-security">OpenAI Codex docs: Agent approvals and security</a> (official reference for sandbox modes and approval policy)</li>
-      <li><a href="https://codex.danielvaughan.com/2026/05/07/codex-cli-instruction-stack-six-surfaces-agents-md-rules-hooks-skills/">D. Vaughan: The Codex CLI instruction stack</a> and <a href="https://codex.danielvaughan.com/2026/08/31/codex-cli-sandbox-permission-hardening-full-auto-removed-untrusted-retired-fail-closed/">Codex CLI permission hardening</a> (secondary source for AGENTS.md discovery, rules, hooks, skills, sandbox modes)</li>
+      <li id="src-1"><a href="https://code.claude.com/docs/en/how-claude-code-works">Claude Code docs: How Claude Code works</a> (agentic loop, "agentic harness", tools, compaction)</li>
+      <li id="src-2"><a href="https://code.claude.com/docs/en/features-overview">Claude Code docs: Extend Claude Code</a> (CLAUDE.md, skills, subagents, hooks, MCP, plugins)</li>
+      <li id="src-3"><a href="https://code.claude.com/docs/en/permission-modes">Claude Code docs: Permission modes</a> (six modes, Bash sandbox)</li>
+      <li id="src-4"><a href="https://cdn.jsdelivr.net/npm/@mariozechner/pi-coding-agent@0.73.1/README.md">Pi coding agent README, v0.73.1</a> (default tools, context files, extensions, what is left out)</li>
+      <li id="src-5"><a href="https://developers.openai.com/codex/agent-approvals-security">OpenAI Codex docs: Agent approvals and security</a> (official reference for sandbox modes and approval policy)</li>
+      <li id="src-6"><a href="https://codex.danielvaughan.com/2026/05/07/codex-cli-instruction-stack-six-surfaces-agents-md-rules-hooks-skills/">D. Vaughan: The Codex CLI instruction stack</a> and <a href="https://codex.danielvaughan.com/2026/08/31/codex-cli-sandbox-permission-hardening-full-auto-removed-untrusted-retired-fail-closed/">Codex CLI permission hardening</a> (secondary source for AGENTS.md discovery, rules, hooks, skills, sandbox modes)</li>
     </ol>
     <p>Draft note: the Codex details on this page were checked against the secondary source in item 6. The official page in item 5 could not be opened from the build environment. These tools change quickly; check the docs for your installed version.</p>
   </section>
@@ -413,7 +420,7 @@ function drawYou(){
       :"Read and edit ran, the risky push did not. That middle setting is what approval modes automate.";
   }
   $("#debrief").textContent=db;
-  if(Y.done&&api.scene==="you")api.say("Run complete. "+db);
+  if(Y.done&&api.scene==="you")api.say("Run complete. The debrief below says what your setting allowed.");
 }
 $$(".mode").forEach(function(b){b.addEventListener("click",function(){
   Y.mode=b.dataset.mode;$$(".mode").forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false")});yReset();

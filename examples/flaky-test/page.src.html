@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="explainer:player.css">
 <link rel="stylesheet" href="explainer:theme/inkwell">
 <style>
-  #main .stage{min-height:540px}
+
   .cells span:empty{display:none}
   .run{font:600 13px var(--font-mono);color:var(--muted);margin:0 0 6px}
   svg.tl, svg.dots{display:block;width:100%;height:auto}
@@ -40,12 +40,12 @@
 </head>
 <body>
 <main>
-  <header class="col stack">
+  <header class="col stack" data-slot="intro">
     <h1 class="hook">Why did the same test pass, then fail, with no code change?</h1>
-    <p>Green yesterday, red this morning, green again when you rerun it. Nothing changed in the code, so something else is deciding the result.</p>
+    <p class="dek">Green yesterday, red this morning, green again when you rerun it. Nothing changed in the code, so something else is deciding the result.</p>
   </header>
 
-  <section class="wide">
+  <section class="wide" data-slot="scene">
     <figure class="scene" id="main">
       <div class="stage">
         <section data-scene="runs" data-title="Two runs">
@@ -62,10 +62,17 @@
     </figure>
   </section>
 
-  <section class="col stack">
+  <section class="col stack" data-slot="payoff">
     <p class="payoff">The code never changed. The timing did, and <mark>the test was measuring the timing</mark>.</p>
+  </section>
+
+  <section class="prose col" data-slot="prose">
+    <h2>The fix</h2>
     <p>The fix is to wait for the thing itself: join the thread, await the result, or poll until the condition is true.
       Retries make the dashboard green but leave the race in place, and users can't rerun production.</p>
+  </section>
+
+  <section class="prose col" data-slot="prose">
     <h2>Other causes with the same shape</h2>
     <ul>
       <li><b>Shared state.</b> One test leaves a row, a file or a global behind, and another test reads it.</li>
