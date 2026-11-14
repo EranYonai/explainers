@@ -53,7 +53,7 @@ the top of [`player.js`](skills/explainer/templates/player.js).
 ```
 skills/explainer/      the skill: SKILL.md, player (templates/), themes, build and check scripts
 examples/              explainers made with the skill or its drafts
-docs/themes/           gallery of 25 themes and the generator (3 ship with the skill)
+docs/themes/           gallery of 25 themes and the generator (the skill ships 8)
 docs/findings/         field notes from the first drafts
 runs.csv               cost of every explainer made with the skill
 ```
