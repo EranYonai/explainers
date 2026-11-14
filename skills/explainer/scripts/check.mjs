@@ -16,6 +16,8 @@
 //   - captions longer than 200 characters, a stage taller than 60% of a phone screen, more than
 //     400 words outside the scene, outside links with no Sources (notes, not failures)
 //   - external requests other than Google Fonts, and a page built without a theme
+//   - in the page's own code: a literal color (hex, rgb(), hsl()) in its styles, Math.random, and
+//     api.branch without a branches list
 //   - a step that waits for the reader while no reader button was found to click (a note)
 // and writes a contact sheet: every step of every scene at phone width, in one image.
 // Exit code: 0 pass, 1 fail, 3 skipped (Playwright not installed).
@@ -82,7 +84,11 @@ const PAGE_HELPERS = `(() => {
     const outside = [...document.querySelectorAll('a[href^="http"]')].filter((a) => !(src && src.contains(a)) && !a.closest('[data-slot="next"]')).length;
     let words = 0;
     for (const sl of document.querySelectorAll("[data-slot]")) if (sl.getAttribute("data-slot") !== "scene") words += sl.innerText.split(/\s+/).filter(Boolean).length;
-    return { slots, h1: document.querySelectorAll("h1").length, hook: !!(intro && intro.querySelector("h1.hook")), dek: !!(intro && intro.querySelector(".dek")),
+    const own = (sel) => [...document.querySelectorAll(sel)].filter((e) => !e.hasAttribute("data-explainer") && !e.src).map((e) => e.textContent).join("\\n");
+    const css = own("style").replace(/\\/\\*[\\s\\S]*?\\*\\//g, ""), js = own("script");
+    const colors = [...new Set(css.match(/#[0-9a-f]{3,8}\\b|\\b(?:rgba?|hsla?)\\(/gi) || [])];
+    return { slots, h1: document.querySelectorAll("h1").length, colors, random: /Math\\.random/.test(js),
+      branchNoList: /\\.branch\\(/.test(js) && !/\\bbranches\\s*:/.test(js), hook: !!(intro && intro.querySelector("h1.hook")), dek: !!(intro && intro.querySelector(".dek")),
       brokenCites, bareSources, outside, words, hasSources: !!src };
   };
 })()`;
@@ -116,6 +122,9 @@ function pageChecks(f) {
   f.brokenCites.forEach((h) => problems.push("citation " + h + " points at no source in the Sources part"));
   f.bareSources.forEach((s) => problems.push("source without a link: " + s));
   if (f.outside && !f.hasSources) notes.push("the page links to outside pages but has no Sources part");
+  if (f.colors.length) problems.push("a literal color in the page styles (" + f.colors.slice(0, 4).join(", ") + "); use theme tokens such as var(--ink)");
+  if (f.random) problems.push("the page uses Math.random; use api.rng(seed) so every load shows the same numbers");
+  if (f.branchNoList) problems.push("the page calls api.branch but lists no branches, so the controls can move after a choice");
   if (f.words > 400) notes.push(f.words + " words outside the scene; aim for 150 to 400");
 }
 

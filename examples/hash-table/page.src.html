@@ -8,7 +8,6 @@
 <link rel="stylesheet" href="explainer:player.css">
 <link rel="stylesheet" href="explainer:theme/inkwell">
 <style>
-
   .sum{font-family:var(--font-mono);font-size:15px;min-height:3.2em;margin:0 0 12px;line-height:1.6}
   .sum b{background:var(--hl);color:var(--hl-ink);padding:0 4px;border-radius:3px}
   .rows{display:grid;gap:4px}
@@ -26,8 +25,7 @@
   .meter{font-family:var(--font-mono);font-size:14px;margin:12px 0 0;color:var(--muted)}
   .meter b{color:var(--ink)}
   .meter.over b{color:var(--bad)}
-  .choices button{font:600 15px var(--font-mono);border:var(--border-width,1px) solid var(--accent);border-radius:var(--radius,6px);background:var(--paper);color:var(--ink);padding:8px 14px;cursor:pointer}
-  .choices button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+  .choices button{font-family:var(--font-mono)}
 </style>
 </head>
 <body>
@@ -72,7 +70,7 @@
   function codes(k) { return k.split("").map(function (c) { return c.charCodeAt(0); }); }
   function sum(k) { return codes(k).reduce(function (a, b) { return a + b; }, 0); }
   function box(k, m) { return sum(k) % m; }
-  var LIMIT = 0.75;
+  var LIMIT = 0.75, M = 4;  // the load limit, and the boxes the table starts with (it doubles once)
   var LIST = ["ant", "bee", "cat", "dog", "elk", "fox", "gnu", "owl"];
   var PICKS = ["dog", "owl", "act"];
 
@@ -83,14 +81,14 @@
   }
   function steps(pick, auto) {
     var keys = ["cat", "fox", "bee", pick], who = auto ? "Say you add " : "You added ";
-    var shared = place(keys, 8).filter(function (r) { return r.length > 1; })[0];
+    var shared = place(keys, M * 2).filter(function (r) { return r.length > 1; })[0];
     var last = shared
-      ? { scene: "table", say: shared.join(" and ") + " still share box " + box(shared[0], 8) + ". Their letters add up to the same number, " + sum(shared[0]) + ", so no size can split them.", mark: { look: box(shared[0], 8) } }
+      ? { scene: "table", say: shared.join(" and ") + " still share box " + box(shared[0], M * 2) + ". Their letters add up to the same number, " + sum(shared[0]) + ", so no size can split them.", mark: { look: box(shared[0], M * 2) } }
       : { scene: "table", say: "Now every key has a box to itself. Finding any of them is one sum and one box.", mark: {} };
     return [
-      { scene: "table", say: who + pick + ". Its letters add up to {psum}, and {psum} mod 4 = {pbox}, so it goes in box {pbox}.", set: { keys: keys, calc: pick, picked: PICKS.indexOf(pick) }, mark: { fresh: pick } },
-      { scene: "table", say: "Now 4 keys share 4 boxes. Keys divided by boxes is the load: {load}. Above {limit}, lines start getting long.", set: { calc: null } },
-      { scene: "table", say: "So the table doubles to 8 boxes and places every key again, using mod 8 this time.", set: { m: 8 } },
+      { scene: "table", say: who + pick + ". Its letters add up to {psum}, and {psum} mod {m} = {pbox}, so it goes in box {pbox}.", set: { keys: keys, calc: pick, picked: PICKS.indexOf(pick) }, mark: { fresh: pick } },
+      { scene: "table", say: "Now {count} keys share {m} boxes. Keys divided by boxes is the load: {load}. Above {limit}, lines start getting long.", set: { calc: null } },
+      { scene: "table", say: "So the table doubles to {m} boxes and places every key again, using mod {m} this time.", set: { m: M * 2 } },
       last
     ];
   }
@@ -98,25 +96,27 @@
   var listEls = [], rowEls = [], buttons = [], scanEl, sumEl, loadEl, pickEl;
   var api = Explainer.scene("#main", {
     title: "Keys being placed into numbered boxes",
-    initial: { scan: -1, keys: [], m: 4, calc: null, part: 0, picked: -1 },
+    initial: { scan: -1, keys: [], m: M, calc: null, part: 0, picked: -1 },
     steps: [
       { scene: "list", say: "In a plain list, finding owl means checking each key from the top." },
       { scene: "list", say: "It takes {scanned} checks. Double the list and it takes about twice as many.", set: { scan: LIST.indexOf("owl") } },
-      { scene: "table", say: "A hash table is a row of numbered boxes, called buckets. This one has 4." },
+      { scene: "table", say: "A hash table is a row of numbered boxes, called buckets. This one has {m}." },
       { scene: "table", say: "To store cat, turn each letter into its character code.", set: { calc: "cat", part: 1 } },
       { scene: "table", say: "Add them up: {csum}.", set: { part: 2 } },
-      { scene: "table", say: "Divide by 4 and keep the remainder: {cbox}. So cat goes in box {cbox}.", set: { part: 3, keys: ["cat"] }, mark: { fresh: "cat" } },
+      { scene: "table", say: "Divide by {m} and keep the remainder: {cbox}. So cat goes in box {cbox}.", set: { part: 3, keys: ["cat"] }, mark: { fresh: "cat" } },
       { scene: "table", say: "fox adds up to {fsum}, which lands in box {fbox}.", set: { calc: "fox", keys: ["cat", "fox"] }, mark: { fresh: "fox" } },
       { scene: "table", say: "bee adds up to {bsum}, which lands in box {bbox}, next to cat. Two keys in one box is a collision; they form a short line.", set: { calc: "bee", keys: ["cat", "fox", "bee"] }, mark: { fresh: "bee" } },
-      { scene: "table", say: "To find fox later, do the same sum. It says box {fbox}. One box to open, no search.", set: { calc: "fox" }, mark: { look: box("fox", 4), found: "fox" } },
+      { scene: "table", say: "To find fox later, do the same sum. It says box {fbox}. One box to open, no search.", set: { calc: "fox" }, mark: { look: box("fox", M), found: "fox" } },
       { scene: "table", say: "Your turn: add one more key. Where will it land?", set: { calc: null, ask: true }, wait: true }
     ].concat(steps("dog", true)),
     compute: function (s) {
       var p = PICKS[s.picked] || "dog";
-      return { scanned: LIST.indexOf("owl") + 1, csum: sum("cat"), cbox: box("cat", 4), fsum: sum("fox"), fbox: box("fox", 4),
-               bsum: sum("bee"), bbox: box("bee", 4), psum: sum(p), pbox: box(p, 4),
-               load: (s.keys.length / s.m).toFixed(2), limit: LIMIT };
+      return { scanned: LIST.indexOf("owl") + 1, csum: sum("cat"), cbox: box("cat", M), fsum: sum("fox"), fbox: box("fox", M),
+               bsum: sum("bee"), bbox: box("bee", M), psum: sum(p), pbox: box(p, M),
+               count: s.keys.length, load: (s.keys.length / s.m).toFixed(2), limit: LIMIT };
     },
+    // every outcome a choice can add, so the player reserves room for them up front
+    branches: function () { return PICKS.map(function (k) { return steps(k, false); }); },
     scenes: {
       list: {
         setup: function (sec, api) {
@@ -132,7 +132,7 @@
       table: {
         setup: function (sec, api) {
           var rows = sec.querySelector("#rows");
-          for (var i = 0; i < 8; i++) {
+          for (var i = 0; i < M * 2; i++) {
             var r = api.h("div", { class: "row" }, rows);
             api.h("span", { class: "idx", text: String(i) }, r);
             rowEls.push(r);

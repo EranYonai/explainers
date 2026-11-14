@@ -9,7 +9,8 @@
 //   <link rel="stylesheet" href="explainer:theme/inkwell">   -> Google Fonts link + theme tokens
 //   <link rel="stylesheet" href="explainer:player.css">      -> player styles
 //   <script src="explainer:player.js"></script>              -> player runtime
-// No dependencies. The output has no external requests except Google Fonts.
+// No dependencies. The output has no external requests except Google Fonts. Inlined blocks carry
+// data-explainer="theme" or "player", so the check can tell them from the page's own code.
 import { readFileSync, writeFileSync, readdirSync, mkdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -59,7 +60,7 @@ function themeBlock(name) {
       '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n' +
       '<link rel="stylesheet" href="' + fonts + '">\n'
     : "";
-  return links + "<style>\n" + css.trim() + "\n</style>";
+  return links + '<style data-explainer="theme">\n' + css.trim() + "\n</style>";
 }
 
 // A page needs all three pieces; a missing theme would still build and render with no colors or fonts.
@@ -70,9 +71,9 @@ for (const [name, re] of [["a theme link (href=\"explainer:theme/<name>\")", /hr
 }
 html = html.replace(/<link[^>]*href="explainer:theme\/([\w-]+)"[^>]*>/g, (_, name) => themeBlock(themeOverride || name));
 html = html.replace(/<link[^>]*href="explainer:player\.css"[^>]*>/g, () =>
-  "<style>\n" + readFileSync(join(PLAYER, "player.css"), "utf8").trim() + "\n</style>");
+  '<style data-explainer="player">\n' + readFileSync(join(PLAYER, "player.css"), "utf8").trim() + "\n</style>");
 html = html.replace(/<script[^>]*src="explainer:player\.js"[^>]*>\s*<\/script>/g, () =>
-  "<script>\n" + readFileSync(join(PLAYER, "player.js"), "utf8").trim().replace(/<\/script/gi, "<\\/script") + "\n</script>");
+  '<script data-explainer="player">\n' + readFileSync(join(PLAYER, "player.js"), "utf8").trim().replace(/<\/script/gi, "<\\/script") + "\n</script>");
 
 // Only href and src values count, so prose that mentions a placeholder by name is fine.
 const left = [...html.matchAll(/(?:href|src)="(explainer:[^"]*)"/g)].map((m) => m[1]);

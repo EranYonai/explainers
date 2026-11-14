@@ -17,6 +17,8 @@ walks every step of every scene, and prints PASS or FAIL.
   parts out of order; an unknown `data-slot` name; more than one `h1`; a `.cite` link pointing at no source; a
   source without a link.
 - A page built without a theme.
+- In the page's own code: a literal color in its styles (hex, `rgb()`, `hsl()`), `Math.random`, and
+  `api.branch` without a `branches` list.
 - Requests to anything other than Google Fonts.
 - Notes, not failures: captions over 200 characters, a stage taller than 60% of a phone screen, more than
   400 words outside the scene, outside links with no Sources part, and a step that waits for the reader
