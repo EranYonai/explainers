@@ -3,415 +3,671 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hash tables and collisions: how a dictionary finds your key without searching</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<title>How a dictionary finds your key</title>
+<meta name="description" content="A hash table turns the key itself into a box number, so finding it takes one look instead of a search.">
 <style>
-:root{
-  --paper:#f3f4f8; --surface:#ffffff; --ink:#171a3b; --muted:#596080; --line:#d8dbe8;
-  --accent:#3341d6; --hl:#ffd84a; --good:#1c946a; --bad:#cf3f37;
-  --font-display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
-  --font-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
-  --font-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  color-scheme:light;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --paper:#0e1024; --surface:#171a34; --ink:#e7e8f6; --muted:#9ca1c4; --line:#2b2f55;
-    --accent:#8e98ff; --hl:#ffd84a; --good:#3fcf93; --bad:#ff6d63; color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --paper:#0e1024; --surface:#171a34; --ink:#e7e8f6; --muted:#9ca1c4; --line:#2b2f55;
-  --accent:#8e98ff; --hl:#ffd84a; --good:#3fcf93; --bad:#ff6d63; color-scheme:dark;
-}
+/* explainer player v0: page base and scene chrome. Colors and fonts come from a theme file (themes/*.css). */
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--font-body); font-size:clamp(1rem, .96rem + .15vw, 1.06rem); line-height:1.6}
-main{padding:clamp(24px,5vw,64px) 16px 80px; display:grid; grid-template-columns:minmax(0,1fr); gap:44px}
-main > *{min-width:0}
-.col{max-width:64ch; margin:0 auto; width:100%}
-.wide{max-width:880px; margin:0 auto; width:100%}
-h1,h2{font-family:var(--font-display); text-wrap:balance; line-height:1.1; margin:0}
-h1{font-size:clamp(2.3rem, 1.5rem + 4.6vw, 4.2rem); font-weight:700; letter-spacing:-0.02em}
-h2{font-size:clamp(1.45rem, 1.3rem + .6vw, 1.75rem); font-weight:700; margin-bottom:12px}
+body{margin:0;background:var(--paper);background-image:var(--texture,none);background-size:var(--texture-size,auto);color:var(--ink);
+  font-family:var(--font-body);font-size:calc(clamp(1rem,.96rem + .15vw,1.06rem) * var(--body-scale,1));line-height:1.6}
+main{padding:clamp(24px,4vw,64px) 16px 80px;display:grid;grid-template-columns:minmax(0,1fr);gap:56px}
+main>*{min-width:0}
+.col{max-width:66ch;margin:0 auto;width:100%}
+.wide{max-width:1040px;margin:0 auto;width:100%}
+.stack{display:grid;gap:14px}
+h1,h2,h3{font-family:var(--font-display);font-weight:var(--display-weight,700);text-transform:var(--display-transform,none);
+  letter-spacing:var(--display-tracking,0);line-height:1.12;margin:0;text-wrap:balance}
+h1{font-size:calc(clamp(2rem,1.5rem + 2.4vw,3rem) * var(--display-scale,1))}
+h2{font-size:calc(clamp(1.4rem,1.25rem + .6vw,1.7rem) * var(--display-scale,1))}
 p{margin:0}
-p + p{margin-top:12px}
-code{font-family:var(--font-mono); font-size:.9em}
-.kicker{font-family:var(--font-mono); font-size:.8rem; color:var(--accent); text-transform:uppercase; letter-spacing:.08em; margin-bottom:14px}
-.lede{font-size:1.14rem; margin-top:18px}
-.beat{font-family:var(--font-mono); font-size:.75rem; color:var(--muted); display:block; margin-bottom:6px}
-.after{margin-top:18px}
+a{color:var(--accent)}
+code{font-family:var(--font-mono);font-size:.88em;background:color-mix(in srgb,var(--line) 45%,transparent);padding:.05em .3em;border-radius:4px}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius:3px}
 
-.scene{background:var(--surface); border:1px solid var(--line); border-radius:14px; margin:20px 0 0; overflow:hidden; display:grid; grid-template-columns:minmax(0,1fr)}
-.scene:focus-visible{outline:3px solid var(--accent); outline-offset:2px}
-.stage{padding:8px 0 0; display:flex; justify-content:center}
-.stage svg{width:100%; max-width:440px; height:auto; display:block}
-.panel{display:flex; flex-direction:column; padding:6px 16px 16px; gap:12px}
-.caption{font-family:var(--font-display); font-weight:500; font-size:1.3rem; line-height:1.25; min-height:6.6em; text-wrap:pretty}
-.caption .stepno{font-family:var(--font-mono); font-weight:400; color:var(--muted); font-size:.75rem; display:block; margin-bottom:4px}
-.controls{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
-button{font:inherit; font-size:.92rem; padding:9px 15px; border-radius:8px; border:1px solid var(--line); background:var(--paper); color:var(--ink); cursor:pointer}
-button:hover{border-color:var(--accent)}
-button.primary{background:var(--accent); color:var(--surface); border-color:var(--accent)}
-button:disabled{opacity:.45; cursor:default}
-button:focus-visible{outline:3px solid var(--accent); outline-offset:2px}
-.dots{display:flex; gap:5px; margin-left:auto}
-.dots i{width:7px; height:7px; border-radius:50%; background:var(--line); display:block}
+/* story beats: hook question in big type, payoff stamped large */
+.hook{font-size:calc(clamp(2.1rem,1.6rem + 2.4vw,3.2rem) * var(--display-scale,1));letter-spacing:-.015em}
+.payoff{font-family:var(--font-display);font-weight:var(--display-weight,700);line-height:1.05;letter-spacing:-.02em;text-wrap:balance;
+  font-size:calc(clamp(2rem,1.4rem + 3.4vw,3.6rem) * var(--display-scale,1));margin:8px 0}
+.note{color:var(--muted);font-size:.9rem}
+
+/* scene frame: stage, caption, controls */
+.scene{margin:0;background:var(--surface);border:var(--border-width,1px) solid var(--line);border-radius:calc(var(--radius,8px) + 6px);overflow:hidden;box-shadow:var(--shadow,none)}
+.scene .stage{padding:16px 20px 0;min-width:0}
+.scene .stage svg{display:block;width:100%;height:auto;max-width:100%}
+.scene svg text{font-family:var(--font-mono);fill:var(--ink)}
+.caption{padding:12px 20px 0;min-height:4.9em;font-family:var(--caption-font,var(--font-body));font-weight:400;font-size:clamp(1.05rem,1rem + .3vw,1.2rem);line-height:1.42;text-wrap:balance}
+.caption .stepno{display:block;font-family:var(--font-mono);font-weight:400;font-size:.74rem;color:var(--muted);margin-bottom:4px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 20px 18px}
+.controls button,.pick button,.choices button{font:inherit;font-size:.92rem;padding:9px 15px;min-height:44px;border-radius:var(--radius,8px);
+  border:var(--border-width,1px) solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.controls button:hover,.pick button:hover,.choices button:hover{border-color:var(--accent)}
+.controls button.primary{background:var(--accent);color:var(--accent-ink,#fff);border-color:var(--accent)}
+.pick button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.controls button:disabled{opacity:.45;cursor:default}
+.dots{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--line);display:block}
 .dots i.on{background:var(--accent)}
-.load{display:grid; grid-template-columns:auto 1fr; gap:4px 12px; align-items:baseline; font-family:var(--font-mono); font-size:.82rem; color:var(--muted)}
-.load b{color:var(--ink); font-weight:600; text-align:right}
-.load b.over{color:var(--bad)}
-.bar{grid-column:1 / -1; height:10px; border-radius:5px; background:var(--paper); border:1px solid var(--line); position:relative}
-.bar i{position:absolute; left:0; top:0; bottom:0; border-radius:5px; background:var(--good); transition:width .45s, background .3s}
-.bar i.over{background:var(--bad)}
-.bar u{position:absolute; left:50%; top:-4px; bottom:-4px; width:2px; background:var(--ink)}
-.bar s{position:absolute; left:50%; top:13px; transform:translateX(-50%); text-decoration:none; font-size:.7rem}
-.load.has{padding-bottom:14px}
-@media (min-width:800px){
-  .scene{grid-template-columns:minmax(0,460px) minmax(0,1fr)}
-  .stage{padding:12px 0 12px 12px}
-  .panel{padding:28px 28px 24px; justify-content:center; gap:18px}
-  .caption{font-size:1.5rem; min-height:6.4em}
+.pick{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:12px 20px 0}
+@media (max-width:600px){
+  .scene .stage{padding:12px 12px 0}
+  .caption{padding:12px 16px 0;min-height:6.4em}
+  .controls,.pick{padding-left:16px;padding-right:16px}
 }
 
-svg text{font-family:var(--font-mono)}
+/* shared drawing classes for SVG stages */
 .rough{filter:url(#rough)}
-.band{fill:transparent; transition:fill .3s}
-.band.f-hl{fill:color-mix(in srgb, var(--hl) 42%, transparent)}
-.band.f-bad{fill:color-mix(in srgb, var(--bad) 20%, transparent)}
-.band.f-good{fill:color-mix(in srgb, var(--good) 22%, transparent)}
-.cell{transition:opacity .4s}
-.cell.off{opacity:0}
-.cell rect{fill:var(--paper); stroke:var(--ink); stroke-width:2}
-.cell text{font-size:15px; font-weight:600; fill:var(--ink)}
-.cell .slot{fill:none; stroke:var(--line); stroke-dasharray:4 4}
-.arrow line{stroke:var(--ink); stroke-width:2}
-.arrow polygon{fill:var(--ink)}
-.arrow.stale{opacity:.35}
-.arrow.in{animation:fade .35s .3s both}
-.pill{transition:transform .6s cubic-bezier(.3,.7,.2,1), opacity .3s}
-.pill rect{fill:var(--surface); stroke:var(--ink); stroke-width:2; transition:fill .3s, stroke .3s}
-.pill text{font-size:15px; font-weight:600; fill:var(--ink)}
-.pill.held rect{stroke:var(--accent); stroke-width:2.5}
-.pill.stale{opacity:.45}
-.pill.stale rect{stroke-dasharray:5 4}
-.pill.miss rect{stroke:var(--bad)}
-.pill.hit rect{fill:var(--good); stroke:var(--good)}
-.pill.hit text.k{fill:var(--surface)}
-.pill .badge{opacity:0; transition:opacity .3s}
-.pill.miss .badge, .pill.hit .badge{opacity:1}
-.pill .badge circle{fill:var(--bad)}
-.pill.hit .badge circle{fill:var(--ink)}
-.pill .badge text{fill:var(--surface); font-size:13px}
-.calc.in{animation:fade .35s both}
-.calc .inbox{fill:none; stroke:var(--muted); stroke-dasharray:4 4; stroke-width:1.5}
-.calc .ghost{font-size:15px; fill:var(--muted)}
-.calc .ch{font-size:17px; font-weight:600; fill:var(--ink)}
-.calc .code{font-size:14px; fill:var(--muted)}
-.calc .ln{font-size:14px; fill:var(--ink)}
-.calc .b{font-weight:600}
-.calc .res{font-weight:600; fill:var(--accent); font-size:16px}
-.calc .stay{fill:var(--good)}
-.calc .move{fill:var(--accent)}
-@keyframes fade{from{opacity:0} to{opacity:1}}
-@media (prefers-reduced-motion: reduce){
-  .pill, .pill rect, .band, .cell, .bar i, .pill .badge{transition:none}
-  .arrow.in, .calc.in{animation:none}
-}
+.ink{stroke:var(--ink);fill:none;stroke-width:var(--stroke-width,2);stroke-linecap:var(--linecap,round);stroke-linejoin:round}
+.fill-surface{fill:var(--surface)} .fill-accent{fill:var(--accent)} .fill-hl{fill:var(--hl)} .fill-good{fill:var(--good)} .fill-bad{fill:var(--bad)} .fill-line{fill:var(--line)}
+.muted{fill:var(--muted);color:var(--muted)}
+.scene .stage *{transition:fill .35s,stroke .35s,opacity .35s,transform .45s cubic-bezier(.3,.7,.2,1)}
+.reduce-motion *,.reduce-motion *::before,.reduce-motion *::after{transition:none!important;animation:none!important}
 
-.payoff{border-top:3px solid var(--ink); padding-top:22px}
-.payoff .stamp{font-family:var(--font-display); font-weight:700; font-size:clamp(2rem, 1.3rem + 3.6vw, 3.4rem); line-height:1.08; letter-spacing:-0.02em; text-wrap:balance}
-.payoff .stamp mark{background:color-mix(in srgb, var(--hl) 60%, transparent); color:inherit; padding:0 .12em; border-radius:4px}
-.payoff ul{margin:18px 0 0; padding-left:1.2em; display:grid; gap:6px}
-footer{color:var(--muted); font-size:.85rem; border-top:1px solid var(--line); padding-top:14px}
+/* deck mode: one stepper, several sections, only the active one shown */
+.scene.deck [data-scene]{display:none}
+.scene.deck [data-scene].on{display:block;animation:pagein .35s ease both}
+@keyframes pagein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.scene .sec{display:flex;align-items:baseline;gap:10px;padding:12px 20px 6px;border-bottom:var(--border-width,1px) solid var(--line)}
+.scene .sec .no{font-family:var(--font-mono);font-size:.68rem;color:var(--muted);white-space:nowrap}
+.scene .sec .ttl{font-family:var(--font-display);font-weight:var(--display-weight,700);text-transform:var(--display-transform,none);font-size:1.15rem;line-height:1.1}
+.dots.many{flex:1 1 100%;order:9;gap:2px;margin:4px 0 0;flex-wrap:nowrap}
+.dots.many i{flex:1;width:auto;height:5px;border-radius:1px}
+.dots i.done{background:color-mix(in srgb,var(--accent) 45%,var(--line))}
+[data-theme-toggle]{font:inherit;font-size:.8rem;padding:6px 10px;min-height:36px;border:var(--border-width,1px) solid var(--line);border-radius:var(--radius,8px);background:transparent;color:var(--ink);cursor:pointer}
+
+/* play + speed: one pill; the chip shows the speed and opens the choices in a row below */
+.playgroup{display:inline-flex;align-items:stretch}
+.controls .playgroup button.play{border-top-right-radius:0;border-bottom-right-radius:0;min-width:5.2em}
+.controls .playgroup button.speed-now{border-top-left-radius:0;border-bottom-left-radius:0;margin-left:calc(-1 * var(--border-width,1px));
+  min-width:3.4em;padding-left:10px;padding-right:10px;font-family:var(--font-mono);font-variant-numeric:tabular-nums;letter-spacing:0;text-transform:none}
+.controls .playgroup button.speed-now::after{content:"";display:inline-block;width:.42em;height:.42em;margin-left:.4em;vertical-align:.15em;
+  border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);transition:transform .25s}
+.scene.speed-open .speed-now::after{transform:rotate(-135deg);vertical-align:-.05em}
+.scene.speed-open .speed-now{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.speed-menu{flex:1 1 100%;order:8;display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .28s cubic-bezier(.3,.7,.2,1),opacity .2s}
+.scene.speed-open .speed-menu{grid-template-rows:1fr;opacity:1}
+.speed-opts{overflow:hidden;display:flex;gap:4px;padding:2px;margin:0 -2px;border-radius:calc(var(--radius,8px) + 4px)}
+.scene.speed-open .speed-opts{background:color-mix(in srgb,var(--line) 55%,transparent);padding:4px;margin-top:2px}
+.controls .speed-opts button{flex:1 1 0;min-width:0;min-height:40px;padding:6px 0;font-family:var(--font-mono);font-size:clamp(.7rem,2.5vw,.86rem);letter-spacing:-.02em;white-space:nowrap;
+  font-variant-numeric:tabular-nums;letter-spacing:0;text-transform:none;background:var(--surface);border-color:transparent}
+.controls .speed-opts button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink,#fff);border-color:var(--accent)}
+@media (max-width:520px){
+  .speed-opts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Inkwell (inkwell)
+   A ruled notebook, a black fineliner and one green highlighter.
+   Best for: Step-by-step reasoning, debugging stories, anything Eran would sketch by hand.
+   Fonts: Fraunces / Newsreader / IBM Plex Mono
+   Google Fonts: https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;600&display=swap
+   Mode: light and dark
+   --sketch is the feDisplacementMap scale for hand-drawn wobble (0 = off).
+*/
+:root {
+  --font-display: "Fraunces",Georgia,serif;
+  --font-body: "Newsreader",Georgia,serif;
+  --font-mono: "IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --radius: 3px;
+  --stroke-width: 2;
+  --sketch: 1.2;
+  --display-scale: 1;
+  --display-weight: 600;
+  --display-transform: none;
+  --display-tracking: 0;
+  --border-width: 1px;
+  --linecap: round;
+  --node-rx: 13px;
+  --paper: #f1f1ee;
+  --surface: #fbfbf9;
+  --ink: #1d1d22;
+  --muted: #55565f;
+  --line: #c4cbd8;
+  --accent: #1456b8;
+  --hl: #c8f03c;
+  --good: #1d7a45;
+  --bad: #c8322b;
+  --accent-ink: #ffffff;
+  --hl-ink: #111111;
+  --texture: repeating-linear-gradient(to bottom,transparent 0 25px,color-mix(in srgb,var(--accent) 9%,transparent) 25px 26px);
+  --shadow: 0 1px 0 rgba(0,0,0,.08);
+  --texture-size: auto;
+  --body-scale: 1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #161618;
+    --surface: #1f1f23;
+    --ink: #ecebe6;
+    --muted: #a5a49c;
+    --line: #3a3a40;
+    --accent: #7fb2ff;
+    --hl: #c8f03c;
+    --good: #5fd38a;
+    --bad: #ff7b6e;
+    --accent-ink: #101014;
+    --hl-ink: #111111;
+    --texture: repeating-linear-gradient(to bottom,transparent 0 25px,color-mix(in srgb,var(--accent) 7%,transparent) 25px 26px);
+    --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #161618;
+  --surface: #1f1f23;
+  --ink: #ecebe6;
+  --muted: #a5a49c;
+  --line: #3a3a40;
+  --accent: #7fb2ff;
+  --hl: #c8f03c;
+  --good: #5fd38a;
+  --bad: #ff7b6e;
+  --accent-ink: #101014;
+  --hl-ink: #111111;
+  --texture: repeating-linear-gradient(to bottom,transparent 0 25px,color-mix(in srgb,var(--accent) 7%,transparent) 25px 26px);
+  --shadow: none;
+}
+</style>
+<style>
+  #main .stage{min-height:560px}
+  .sum{font-family:var(--font-mono);font-size:15px;min-height:3.2em;margin:0 0 12px;line-height:1.6}
+  .sum b{background:var(--hl);color:var(--hl-ink);padding:0 4px;border-radius:3px}
+  .rows{display:grid;gap:4px}
+  .row{display:flex;align-items:center;gap:8px;min-height:36px;border-radius:var(--radius,6px);padding:2px 4px;transition:background .3s,opacity .3s}
+  .row.off{display:none}
+  .row.look{background:color-mix(in srgb,var(--hl) 35%,transparent)}
+  .idx{flex:none;width:40px;height:34px;display:grid;place-items:center;border:2px solid var(--ink);border-radius:var(--radius,6px);font:600 15px var(--font-mono);background:var(--surface)}
+  .chip{font:600 15px var(--font-mono);border:1.5px solid var(--accent);color:var(--ink);background:var(--paper);border-radius:999px;padding:4px 12px;transition:box-shadow .3s}
+  .chip.new{box-shadow:0 0 0 3px var(--hl)}
+  .chip.found{background:var(--good);border-color:var(--good);color:var(--accent-ink)}
+  .arrow{color:var(--muted);font-size:14px}
+  .list{display:flex;flex-wrap:wrap;gap:8px}
+  .list .chip.look{box-shadow:0 0 0 3px var(--hl)}
+  .list .chip.seen{opacity:.45}
+  .meter{font-family:var(--font-mono);font-size:14px;margin:12px 0 0;color:var(--muted)}
+  .meter b{color:var(--ink)}
+  .meter.over b{color:var(--bad)}
+  .choices{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .choices button{font:600 15px var(--font-mono);border:var(--border-width,1px) solid var(--accent);border-radius:var(--radius,6px);background:var(--paper);color:var(--ink);padding:8px 14px;cursor:pointer}
+  .choices button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 </style>
 </head>
 <body>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-  <filter id="rough" x="-6%" y="-12%" width="112%" height="124%">
-    <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="2" seed="4" result="n"/>
-    <feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/>
-  </filter>
-</defs></svg>
 <main>
+  <header class="col stack">
+    <h1 class="hook">You ask for <code>users["dana"]</code>. How does it come back without searching?</h1>
+    <p>With ten keys or ten million, a dictionary answers in about the same time. Here is how, with numbers small enough to check by hand.</p>
+  </header>
 
-<header class="col">
-  <p class="kicker">Hash tables and collisions</p>
-  <h1>How does a dictionary find your key without searching?</h1>
-  <p class="lede">You write <code>users["dana"]</code> and the value comes back at once. Ten keys or ten million, the wait is about the same. This page shows the mechanism with numbers small enough to check by hand.</p>
-</header>
+  <section class="wide">
+    <figure class="scene" id="main">
+      <div class="stage">
+        <section data-scene="list" data-title="A plain list">
+          <div class="list" id="list"></div>
+          <p class="meter" id="scan"></p>
+        </section>
+        <section data-scene="table" data-title="Buckets">
+          <p class="sum" id="sum" aria-live="off"></p>
+          <div class="rows" id="rows"></div>
+          <p class="meter" id="load"></p>
+          <div class="choices" id="pick" role="group" aria-label="Add a key"></div>
+        </section>
+      </div>
+    </figure>
+  </section>
 
-<section class="wide">
-  <div class="col">
-    <span class="beat">setup</span>
-    <h2>What a plain list has to do</h2>
-    <p>Start with the familiar case. A list keeps keys in arrival order. To find one, you compare from the top.</p>
-  </div>
-  <figure class="scene" data-scene="scan"></figure>
-  <div class="col after">
-    <p>The cost grows with the list. Sorting helps: binary search needs about 20 comparisons for a million keys. A hash table aims for one or two at any size.</p>
-  </div>
-</section>
-
-<section class="wide">
-  <div class="col">
-    <span class="beat">mechanism 1</span>
-    <h2>Turn the key into a position</h2>
-    <p>A hash table is an array of buckets plus one rule. The rule is a hash function: it turns any key into a number. That number modulo the bucket count is the bucket index. The hash used here is about the simplest one possible: add up the character codes.</p>
-  </div>
-  <figure class="scene" data-scene="hash"></figure>
-  <div class="col after">
-    <p>The function is deterministic. Insert and lookup run the same arithmetic and arrive at the same bucket. The work depends on the length of the key. The number of stored keys never enters the calculation.</p>
-  </div>
-</section>
-
-<section class="wide">
-  <div class="col">
-    <span class="beat">mechanism 2</span>
-    <h2>Two keys, one bucket</h2>
-    <p>There are more possible keys than buckets, so some keys must share an index. That is a collision, and every hash table needs a policy for it. The classic policy is separate chaining: each bucket holds a linked list of the keys that landed there.</p>
-  </div>
-  <figure class="scene" data-scene="chain"></figure>
-  <div class="col after">
-    <p>A lookup hashes the key, opens one bucket and compares along that chain only. Its cost is the length of one chain. The load factor is keys divided by buckets, which is also the average chain length. It is the number to watch.</p>
-  </div>
-</section>
-
-<section class="wide">
-  <div class="col">
-    <span class="beat">mechanism 3</span>
-    <h2>Growing the table</h2>
-    <p>When the load factor passes a threshold, the table allocates a bigger array and places every key again. Java's <code>HashMap</code> does this above 0.75 and doubles the array. Each index depended on the old bucket count, so each key is reduced again with the new one.</p>
-  </div>
-  <figure class="scene" data-scene="resize"></figure>
-  <div class="col after">
-    <p>Doubling has a tidy property. A key in bucket <code>i</code> of 4 can only land in bucket <code>i</code> or <code>i + 4</code> of 8, so each chain splits into at most two. A resize touches every key, but it happens rarely enough that the average cost of an insert stays constant.</p>
-    <p>The last frame shows what resizing cannot fix. <code>cat</code> and <code>act</code> are anagrams, and a sum ignores letter order, so they collide at every size. Production hash functions mix each character with its position, which pulls similar keys apart. Many are also seeded per process so that nobody can prepare a set of colliding keys in advance.</p>
-  </div>
-</section>
-
-<section class="wide">
-  <div class="col">
-    <span class="beat">contrast</span>
-    <h2>The other design: open addressing</h2>
-    <p>Chaining stores collided keys outside the array. Open addressing keeps everything inside it: one key per slot, and on a collision the insert tries other slots in a fixed order. The simplest order is linear probing, which tries the next slot down.</p>
-  </div>
-  <figure class="scene" data-scene="probe"></figure>
-  <div class="col after">
-    <p>Probing is kind to CPU caches because neighbours sit in adjacent memory. The price is clustering, so these tables stay well below full. CPython's <code>dict</code> uses open addressing and grows once it is two-thirds full. Deletes need care: emptying a slot would cut the path to keys stored past it, so implementations leave a tombstone marker in its place.</p>
-  </div>
-</section>
-
-<section class="col payoff">
-  <span class="beat">payoff</span>
-  <p class="stamp">The key's own characters say <mark>which bucket to open.</mark></p>
-  <ul>
-    <li>A lookup is one hash, one bucket and a short walk.</li>
-    <li>Load factor is keys divided by buckets. Keep it near 0.75 or lower and the walks stay short.</li>
-    <li>A resize rehashes every key. A weak hash function still collides afterwards.</li>
-  </ul>
-</section>
-
-<footer class="col">Hash on this page: sum of character codes, modulo the bucket count. Every number in the scenes is checked against a real implementation of that table. Arrow keys step a scene once it has focus.</footer>
+  <section class="col stack">
+    <p class="payoff">The key's own letters say <mark>which box to open</mark>.</p>
+    <p>Real hash functions mix each letter with its position, so <code>cat</code> and <code>act</code> no longer collide. Python's
+      <code>dict</code> and Java's <code>HashMap</code> both grow their tables before the lines get long.</p>
+  </section>
 </main>
 
-<!-- scene-data is generated from scene.yaml by build.py. Do not edit by hand. -->
-<script type="application/json" id="scene-data">{"explainer":"hash-tables","theme":"ink","hook":"How does a dictionary find your key without searching?","payoff":"The key's own characters say which bucket to open.","shared":{"hash":"sum of character codes, mod bucket count","keys":{"cat":{"codes":[99,97,116],"sum":312},"fox":{"codes":[102,111,120],"sum":333},"bee":{"codes":[98,101,101],"sum":300},"ant":{"codes":[97,110,116],"sum":323},"act":{"codes":[97,99,116],"sum":312},"cow":{"codes":[99,111,119],"sum":329}}},"scenes":[{"scene":"scan","beat":"setup","title":"Finding a key in a plain list","objects":[{"buckets":{"id":"list","count":6,"mode":"list"}},{"items":{"from":"shared.keys"}}],"steps":[{"say":"Six keys in a plain list. Is act in there?","do":["put cat list.0","put fox list.1","put bee list.2","put ant list.3","put act list.4","put cow list.5"]},{"say":"A list knows nothing about where a key lives. Start at the top and compare.","do":["flag list.0 look","miss cat"]},{"say":"Still comparing.","do":["flag list.3 look","miss cat","miss fox","miss bee","miss ant"]},{"say":"Found, after 5 comparisons. With a million keys this can take a million.","do":["flag list.4 look","miss cat","miss fox","miss bee","miss ant","hit act"]}]},{"scene":"hash","beat":"mechanism","title":"From key to bucket index","objects":[{"buckets":{"id":"table","count":4,"mode":"chain"}},{"items":{"from":"shared.keys"}},{"calc":{"id":"work","of":"table"}}],"steps":[{"say":"A table with 4 buckets, numbered 0 to 3. The key cat needs one of them.","do":["hold cat"]},{"say":"Take the character code of each letter.","do":["calc cat codes"]},{"say":"Add the codes. 312 is the hash of cat.","do":["calc cat sum"]},{"say":"Divide by the bucket count and keep the remainder. 312 mod 4 is 0.","do":["calc cat index 0","flag table.0 target"]},{"say":"cat is stored in bucket 0. The same key always produces the same index, so a lookup can repeat the sum and go straight there.","do":["put cat table.0"]}]},{"scene":"chain","beat":"mechanism","title":"Collisions and chaining","objects":[{"buckets":{"id":"table","count":4,"mode":"chain","load":true,"threshold":0.75}},{"items":{"from":"shared.keys"}},{"calc":{"id":"work","of":"table"}}],"steps":[{"say":"cat sits in bucket 0. Three buckets are empty. Five more keys are coming.","do":["put cat table.0"]},{"say":"fox: 333 mod 4 is 1. Bucket 1 is free.","do":["calc fox index 1","put fox table.1"]},{"say":"bee: 300 mod 4 is 0. Bucket 0 already holds cat. That is a collision.","do":["calc bee index 0","hold bee","flag table.0 collision"]},{"say":"Separate chaining: each bucket is the head of a linked list. bee is appended after cat.","do":["put bee table.0"]},{"say":"ant: 323 mod 4 is 3. Four keys in four buckets.","do":["calc ant index 3","put ant table.3"]},{"say":"act has the same letters as cat, so the same sum. 312 mod 4 is 0 again, and the chain is three long.","do":["calc act index 0","put act table.0"]},{"say":"cow: 329 mod 4 is 1. It chains behind fox. Six keys in four buckets, and bucket 2 is still empty.","do":["calc cow index 1","put cow table.1"]},{"say":"Now look up act. Hash it first: 312 mod 4 is 0. Only bucket 0 can hold it.","do":["calc act index 0","flag table.0 look"]},{"say":"Compare with the first key in the chain. cat is a different key.","do":["flag table.0 look","miss cat"]},{"say":"Follow the pointer. bee is a different key too.","do":["flag table.0 look","miss cat","miss bee"]},{"say":"The third node matches. Found in 3 comparisons, and the keys in the other buckets were never touched.","do":["flag table.0 look","miss cat","miss bee","hit act"]}]},{"scene":"resize","beat":"mechanism","title":"Resizing and rehashing","start":{"from":"chain"},"objects":[{"buckets":{"id":"table","count":4,"grows_to":8,"mode":"chain","load":true,"threshold":0.75}},{"items":{"from":"shared.keys"}},{"calc":{"id":"work","of":"table"}}],"steps":[{"say":"Six keys in four buckets is a load factor of 1.5. A lookup in bucket 0 can cost three comparisons.","do":["calc none"]},{"say":"Double the array to 8 buckets. Every position was computed with mod 4, so every key is now in a stale spot.","do":["resize table 8"]},{"say":"Rehash the old bucket 0 with mod 8. cat and act stay. bee moves to bucket 4.","do":["calc-rows cat=0 bee=4 act=0","put cat table.0","put bee table.4","put act table.0"]},{"say":"Old bucket 1: cow stays, fox moves to bucket 5.","do":["calc-rows fox=5 cow=1","put fox table.5","put cow table.1"]},{"say":"Old bucket 3: 323 mod 8 is 3, so ant stays.","do":["calc-rows ant=3","put ant table.3"]},{"say":"Load factor 0.75, longest chain 2. cat and act still share a bucket. Equal sums collide at every table size.","do":["calc-rows cat=0 act=0","flag table.0 collision"]}]},{"scene":"probe","beat":"mechanism","title":"Open addressing with linear probing","objects":[{"buckets":{"id":"slots","count":8,"mode":"open","load":true,"threshold":0.75}},{"items":{"from":"shared.keys"}},{"calc":{"id":"work","of":"slots"}}],"steps":[{"say":"Open addressing: one key per slot and no lists. fox, bee, ant and cat are in their home slots.","do":["put fox slots.5","put bee slots.4","put ant slots.3","put cat slots.0"]},{"say":"act hashes to slot 0. cat is already there.","do":["calc act index 0","hold act","flag slots.0 taken"]},{"say":"Linear probing: try the next slot. Slot 1 is free, so act is stored there.","do":["flag slots.0 taken","flag slots.1 free","put act slots.1"]},{"say":"cow: 329 mod 8 is 1. Slot 1 is its home, and act is sitting in it.","do":["calc cow index 1","hold cow","flag slots.1 taken"]},{"say":"cow steps on to slot 2. It has a different hash from cat and act and was still pushed along. A run of filled slots like this is a cluster.","do":["flag slots.1 taken","flag slots.2 free","put cow slots.2"]},{"say":"Looking up cow starts at slot 1 and walks forward until it finds the key or an empty slot. Found at slot 2, in 2 comparisons.","do":["calc cow index 1","flag slots.1 look","flag slots.2 look","miss act","hit cow"]}]}]}</script>
-
 <script>
-(function(){
-  var DATA = JSON.parse(document.getElementById("scene-data").textContent);
-  var KEYS = DATA.shared.keys, ORDER = Object.keys(KEYS);
+/* explainer player v0
+ * One shared stepper for every explainer: Back / Next / Play, captions, dots, keys, reduced motion.
+ * A scene is data plus two small functions:
+ *
+ *   Explainer.scene("#queue", {
+ *     title: "Requests waiting in a queue",        // used for the stage's aria-label
+ *     initial: { waiting: 0, served: 0 },          // state before step 1
+ *     steps: [                                     // or a function (api) -> steps, see setSteps
+ *       { say: "Three requests arrive at once.", set: { waiting: 3 } },
+ *       { say: "The worker takes one. {left} still wait.", set: { waiting: 2, served: 1 }, mark: { busy: true } },
+ *     ],
+ *     setup(stage, api) { ... },                   // build the DOM once
+ *     draw(state, api)  { ... },                   // make the DOM match `state`; api.animate is false on first paint
+ *     compute(state)    { return { left: state.waiting }; }  // numbers for {name} in captions
+ *   });
+ *
+ * Deck mode (one stepper drives several sections, like a manual): put <section data-scene="loop" data-title="The loop">
+ * blocks inside the figure, give each step `scene: "loop"`, and pass per-section code as
+ * `scenes: { loop: { setup(sectionEl, api), draw(state, api) } }`. Only the active section is shown.
+ * A step with `wait: true` stops Play there, because the reader has something to do.
+ *
+ * State at step i = initial, then every step's `set` from 0..i merged in order, then step i's `mark`.
+ * `set` carries forward; `mark` is true for one step only (highlights, "look here", a probe).
+ * Captions may use {name}: filled from compute(state), then state. A missing name renders [?name] and is
+ * reported in window.__explainer.errors, so the check script fails instead of shipping a wrong number.
+ */
+(function () {
+  "use strict";
   var NS = "http://www.w3.org/2000/svg";
-  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var RH = 40, CELLX = 16, CELLW = 40, ITEMX = 76, ITEMW = 64, GAP = 20, INBOX = [16, 18];
-  var FLAG = {target:"hl", look:"hl", collision:"bad", taken:"bad", free:"good"};
-  var byId = {}; DATA.scenes.forEach(function(s){ byId[s.scene] = s; });
+  var reduce = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  var registry = (window.__explainer = window.__explainer || { scenes: [], errors: [] });
+  if (reduce) document.documentElement.classList.add("reduce-motion");
 
-  function objectsOf(scene){ var o = {}; scene.objects.forEach(function(x){ var k = Object.keys(x)[0]; o[k] = x[k]; }); return o; }
-
-  // ---- states: fold the `do` lists into "what is true at step i" ----
-  function apply(st, ops){
-    st.flags = {}; st.marks = {};
-    ops.forEach(function(op){
-      var a = op.split(/\s+/), k = a[1];
-      if (a[0] === "hold") st.items[k] = {where:"hold"};
-      else if (a[0] === "put") st.items[k] = {where:"b", b:+a[2].split(".")[1], seq:++st.seq, stale:false};
-      else if (a[0] === "resize"){ st.m = +a[2]; for (var x in st.items) if (st.items[x].where === "b") st.items[x].stale = true; }
-      else if (a[0] === "calc") st.calc = k === "none" ? null : {key:k, level:{codes:1, sum:2, index:3}[a[2]], index:a[3], m:st.m};
-      else if (a[0] === "calc-rows") st.calc = {m:st.m, rows:a.slice(1).map(function(p){
-        var q = p.split("="), it = st.items[q[0]];
-        return {key:q[0], index:+q[1], from:(it && it.stale) ? it.b : null};
-      })};
-      else if (a[0] === "flag") st.flags[+a[1].split(".")[1]] = FLAG[a[2]];
-      else if (a[0] === "miss" || a[0] === "hit") st.marks[k] = a[0];
-    });
-  }
-  function stateAt(scene, i){
-    var T = objectsOf(scene).buckets;
-    var st = {m:T.count, items:{}, seq:0, calc:null, flags:{}, marks:{}};
-    if (scene.start){ byId[scene.start.from].steps.forEach(function(s){ apply(st, s.do); }); st.calc = null; }
-    for (var j = 0; j <= i; j++) apply(st, scene.steps[j].do);
-    return st;
+  // Playback speed, shared by every scene on the page and remembered per viewer.
+  var SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+  var speed = 1, speedViews = [];
+  try { var saved = parseFloat(localStorage.getItem("explainer-speed")); if (SPEEDS.indexOf(saved) >= 0) speed = saved; } catch (e) {}
+  function speedLabel(v) { return v + "\u00d7"; }
+  function setSpeed(v) {
+    speed = v;
+    try { localStorage.setItem("explainer-speed", String(v)); } catch (e) {}
+    speedViews.forEach(function (f) { f(); });
   }
 
-  function el(name, attrs, parent){
+  function report(scene, msg) {
+    registry.errors.push(scene + ": " + msg);
+    if (window.console) console.error("[explainer] " + scene + ": " + msg);
+  }
+
+  function svg(name, attrs, parent) {
     var e = document.createElementNS(NS, name);
-    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    for (var k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]);
     if (parent) parent.appendChild(e);
     return e;
   }
 
-  function mount(fig){
-    var scene = byId[fig.dataset.scene], O = objectsOf(scene), T = O.buckets;
-    var hasCalc = !!O.calc, TOP = hasCalc ? 120 : 12, maxM = T.grows_to || T.count, H = TOP + maxM*RH + 8;
-    var chain = T.mode === "chain";
-    fig.setAttribute("tabindex", "0");
-    fig.innerHTML =
-      '<div class="stage"><svg viewBox="0 0 360 ' + H + '" role="img" aria-label="' + scene.title + '"></svg></div>' +
-      '<div class="panel">' +
-      (T.load ? '<div class="load has"><span>load factor</span><b></b><div class="bar"><i></i><u></u><s>' + T.threshold + '</s></div></div>' : '') +
-      '<p class="caption" aria-live="polite"></p>' +
-      '<div class="controls"><button type="button" class="prev">Back</button><button type="button" class="next primary">Next step</button><button type="button" class="play">Play</button><div class="dots" aria-hidden="true"></div></div></div>';
-    var svg = fig.querySelector("svg");
-    var gBands = el("g", {}, svg), gCells = el("g", {}, svg), gArrows = el("g", {}, svg), gCalc = el("g", {"class":"calc"}, svg), gItems = el("g", {}, svg);
-    var bands = [], cells = [];
-    for (var b = 0; b < maxM; b++){
-      var y = TOP + b*RH;
-      bands.push(el("rect", {x:6, y:y+1, width:348, height:RH-2, rx:9, "class":"band"}, gBands));
-      var g = el("g", {"class":"cell"}, gCells);
-      el("rect", {x:CELLX, y:y+4, width:CELLW, height:32, rx:5, "class":"rough"}, g);
-      el("text", {x:CELLX+CELLW/2, y:y+25.5, "text-anchor":"middle"}, g).textContent = b;
-      if (!chain) el("rect", {x:CELLX+CELLW+6, y:y+4, width:92, height:32, rx:5, "class":"slot"}, g);
-      cells.push(g);
+  function h(tag, attrs, parent) {
+    var e = document.createElement(tag);
+    for (var k in attrs) {
+      if (k === "text") e.textContent = attrs[k];
+      else if (attrs[k] != null) e.setAttribute(k, attrs[k]);
     }
-    var pills = {}, arrows = {};
-    var caption = fig.querySelector(".caption"), dots = fig.querySelector(".dots");
-    var prev = fig.querySelector(".prev"), next = fig.querySelector(".next"), play = fig.querySelector(".play");
-    var loadB = fig.querySelector(".load b"), loadI = fig.querySelector(".bar i");
-    scene.steps.forEach(function(){ dots.appendChild(document.createElement("i")); });
-    var idx = 0, timer = null, lastCalc = "";
-
-    function pillFor(k){
-      var g = el("g", {"class":"pill"}, gItems);
-      el("rect", {x:0, y:0, width:ITEMW, height:28, rx:14, "class":"rough"}, g);
-      el("text", {x:ITEMW/2, y:19.5, "text-anchor":"middle", "class":"k"}, g).textContent = k;
-      var bd = el("g", {"class":"badge"}, g);
-      el("circle", {cx:ITEMW-3, cy:1, r:9}, bd);
-      el("text", {x:ITEMW-3, y:5.5, "text-anchor":"middle"}, bd);
-      return g;
-    }
-    function drawCalc(c){
-      var h = "";
-      if (c && c.rows){
-        c.rows.forEach(function(r, n){
-          var y = 34 + n*28, d = KEYS[r.key];
-          h += '<text class="ln" x="16" y="' + y + '"><tspan class="b">' + r.key + '</tspan>  ' + d.sum + ' mod ' + c.m + ' = <tspan class="res">' + r.index + '</tspan>';
-          if (r.from !== null) h += (r.from === r.index ? '<tspan class="stay">  stays</tspan>' : '<tspan class="move">  moves to ' + r.index + '</tspan>');
-          h += '</text>';
-        });
-      } else if (c){
-        var d = KEYS[c.key];
-        h += '<rect class="inbox" x="' + INBOX[0] + '" y="' + INBOX[1] + '" width="' + ITEMW + '" height="28" rx="14"/><text class="ghost" x="' + (INBOX[0]+ITEMW/2) + '" y="' + (INBOX[1]+19.5) + '" text-anchor="middle">' + c.key + '</text>';
-        c.key.split("").forEach(function(ch, j){
-          var cx = 116 + j*42;
-          h += '<text class="ch" x="' + cx + '" y="27" text-anchor="middle">' + ch + '</text><text class="code" x="' + cx + '" y="48" text-anchor="middle">' + d.codes[j] + '</text>';
-        });
-        if (c.level >= 2) h += '<text class="ln" x="100" y="76">' + d.codes.join(" + ") + ' = <tspan class="b">' + d.sum + '</tspan></text>';
-        if (c.level >= 3) h += '<text class="ln" x="100" y="104"><tspan class="b">' + d.sum + '</tspan> mod ' + c.m + ' = <tspan class="res">' + c.index + '</tspan></text>';
-      }
-      return h;
-    }
-
-    function render(animate){
-      var st = stateAt(scene, idx), step = scene.steps[idx];
-      // buckets
-      for (var b = 0; b < maxM; b++){
-        cells[b].setAttribute("class", "cell" + (b < st.m ? "" : " off"));
-        bands[b].setAttribute("class", "band" + (st.flags[b] ? " f-" + st.flags[b] : ""));
-      }
-      // chain positions: fresh keys first in put order, stale keys after them
-      var chains = {};
-      ORDER.filter(function(k){ return st.items[k] && st.items[k].where === "b"; })
-        .sort(function(p, q){ var A = st.items[p], B = st.items[q]; return (A.stale - B.stale) || (A.seq - B.seq); })
-        .forEach(function(k){ var it = st.items[k]; (chains[it.b] = chains[it.b] || []).push(k); it.pos = chains[it.b].length - 1; });
-      var n = 0;
-      ORDER.forEach(function(k){
-        var it = st.items[k], g = pills[k];
-        if (!it){ if (g){ g.remove(); delete pills[k]; } return; }
-        var x, y;
-        if (it.where === "hold"){ x = INBOX[0]; y = INBOX[1]; }
-        else { n++; x = ITEMX + it.pos*(ITEMW+GAP); y = TOP + it.b*RH + 6; }
-        var fresh = !g;
-        if (fresh){
-          g = pills[k] = pillFor(k);
-          if (animate && !reduce && hasCalc && it.where === "b"){
-            g.style.transform = "translate(" + INBOX[0] + "px," + INBOX[1] + "px)";
-            g.getBoundingClientRect();
-          }
-        }
-        g.style.transform = "translate(" + x + "px," + y + "px)";
-        var m = st.marks[k];
-        g.setAttribute("class", "pill" + (it.where === "hold" ? " held" : "") + (it.stale ? " stale" : "") + (m ? " " + m : ""));
-        if (m) g.querySelector(".badge text").textContent = m === "hit" ? "=" : "≠";
-      });
-      // arrows: bucket head to first key, then key to key
-      var want = {};
-      if (chain) for (var bk in chains) chains[bk].forEach(function(k, p){
-        var cy = TOP + (+bk)*RH + 20;
-        var x1 = p === 0 ? CELLX + CELLW : ITEMX + (p-1)*(ITEMW+GAP) + ITEMW, x2 = ITEMX + p*(ITEMW+GAP);
-        want[bk + "-" + p] = {x1:x1 + 2, x2:x2 - 2, y:cy, stale:st.items[k].stale};
-      });
-      for (var id in arrows) if (!want[id]){ arrows[id].remove(); delete arrows[id]; }
-      for (id in want){
-        var w = want[id], a = arrows[id];
-        if (!a){
-          a = arrows[id] = el("g", {}, gArrows);
-          el("line", {x1:w.x1, y1:w.y, x2:w.x2 - 6, y2:w.y}, a);
-          el("polygon", {points:(w.x2-7) + "," + (w.y-4.5) + " " + w.x2 + "," + w.y + " " + (w.x2-7) + "," + (w.y+4.5)}, a);
-          a.setAttribute("class", "arrow" + (animate ? " in" : ""));
-        }
-        a.classList.toggle("stale", w.stale);
-      }
-      // worksheet
-      var ch = drawCalc(st.calc);
-      if (ch !== lastCalc){ gCalc.innerHTML = ch; lastCalc = ch; gCalc.setAttribute("class", "calc"); if (animate){ gCalc.getBoundingClientRect(); gCalc.setAttribute("class", "calc in"); } }
-      // load factor, derived from the table
-      if (loadB){
-        var lf = n / st.m, over = lf > T.threshold;
-        loadB.textContent = n + " keys / " + st.m + " buckets = " + lf.toFixed(2);
-        loadB.className = over ? "over" : "";
-        loadI.style.width = Math.min(100, lf / 1.5 * 100) + "%";
-        loadI.className = over ? "over" : "";
-      }
-      caption.innerHTML = '<span class="stepno">step ' + (idx+1) + ' of ' + scene.steps.length + '</span>';
-      caption.appendChild(document.createTextNode(step.say));
-      [].forEach.call(dots.children, function(d, i){ d.classList.toggle("on", i === idx); });
-      prev.disabled = idx === 0;
-      next.textContent = idx === scene.steps.length - 1 ? "Restart" : "Next step";
-    }
-    function go(d){
-      if (d > 0 && idx === scene.steps.length - 1) idx = 0; else idx = Math.max(0, Math.min(scene.steps.length - 1, idx + d));
-      render(true);
-    }
-    function stop(){ if (timer){ clearInterval(timer); timer = null; play.textContent = "Play"; } }
-    prev.addEventListener("click", function(){ stop(); go(-1); });
-    next.addEventListener("click", function(){ stop(); go(1); });
-    play.addEventListener("click", function(){
-      if (timer){ stop(); return; }
-      if (idx === scene.steps.length - 1){ idx = 0; render(true); }
-      play.textContent = "Pause";
-      timer = setInterval(function(){ if (idx === scene.steps.length - 1){ stop(); return; } go(1); }, 2600);
-    });
-    fig.addEventListener("keydown", function(e){
-      if (e.key === "ArrowRight"){ stop(); go(1); e.preventDefault(); }
-      if (e.key === "ArrowLeft"){ stop(); go(-1); e.preventDefault(); }
-    });
-    render(false);
+    if (parent) parent.appendChild(e);
+    return e;
   }
-  [].forEach.call(document.querySelectorAll("figure.scene"), mount);
+
+  // Seeded random numbers (mulberry32): same seed, same sequence, so captions and videos stay stable.
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6d2b79f5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function fmt(v) {
+    return typeof v === "number" ? v.toLocaleString("en-US", { maximumFractionDigits: 2 }) : String(v);
+  }
+
+  function words(s) {
+    return String(s || "").split(/\s+/).filter(Boolean).length;
+  }
+
+  // Hand-drawn wobble: one shared SVG filter, strength from the theme's --sketch token (0 = off).
+  var roughDone = false;
+  function ensureRough() {
+    if (roughDone) return;
+    roughDone = true;
+    var scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sketch")) || 0;
+    var defs = svg("svg", { width: 0, height: 0, "aria-hidden": "true", style: "position:absolute" }, document.body);
+    var f = svg("filter", { id: "rough", x: "-5%", y: "-5%", width: "110%", height: "110%" }, svg("defs", {}, defs));
+    svg("feTurbulence", { type: "fractalNoise", baseFrequency: "0.035", numOctaves: 2, seed: 7, result: "n" }, f);
+    svg("feDisplacementMap", { in: "SourceGraphic", in2: "n", scale: scale, xChannelSelector: "R", yChannelSelector: "G" }, f);
+  }
+
+  function scene(target, opts) {
+    var fig = typeof target === "string" ? document.querySelector(target) : target;
+    var name = fig && (fig.id || opts.title) || "scene";
+    if (!fig) { report(String(target), "element not found"); return null; }
+    ensureRough();
+
+    fig.classList.add("scene");
+    if (!fig.hasAttribute("tabindex")) fig.setAttribute("tabindex", "0");
+    var stage = fig.querySelector(".stage") || h("div", { class: "stage" }, fig);
+    stage.setAttribute("role", "img");
+    stage.setAttribute("aria-label", opts.title || name);
+    var sections = {}, head = null;
+    [].forEach.call(fig.querySelectorAll("[data-scene]"), function (s) { sections[s.getAttribute("data-scene")] = s; });
+    var names = Object.keys(sections);
+    if (names.length) {
+      fig.classList.add("deck");
+      head = h("div", { class: "sec" }, null);
+      stage.parentNode.insertBefore(head, stage);
+    }
+    var caption = h("p", { class: "caption", "aria-live": "polite" }, fig);
+    var bar = h("div", { class: "controls" }, fig);
+    var prev = h("button", { type: "button", class: "prev", text: "Back" }, bar);
+    var next = h("button", { type: "button", class: "next primary", text: "Next" }, bar);
+    // Play is a split control: the main part plays and pauses, the chip shows the speed and opens the choices.
+    var group = h("div", { class: "playgroup" }, bar);
+    var play = h("button", { type: "button", class: "play", text: "Play" }, group);
+    var chip = h("button", { type: "button", class: "speed-now", "aria-expanded": "false", "aria-label": "Playback speed" }, group);
+    var menu = h("div", { class: "speed-menu", role: "group", "aria-label": "Playback speed", "aria-hidden": "true" }, bar);
+    var menuIn = h("div", { class: "speed-opts" }, menu);
+    var opts_ = SPEEDS.map(function (v) {
+      var b = h("button", { type: "button", "data-speed": v, tabindex: "-1", text: speedLabel(v) }, menuIn);
+      b.addEventListener("click", function () { setSpeed(v); openMenu(false); chip.focus(); if (timer) { clearTimeout(timer); tick(); } });
+      return b;
+    });
+    function paintSpeed() {
+      chip.textContent = speedLabel(speed);
+      chip.setAttribute("aria-label", "Playback speed " + speedLabel(speed) + ". Change");
+      opts_.forEach(function (b) { b.setAttribute("aria-pressed", +b.getAttribute("data-speed") === speed); });
+    }
+    function openMenu(on) {
+      fig.classList.toggle("speed-open", on);
+      chip.setAttribute("aria-expanded", on);
+      menu.setAttribute("aria-hidden", !on);
+      opts_.forEach(function (b) { b.setAttribute("tabindex", on ? "0" : "-1"); });
+      if (on) { var cur = opts_[SPEEDS.indexOf(speed)]; if (cur) cur.focus(); }
+    }
+    chip.addEventListener("click", function () { openMenu(chip.getAttribute("aria-expanded") !== "true"); });
+    menu.addEventListener("keydown", function (e) {
+      var i = opts_.indexOf(document.activeElement);
+      if (e.key === "Escape") { openMenu(false); chip.focus(); }
+      else if ((e.key === "ArrowRight" || e.key === "ArrowLeft") && i >= 0) {
+        opts_[(i + (e.key === "ArrowRight" ? 1 : opts_.length - 1)) % opts_.length].focus();
+      } else return;
+      e.preventDefault(); e.stopPropagation();
+    });
+    speedViews.push(paintSpeed);
+    paintSpeed();
+    var dots = h("div", { class: "dots", "aria-hidden": "true" }, bar);
+
+    var steps = [], idx = 0, timer = null, state = {};
+    var api = {
+      el: fig, stage: stage, reduce: reduce, animate: false,
+      get index() { return idx; },
+      get count() { return steps.length; },
+      get state() { return state; },
+      get step() { return steps[idx]; },
+      get scene() { return steps[idx] && steps[idx].scene; },
+      sections: sections,
+      go: function (i) { stop(); show(i, true); },
+      next: function () { stop(); step(1); },
+      prev: function () { stop(); step(-1); },
+      play: function () { if (!timer) toggle(); },
+      stop: stop,
+      get speed() { return speed; },
+      setSpeed: setSpeed,
+      // Replace the steps, e.g. after the reader picks an input and real code generates a new trace.
+      setSteps: function (s, at) { steps = s || []; buildDots(); stop(); show(at || 0, true); },
+      // Keep steps up to the current one, replace everything after it, and move on: a reader's choice
+      // that changes what happens next (pick a route, approve a call).
+      branch: function (s) { steps = steps.slice(0, idx + 1).concat(s || []); buildDots(); stop(); show(idx + 1, true); },
+      // Jump to the first step that matches, e.g. api.goWhere(function (s) { return s.scene === "panel"; }).
+      goWhere: function (pred) { for (var i = 0; i < steps.length; i++) if (pred(steps[i], i)) { stop(); show(i, true); return i; } return -1; },
+      redraw: function () { show(idx, false); },
+      // Replace the caption until the next step, e.g. after the reader clicks something inside a scene.
+      say: function (text) { setCaption(text); },
+      stateAt: stateAt,
+      captionAt: function (i) { return fill(steps[i] && steps[i].say, stateAt(i), true); },
+      svg: svg, h: h, rng: rng
+    };
+
+    function stateAt(i) {
+      var s = {}, k;
+      for (k in opts.initial || {}) s[k] = opts.initial[k];
+      for (var j = 0; j <= i && j < steps.length; j++) for (k in steps[j].set || {}) s[k] = steps[j].set[k];
+      var m = (steps[i] && steps[i].mark) || {};
+      for (k in m) s[k] = m[k];
+      return s;
+    }
+
+    function fill(text, s, quiet) {
+      var vals = opts.compute ? opts.compute(s, api) || {} : {};
+      return String(text || "").replace(/\{(\w+)\}/g, function (all, key) {
+        var v = key in vals ? vals[key] : s[key];
+        if (v === undefined || v === null || (typeof v === "number" && !isFinite(v))) {
+          if (!quiet) report(name, "caption needs {" + key + "} but compute() and state do not provide it");
+          return "[?" + key + "]";
+        }
+        return fmt(v);
+      });
+    }
+
+    function buildDots() {
+      dots.innerHTML = "";
+      dots.classList.toggle("many", steps.length > 12);
+      for (var i = 0; i < steps.length; i++) h("i", {}, dots);
+    }
+
+    function show(i, animate) {
+      if (!steps.length) return;
+      idx = Math.max(0, Math.min(steps.length - 1, i));
+      state = stateAt(idx);
+      api.animate = !!animate && !reduce;
+      var sc = steps[idx].scene;
+      if (names.length) {
+        if (sc && !sections[sc]) report(name, "step " + (idx + 1) + " names scene '" + sc + "' but there is no [data-scene=" + sc + "]");
+        names.forEach(function (n) { sections[n].classList.toggle("on", n === sc); });
+        var pos = names.indexOf(sc) + 1, title = sc && sections[sc] ? sections[sc].getAttribute("data-title") || "" : "";
+        head.innerHTML = "";
+        h("span", { class: "no", text: pos + " / " + names.length }, head);
+        h("span", { class: "ttl", text: title }, head);
+      }
+      try {
+        var part = sc && opts.scenes && opts.scenes[sc];
+        if (part && part.draw) part.draw(state, api);
+        if (opts.draw) opts.draw(state, api);
+      } catch (e) { report(name, "draw() failed at step " + (idx + 1) + ": " + e.message); }
+      setCaption(fill(steps[idx].say, state));
+      for (var d = 0; d < dots.children.length; d++) {
+        dots.children[d].classList.toggle("on", d === idx);
+        dots.children[d].classList.toggle("done", d < idx);
+      }
+      prev.disabled = idx === 0;
+      next.textContent = idx === steps.length - 1 ? "Restart" : "Next";
+    }
+
+    function setCaption(text) {
+      caption.innerHTML = "";
+      h("span", { class: "stepno", text: "step " + (idx + 1) + " of " + steps.length }, caption);
+      caption.appendChild(document.createTextNode(text));
+    }
+
+    function step(d) {
+      if (d > 0 && idx === steps.length - 1) show(0, true);
+      else show(idx + d, true);
+    }
+
+    function holdFor(s) {
+      if (s && s.hold) return s.hold;
+      return Math.max(1800, Math.min(7000, 900 + 260 * words(s && s.say)));
+    }
+
+    function stop() {
+      if (timer) { clearTimeout(timer); timer = null; play.textContent = "Play"; }
+    }
+
+    function tick() {
+      timer = setTimeout(function () {
+        if (idx >= steps.length - 1) { stop(); return; }
+        show(idx + 1, true);
+        if (steps[idx].wait) { stop(); return; }
+        tick();
+      }, holdFor(steps[idx]) / speed);
+    }
+
+    function toggle() {
+      if (timer) { stop(); return; }
+      if (idx === steps.length - 1) show(0, true);
+      else if (steps[idx].wait) show(idx + 1, true);
+      play.textContent = "Pause";
+      tick();
+    }
+
+    prev.addEventListener("click", function () { stop(); step(-1); });
+    next.addEventListener("click", function () { stop(); step(1); });
+    play.addEventListener("click", toggle);
+    function onKey(e) {
+      var t = e.target, tag = t && t.tagName;
+      if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA" || (t && t.isContentEditable)) return;
+      if (t && t.closest && t.closest(".speed-menu")) return;
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === "ArrowRight") { stop(); step(1); }
+      else if (k === "ArrowLeft") { stop(); step(-1); }
+      else if (k === "Home") { stop(); show(0, true); }
+      else if (k === "End") { stop(); show(steps.length - 1, true); }
+      else return;
+      e.preventDefault();
+    }
+    fig.addEventListener("keydown", onKey);
+    api.onKey = onKey;
+
+    try {
+      if (opts.setup) opts.setup(stage, api);
+      names.forEach(function (n) { var p = opts.scenes && opts.scenes[n]; if (p && p.setup) p.setup(sections[n], api); });
+    } catch (e) { report(name, "setup() failed: " + e.message); }
+    steps = typeof opts.steps === "function" ? opts.steps(api) : opts.steps || [];
+    if (!steps.length) report(name, "no steps");
+    buildDots();
+    show(0, false);
+    registry.scenes.push({ name: name, api: api });
+    return api;
+  }
+
+  // With a single scene on the page, arrow keys work from anywhere, not only when the scene has focus.
+  document.addEventListener("keydown", function (e) {
+    if (registry.scenes.length !== 1 || e.defaultPrevented) return;
+    var fig = registry.scenes[0].api.el;
+    if (fig.contains(e.target)) return;
+    registry.scenes[0].api.onKey(e);
+  });
+
+  // Any <button data-theme-toggle> flips between light and dark, overriding the system setting.
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-theme-toggle]");
+    if (!b) return;
+    var r = document.documentElement;
+    var cur = r.getAttribute("data-theme") || (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    r.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
+  });
+
+  window.Explainer = { scene: scene, svg: svg, h: h, rng: rng, fmt: fmt, reduce: reduce };
+})();
+</script>
+<script>
+(function () {
+  // The hash on this page: add up the letter codes, then keep the remainder after dividing by the box count.
+  function codes(k) { return k.split("").map(function (c) { return c.charCodeAt(0); }); }
+  function sum(k) { return codes(k).reduce(function (a, b) { return a + b; }, 0); }
+  function box(k, m) { return sum(k) % m; }
+  var LIMIT = 0.75;
+  var LIST = ["ant", "bee", "cat", "dog", "elk", "fox", "gnu", "owl"];
+  var PICKS = ["dog", "owl", "act"];
+
+  function place(keys, m) {
+    var rows = []; for (var i = 0; i < m; i++) rows.push([]);
+    keys.forEach(function (k) { rows[box(k, m)].push(k); });
+    return rows;
+  }
+  function steps(pick, auto) {
+    var keys = ["cat", "fox", "bee", pick], who = auto ? "Say you add " : "You added ";
+    var shared = place(keys, 8).filter(function (r) { return r.length > 1; })[0];
+    var last = shared
+      ? { scene: "table", say: shared.join(" and ") + " still share box " + box(shared[0], 8) + ". Their letters add up to the same number, " + sum(shared[0]) + ", so no size can split them.", mark: { look: box(shared[0], 8) } }
+      : { scene: "table", say: "Now every key has a box to itself. Finding any of them is one sum and one box.", mark: {} };
+    return [
+      { scene: "table", say: who + pick + ". Its letters add up to {psum}, and {psum} mod 4 = {pbox}, so it goes in box {pbox}.", set: { keys: keys, calc: pick, picked: PICKS.indexOf(pick) }, mark: { fresh: pick } },
+      { scene: "table", say: "Now 4 keys share 4 boxes. Keys divided by boxes is the load: {load}. Above {limit}, lines start getting long.", set: { calc: null } },
+      { scene: "table", say: "So the table doubles to 8 boxes and places every key again, using mod 8 this time.", set: { m: 8 } },
+      last
+    ];
+  }
+
+  var listEls = [], rowEls = [], buttons = [], scanEl, sumEl, loadEl, pickEl;
+  var api = Explainer.scene("#main", {
+    title: "Keys being placed into numbered boxes",
+    initial: { scan: -1, keys: [], m: 4, calc: null, part: 0, picked: -1 },
+    steps: [
+      { scene: "list", say: "In a plain list, finding owl means checking each key from the top." },
+      { scene: "list", say: "It takes {scanned} checks. Double the list and it takes about twice as many.", set: { scan: LIST.indexOf("owl") } },
+      { scene: "table", say: "A hash table is a row of numbered boxes, called buckets. This one has 4." },
+      { scene: "table", say: "To store cat, turn each letter into its character code.", set: { calc: "cat", part: 1 } },
+      { scene: "table", say: "Add them up: {csum}.", set: { part: 2 } },
+      { scene: "table", say: "Divide by 4 and keep the remainder: {cbox}. So cat goes in box {cbox}.", set: { part: 3, keys: ["cat"] }, mark: { fresh: "cat" } },
+      { scene: "table", say: "fox adds up to {fsum}, which lands in box {fbox}.", set: { calc: "fox", keys: ["cat", "fox"] }, mark: { fresh: "fox" } },
+      { scene: "table", say: "bee adds up to {bsum}, which lands in box {bbox}, next to cat. Two keys in one box is a collision; they form a short line.", set: { calc: "bee", keys: ["cat", "fox", "bee"] }, mark: { fresh: "bee" } },
+      { scene: "table", say: "To find fox later, do the same sum. It says box {fbox}. One box to open, no search.", set: { calc: "fox" }, mark: { look: box("fox", 4), found: "fox" } },
+      { scene: "table", say: "Your turn: add one more key. Where will it land?", set: { calc: null, ask: true }, wait: true }
+    ].concat(steps("dog", true)),
+    compute: function (s) {
+      var p = PICKS[s.picked] || "dog";
+      return { scanned: LIST.indexOf("owl") + 1, csum: sum("cat"), cbox: box("cat", 4), fsum: sum("fox"), fbox: box("fox", 4),
+               bsum: sum("bee"), bbox: box("bee", 4), psum: sum(p), pbox: box(p, 4),
+               load: (s.keys.length / s.m).toFixed(2), limit: LIMIT };
+    },
+    scenes: {
+      list: {
+        setup: function (sec, api) {
+          var box = sec.querySelector("#list");
+          LIST.forEach(function (k) { listEls.push(api.h("span", { class: "chip", text: k }, box)); });
+          scanEl = sec.querySelector("#scan");
+        },
+        draw: function (s) {
+          listEls.forEach(function (c, i) { c.classList.toggle("seen", s.scan >= 0 && i < s.scan); c.classList.toggle("look", i === s.scan); });
+          scanEl.innerHTML = s.scan < 0 ? "&nbsp;" : "checks: <b>" + (s.scan + 1) + "</b> of " + LIST.length;
+        }
+      },
+      table: {
+        setup: function (sec, api) {
+          var rows = sec.querySelector("#rows");
+          for (var i = 0; i < 8; i++) {
+            var r = api.h("div", { class: "row" }, rows);
+            api.h("span", { class: "idx", text: String(i) }, r);
+            rowEls.push(r);
+          }
+          sumEl = sec.querySelector("#sum"); loadEl = sec.querySelector("#load");
+          var pick = sec.querySelector("#pick");
+          PICKS.forEach(function (k, i) {
+            var b = api.h("button", { type: "button", text: "+ " + k, "aria-pressed": "false" }, pick);
+            b.addEventListener("click", function () { api.goWhere(function (st) { return st.wait; }); api.branch(steps(k, false)); });
+            buttons.push(b);
+          });
+          pickEl = pick;
+        },
+        draw: function (s) {
+          var placed = place(s.keys, s.m);
+          rowEls.forEach(function (r, i) {
+            r.classList.toggle("off", i >= s.m);
+            r.classList.toggle("look", i === s.look);
+            [].slice.call(r.querySelectorAll(".chip,.arrow")).forEach(function (n) { n.remove(); });
+            (placed[i] || []).forEach(function (k, j) {
+              if (j > 0) r.appendChild(Object.assign(document.createElement("span"), { className: "arrow", textContent: "→" }));
+              var c = document.createElement("span");
+              c.className = "chip" + (k === s.fresh ? " new" : "") + (k === s.found ? " found" : "");
+              c.textContent = k; r.appendChild(c);
+            });
+          });
+          var t = "&nbsp;";
+          if (s.calc) {
+            var cs = codes(s.calc), part = s.calc === "cat" ? s.part : 3;
+            t = s.calc + " → " + cs.join(" + ");
+            if (part >= 2) t += " = " + sum(s.calc);
+            if (part >= 3) t += "<br>" + sum(s.calc) + " mod " + s.m + " = <b>" + box(s.calc, s.m) + "</b>";
+          }
+          sumEl.innerHTML = t;
+          var lf = s.keys.length / s.m;
+          loadEl.className = "meter" + (lf > LIMIT ? " over" : "");
+          loadEl.innerHTML = s.keys.length ? "load: " + s.keys.length + " keys / " + s.m + " boxes = <b>" + lf.toFixed(2) + "</b>" : "&nbsp;";
+          pickEl.style.display = s.ask ? "" : "none";
+          buttons.forEach(function (b, i) { b.setAttribute("aria-pressed", String(i === s.picked)); });
+        }
+      }
+    }
+  });
 })();
 </script>
 </body>
