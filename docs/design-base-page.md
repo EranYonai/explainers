@@ -1,6 +1,8 @@
 # Design: a resilient, extensible base page
 
-Status: proposal, not built. Scope: the shared player (`player.js`, `player.css`), the page template,
+Status: built. Two changes from the proposal: reader choices are measured up front (a scene lists its
+outcomes in `branches`) instead of growing the stage once after a choice, so the controls never move at all;
+and the rollout shipped as one change instead of three. The open questions below took the defaults. Scope: the shared player (`player.js`, `player.css`), the page template,
 the themes, `SKILL.md` and `check.mjs`.
 
 Two goals:
@@ -281,11 +283,9 @@ Three changes, each small enough to review on a phone:
 3. **Starters.** The four `templates/kinds/*.src.html` files, then one dogfood run per new kind (a PR and an incident,
    with neutral made-up content) logged in `runs.csv`.
 
-## Open questions
+## Open questions (defaults taken)
 
-- **Sticky dock on a phone:** worth it, or does a stage budget alone keep controls on screen? I lean
-  towards the dock, since tall decks like ai-harness will exist anyway.
-- **Captions above or below the stage:** below today. Above would keep the text next to the headline
-  and leave the controls as the only thing at the bottom. Worth trying on one example.
-- **Several scenes per page** (onboarding with chapters): allowed today; keep it, but the starters assume
-  one, and the check measures each scene on its own.
+- **Sticky controls on a phone:** on. Below 600 px the caption and controls stick to the bottom of the
+  screen while the scene is taller than the screen.
+- **Captions above or below the stage:** below, as before. Worth trying above on one example later.
+- **Several scenes per page:** still allowed; the check measures each scene on its own.

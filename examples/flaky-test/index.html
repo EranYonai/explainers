@@ -32,12 +32,19 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
   font-size:calc(clamp(2rem,1.4rem + 3.4vw,3.6rem) * var(--display-scale,1));margin:8px 0}
 .note{color:var(--muted);font-size:.9rem}
 
-/* scene frame: stage, caption, controls */
-.scene{margin:0;background:var(--surface);border:var(--border-width,1px) solid var(--line);border-radius:calc(var(--radius,8px) + 6px);overflow:hidden;box-shadow:var(--shadow,none)}
-.scene .stage{padding:16px 20px 0;min-width:0}
+/* scene frame: stage, caption, controls.
+   Steady layout: the player measures every step and sets --stage-h and --caption-h to the tallest, so the
+   controls never move. Pages and themes must not set height, min-height or display on .stage, .caption,
+   .controls or [data-scene]; put content that grows in a .well instead. */
+.scene{margin:0;background:var(--surface);border:var(--border-width,1px) solid var(--line);border-radius:calc(var(--radius,8px) + 6px);overflow:hidden;overflow:clip;box-shadow:var(--shadow,none)}
+.scene .stage{padding:16px 20px 0;min-width:0;min-height:var(--stage-h,0)}
+.scene.measuring .stage,.scene.measuring .caption{min-height:0!important}
+.scene.measuring *{transition:none!important}
+.dock{background:var(--surface)}
+.well{height:var(--well-h,9.5em);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
 .scene .stage svg{display:block;width:100%;height:auto;max-width:100%}
 .scene svg text{font-family:var(--font-mono);fill:var(--ink)}
-.caption{padding:12px 20px 0;min-height:4.9em;font-family:var(--caption-font,var(--font-body));font-weight:400;font-size:clamp(1.05rem,1rem + .3vw,1.2rem);line-height:1.42;text-wrap:balance}
+.caption{padding:12px 20px 0;min-height:var(--caption-h,4.9em);font-family:var(--caption-font,var(--font-body));font-weight:400;font-size:clamp(1.05rem,1rem + .3vw,1.2rem);line-height:1.42;text-wrap:balance}
 .caption .stepno{display:block;font-family:var(--font-mono);font-weight:400;font-size:.74rem;color:var(--muted);margin-bottom:4px}
 .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 20px 18px}
 .controls button,.pick button,.choices button{font:inherit;font-size:.92rem;padding:9px 15px;min-height:44px;border-radius:var(--radius,8px);
@@ -46,14 +53,16 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
 .controls button.primary{background:var(--accent);color:var(--accent-ink,#fff);border-color:var(--accent)}
 .pick button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
 .controls button:disabled{opacity:.45;cursor:default}
-.dots{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto}
+.controls .dots{display:flex;flex:1 1 100%;order:9;flex-wrap:nowrap;align-items:center;gap:6px;height:8px;margin-top:2px;overflow:hidden}
 .dots i{width:8px;height:8px;border-radius:50%;background:var(--line);display:block}
 .dots i.on{background:var(--accent)}
 .pick{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:12px 20px 0}
 @media (max-width:600px){
   .scene .stage{padding:12px 12px 0}
-  .caption{padding:12px 16px 0;min-height:6.4em}
+  .caption{padding:12px 16px 0;min-height:var(--caption-h,6.4em)}
   .controls,.pick{padding-left:16px;padding-right:16px}
+  /* the dock sticks to the bottom of the screen while the scene is taller than the screen */
+  .scene .dock{position:sticky;bottom:0;z-index:2;border-top:var(--border-width,1px) solid color-mix(in srgb,var(--line) 70%,transparent)}
 }
 
 /* shared drawing classes for SVG stages */
@@ -64,14 +73,16 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
 .scene .stage *{transition:fill .35s,stroke .35s,opacity .35s,transform .45s cubic-bezier(.3,.7,.2,1)}
 .reduce-motion *,.reduce-motion *::before,.reduce-motion *::after{transition:none!important;animation:none!important}
 
-/* deck mode: one stepper, several sections, only the active one shown */
-.scene.deck [data-scene]{display:none}
-.scene.deck [data-scene].on{display:block;animation:pagein .35s ease both}
+/* deck mode: one stepper, several sections, only the active one shown. All sections share one grid cell,
+   so the stage is as tall as the tallest section and switching sections moves nothing. */
+.scene.deck .stage{display:grid;grid-template-columns:minmax(0,1fr);align-content:start}
+.scene.deck [data-scene]{grid-area:1/1;min-width:0;visibility:hidden}
+.scene.deck [data-scene].on{visibility:visible;animation:pagein .35s ease both}
 @keyframes pagein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .scene .sec{display:flex;align-items:baseline;gap:10px;padding:12px 20px 6px;border-bottom:var(--border-width,1px) solid var(--line)}
 .scene .sec .no{font-family:var(--font-mono);font-size:.68rem;color:var(--muted);white-space:nowrap}
 .scene .sec .ttl{font-family:var(--font-display);font-weight:var(--display-weight,700);text-transform:var(--display-transform,none);font-size:1.15rem;line-height:1.1}
-.dots.many{flex:1 1 100%;order:9;gap:2px;margin:4px 0 0;flex-wrap:nowrap}
+.controls .dots.many{gap:2px}
 .dots.many i{flex:1;width:auto;height:5px;border-radius:1px}
 .dots i.done{background:color-mix(in srgb,var(--accent) 45%,var(--line))}
 [data-theme-toggle]{font:inherit;font-size:.8rem;padding:6px 10px;min-height:36px;border:var(--border-width,1px) solid var(--line);border-radius:var(--radius,8px);background:transparent;color:var(--ink);cursor:pointer}
@@ -95,6 +106,34 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
 @media (max-width:520px){
   .speed-opts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
 }
+
+/* page parts (slots). Order is fixed: masthead, intro (h1.hook, p.dek, p.meta), summary, scene, payoff, prose,
+   glossary, sources, next. Every part but the scene sits in the reading column (.col). */
+.masthead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.masthead .kind{font-family:var(--font-mono);font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink)}
+.dek{font-size:calc(1.12em * var(--dek-scale,1));line-height:1.5;max-width:60ch}
+.meta{font-family:var(--font-mono);font-size:.78rem;color:var(--muted)}
+.tldr{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:8px 16px;margin:0;padding:14px 16px;
+  background:var(--tldr-bg,var(--surface));border:var(--border-width,1px) solid var(--line);border-radius:var(--radius,8px)}
+.tldr dt{font-family:var(--font-mono);font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding-top:.2em}
+.tldr dd{margin:0}
+@media (max-width:420px){ .tldr{grid-template-columns:minmax(0,1fr);gap:2px} .tldr dd+dt{margin-top:10px} }
+.prose{display:grid;gap:12px}
+.prose h2,.sources h2,.glossary-wrap h2{margin-top:4px}
+.prose ul,.prose ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
+.glossary{display:grid;gap:10px;margin:0}
+.glossary dt{font-weight:700}
+.glossary dd{margin:2px 0 0;color:var(--ink)}
+.cite{font-family:var(--font-mono);font-size:.78em;text-decoration:none;color:var(--cite-color,var(--accent));vertical-align:.08em;white-space:nowrap}
+.cite:hover{text-decoration:underline}
+.sources{display:grid;gap:10px}
+.sources ol,.sources ul{margin:0;padding-left:1.4em;display:grid;gap:6px;font-size:.92rem}
+.sources li:target{background:color-mix(in srgb,var(--hl) 35%,transparent);border-radius:3px}
+.sources p{color:var(--muted);font-size:.86rem}
+nav.next{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+nav.next a{display:inline-flex;align-items:center;min-height:44px;padding:9px 15px;border:var(--border-width,1px) solid var(--line);
+  border-radius:var(--radius,8px);text-decoration:none;color:var(--ink);background:var(--surface)}
+nav.next a:hover{border-color:var(--accent)}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -172,7 +211,7 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
 }
 </style>
 <style>
-  #main .stage{min-height:540px}
+
   .cells span:empty{display:none}
   .run{font:600 13px var(--font-mono);color:var(--muted);margin:0 0 6px}
   svg.tl, svg.dots{display:block;width:100%;height:auto}
@@ -204,12 +243,12 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
 </head>
 <body>
 <main>
-  <header class="col stack">
+  <header class="col stack" data-slot="intro">
     <h1 class="hook">Why did the same test pass, then fail, with no code change?</h1>
-    <p>Green yesterday, red this morning, green again when you rerun it. Nothing changed in the code, so something else is deciding the result.</p>
+    <p class="dek">Green yesterday, red this morning, green again when you rerun it. Nothing changed in the code, so something else is deciding the result.</p>
   </header>
 
-  <section class="wide">
+  <section class="wide" data-slot="scene">
     <figure class="scene" id="main">
       <div class="stage">
         <section data-scene="runs" data-title="Two runs">
@@ -226,10 +265,17 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
     </figure>
   </section>
 
-  <section class="col stack">
+  <section class="col stack" data-slot="payoff">
     <p class="payoff">The code never changed. The timing did, and <mark>the test was measuring the timing</mark>.</p>
+  </section>
+
+  <section class="prose col" data-slot="prose">
+    <h2>The fix</h2>
     <p>The fix is to wait for the thing itself: join the thread, await the result, or poll until the condition is true.
       Retries make the dashboard green but leave the race in place, and users can't rerun production.</p>
+  </section>
+
+  <section class="prose col" data-slot="prose">
     <h2>Other causes with the same shape</h2>
     <ul>
       <li><b>Shared state.</b> One test leaves a row, a file or a global behind, and another test reads it.</li>
@@ -267,12 +313,21 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
  * `set` carries forward; `mark` is true for one step only (highlights, "look here", a probe).
  * Captions may use {name}: filled from compute(state), then state. A missing name renders [?name] and is
  * reported in window.__explainer.errors, so the check script fails instead of shipping a wrong number.
+ *
+ * Layout is steady: the player draws every step once, then reserves the tallest stage and caption, so
+ * Back / Next / Play never move between steps. Deck sections share one grid cell (the tallest wins).
+ * Content that grows with the steps (a message list, a log) goes in an element with class "well":
+ * a fixed-height box that scrolls inside; api.well(el) keeps its newest row in view.
+ * Call api.reserve() if a scene changes size after async work.
+ * If a reader's choice adds steps (api.branch), list every outcome up front so they are measured too:
+ *   branches: function (api) { return CHOICES.map(function (c, i) { return outcome(i); }); }
  */
 (function () {
   "use strict";
   var NS = "http://www.w3.org/2000/svg";
   var reduce = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  var registry = (window.__explainer = window.__explainer || { scenes: [], errors: [] });
+  var VERSION = "1";
+  var registry = (window.__explainer = window.__explainer || { scenes: [], errors: [], version: VERSION });
   if (reduce) document.documentElement.classList.add("reduce-motion");
 
   // Playback speed, shared by every scene on the page and remembered per viewer.
@@ -359,8 +414,10 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
       head = h("div", { class: "sec" }, null);
       stage.parentNode.insertBefore(head, stage);
     }
-    var caption = h("p", { class: "caption", "aria-live": "polite" }, fig);
-    var bar = h("div", { class: "controls" }, fig);
+    // Caption and controls share a dock: below the stage, sticky at the bottom of a phone screen.
+    var dock = h("div", { class: "dock" }, fig);
+    var caption = h("p", { class: "caption", "aria-live": "polite" }, dock);
+    var bar = h("div", { class: "controls" }, dock);
     var prev = h("button", { type: "button", class: "prev", text: "Back" }, bar);
     var next = h("button", { type: "button", class: "next primary", text: "Next" }, bar);
     // Play is a split control: the main part plays and pauses, the chip shows the speed and opens the choices.
@@ -400,6 +457,7 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
     var dots = h("div", { class: "dots", "aria-hidden": "true" }, bar);
 
     var steps = [], idx = 0, timer = null, state = {};
+    var reserved = { stage: 0, caption: 0 }, maxCount = 0, lastWidth = 0;
     var api = {
       el: fig, stage: stage, reduce: reduce, animate: false,
       get index() { return idx; },
@@ -416,13 +474,18 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
       get speed() { return speed; },
       setSpeed: setSpeed,
       // Replace the steps, e.g. after the reader picks an input and real code generates a new trace.
-      setSteps: function (s, at) { steps = s || []; buildDots(); stop(); show(at || 0, true); },
+      setSteps: function (s, at) { steps = s || []; buildDots(); stop(); reserve(false); show(at || 0, true); },
       // Keep steps up to the current one, replace everything after it, and move on: a reader's choice
       // that changes what happens next (pick a route, approve a call).
-      branch: function (s) { steps = steps.slice(0, idx + 1).concat(s || []); buildDots(); stop(); show(idx + 1, true); },
+      branch: function (s) { steps = steps.slice(0, idx + 1).concat(s || []); buildDots(); stop(); reserve(false); show(idx + 1, true); },
       // Jump to the first step that matches, e.g. api.goWhere(function (s) { return s.scene === "panel"; }).
       goWhere: function (pred) { for (var i = 0; i < steps.length; i++) if (pred(steps[i], i)) { stop(); show(i, true); return i; } return -1; },
       redraw: function () { show(idx, false); },
+      // Measure every step again and reserve the tallest (grow only). Use after async content changes size.
+      reserve: function () { reserve(false); },
+      // A box that grows with the steps: keep it at a fixed height and its newest row in view.
+      well: function (el) { return well(el); },
+      get layout() { return { stage: reserved.stage, caption: reserved.caption, dots: dots.classList.contains("many") ? "bar" : "dots" }; },
       // Replace the caption until the next step, e.g. after the reader clicks something inside a scene.
       say: function (text) { setCaption(text); },
       stateAt: stateAt,
@@ -444,16 +507,18 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
       return String(text || "").replace(/\{(\w+)\}/g, function (all, key) {
         var v = key in vals ? vals[key] : s[key];
         if (v === undefined || v === null || (typeof v === "number" && !isFinite(v))) {
-          if (!quiet) report(name, "caption needs {" + key + "} but compute() and state do not provide it");
+          if (!quiet && !measuring) report(name, "caption needs {" + key + "} but compute() and state do not provide it");
           return "[?" + key + "]";
         }
         return fmt(v);
       });
     }
 
+    // The dot style is chosen from the most steps this scene has had, so it never flips back and forth.
     function buildDots() {
       dots.innerHTML = "";
-      dots.classList.toggle("many", steps.length > 12);
+      maxCount = Math.max(maxCount, steps.length, steps.length + branchLists().reduce(function (m, b) { return Math.max(m, b.length); }, 0));
+      dots.classList.toggle("many", maxCount > 12);
       for (var i = 0; i < steps.length; i++) h("i", {}, dots);
     }
 
@@ -465,7 +530,7 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
       var sc = steps[idx].scene;
       if (names.length) {
         if (sc && !sections[sc]) report(name, "step " + (idx + 1) + " names scene '" + sc + "' but there is no [data-scene=" + sc + "]");
-        names.forEach(function (n) { sections[n].classList.toggle("on", n === sc); });
+        names.forEach(function (n) { sections[n].classList.toggle("on", n === sc); sections[n].inert = n !== sc; });
         var pos = names.indexOf(sc) + 1, title = sc && sections[sc] ? sections[sc].getAttribute("data-title") || "" : "";
         head.innerHTML = "";
         h("span", { class: "no", text: pos + " / " + names.length }, head);
@@ -476,6 +541,7 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
         if (part && part.draw) part.draw(state, api);
         if (opts.draw) opts.draw(state, api);
       } catch (e) { report(name, "draw() failed at step " + (idx + 1) + ": " + e.message); }
+      if (!measuring) scrollWells(api.animate);
       setCaption(fill(steps[idx].say, state));
       for (var d = 0; d < dots.children.length; d++) {
         dots.children[d].classList.toggle("on", d === idx);
@@ -483,6 +549,57 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
       }
       prev.disabled = idx === 0;
       next.textContent = idx === steps.length - 1 ? "Restart" : "Next";
+    }
+
+    // Draw every step without motion, record the tallest stage and caption, reserve that much.
+    // grow only: during a session the box may get taller (after a reader's choice), never shorter,
+    // except when the width changes.
+    var measuring = false;
+    function branchLists() {
+      if (typeof opts.branches !== "function") return [];
+      try { return (opts.branches(api) || []).filter(function (b) { return b && b.length; }); }
+      catch (e) { report(name, "branches() failed: " + e.message); return []; }
+    }
+    function reserve(allowShrink) {
+      if (!steps.length || !fig.isConnected) return;
+      var keep = idx, real = steps, sy = window.scrollY, ms = 0, mc = 0;
+      // the steps as they are, plus each declared reader outcome added after them
+      var runs = [{ list: steps, from: 0 }].concat(branchLists().map(function (b) { return { list: real.concat(b), from: real.length }; }));
+      measuring = true;
+      fig.classList.add("measuring");
+      try {
+        runs.forEach(function (run) {
+          steps = run.list;
+          for (var i = run.from; i < steps.length; i++) {
+            show(i, false);
+            ms = Math.max(ms, stage.getBoundingClientRect().height);
+            mc = Math.max(mc, caption.getBoundingClientRect().height);
+          }
+        });
+      } finally {
+        steps = real;
+        if (!allowShrink) { ms = Math.max(ms, reserved.stage); mc = Math.max(mc, reserved.caption); }
+        reserved.stage = Math.ceil(ms); reserved.caption = Math.ceil(mc);
+        fig.style.setProperty("--stage-h", reserved.stage + "px");
+        fig.style.setProperty("--caption-h", reserved.caption + "px");
+        show(keep, false);
+        void fig.offsetHeight;
+        fig.classList.remove("measuring");
+        measuring = false;
+        if (window.scrollY !== sy) window.scrollTo(window.scrollX, sy);
+      }
+    }
+
+    // Wells scroll to their newest row after every draw.
+    var wells = [];
+    function well(el) {
+      if (!el) return el;
+      el.classList.add("well");
+      if (wells.indexOf(el) < 0) wells.push(el);
+      return el;
+    }
+    function scrollWells(animate) {
+      wells.forEach(function (el) { el.scrollTo({ top: el.scrollHeight, behavior: animate ? "smooth" : "auto" }); });
     }
 
     function setCaption(text) {
@@ -548,7 +665,21 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
     steps = typeof opts.steps === "function" ? opts.steps(api) : opts.steps || [];
     if (!steps.length) report(name, "no steps");
     buildDots();
+    reserve(true);
     show(0, false);
+    lastWidth = Math.round(fig.getBoundingClientRect().width);
+    // Fonts change text size, and a new width changes everything: measure again (may shrink).
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { reserve(true); });
+    if (window.ResizeObserver) {
+      var rt = null;
+      new ResizeObserver(function () {
+        var w = Math.round(fig.getBoundingClientRect().width);
+        if (w === lastWidth) return;
+        lastWidth = w;
+        clearTimeout(rt);
+        rt = setTimeout(function () { reserve(true); }, 120);
+      }).observe(fig);
+    }
     registry.scenes.push({ name: name, api: api });
     return api;
   }
@@ -570,7 +701,7 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
     r.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
   });
 
-  window.Explainer = { scene: scene, svg: svg, h: h, rng: rng, fmt: fmt, reduce: reduce };
+  window.Explainer = { scene: scene, svg: svg, h: h, rng: rng, fmt: fmt, reduce: reduce, version: VERSION };
 })();
 </script>
 <script>

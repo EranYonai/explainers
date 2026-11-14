@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TITLE: the hook as a short question</title>
+<meta name="description" content="One sentence: what the reader will understand.">
+<!-- Build: node <skill>/scripts/build.mjs <slug>.src.html -o <slug>.html   (inlines the player and theme) -->
+<link rel="stylesheet" href="explainer:player.css">
+<link rel="stylesheet" href="explainer:theme/inkwell">
+<style>
+  /* Page-specific styles only. Use theme tokens: --paper --surface --ink --muted --line --accent --hl --good --bad,
+     --font-display --font-body --font-mono. Never hard-code colors, so every theme and dark mode work. */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:10px}
+  .card{border:var(--border-width,1px) solid var(--line);border-radius:var(--radius,8px);background:var(--paper);padding:12px;transition:opacity .3s}
+  .card.dim{opacity:.35}
+  .card.on{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--hl)}
+  .choices{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+</style>
+</head>
+<!-- Starter: CONCEPT. How something works: hook, one mechanism scene, payoff, where it shows up.
+     Page parts keep a fixed order (data-slot). Delete what you do not need, never reorder.
+     Sources only when facts are current (tools, libraries, services); delete it for timeless topics. -->
+<body data-kind="concept">
+<main>
+
+  <!-- intro (required). Beat 1, the hook: a question in big type that the page will answer. -->
+  <header class="col stack" data-slot="intro">
+    <h1 class="hook">HEADLINE: a question the reader cannot answer yet?</h1>
+    <p class="dek">HOOK: one or two sentences of common knowledge the reader already has.</p>
+    <!-- optional: reading time, and for current tech what you checked against and when -->
+    <p class="meta">4 min read</p>
+  </header>
+
+
+  <!-- scene (required). Beats 2-3, setup and mechanism, as one deck: one stepper drives the sections,
+       only the active one shows. The stage reserves the height of its tallest step: never set a height on
+       it. Anything that grows with the steps (a list, a log) goes in a .well: api.well(element). -->
+  <section class="wide" data-slot="scene">
+    <figure class="scene" id="main">
+      <div class="stage">
+        <section data-scene="parts" data-title="The parts">
+          <div class="cards" id="cards"></div>
+        </section>
+        <section data-scene="choose" data-title="Your turn">
+          <p>READER ACTION: what the reader decides here.</p>
+          <div class="choices" id="choices"></div>
+        </section>
+      </div>
+    </figure>
+  </section>
+
+  <!-- payoff (required). Beat 4: one sentence stamped large that answers the headline. -->
+  <section class="col stack" data-slot="payoff">
+    <p class="payoff">PAYOFF: the one sentence to <mark>remember</mark>.</p>
+  </section>
+
+  <!-- prose (optional, up to 3): short sections. Current facts cite a source with a .cite link. -->
+  <section class="prose col" data-slot="prose">
+    <h2>Where you will see this</h2>
+    <p>ONE SHORT PARAGRAPH on where this matters in practice <a class="cite" href="#src-1">[1]</a>.</p>
+  </section>
+
+
+  <!-- sources (required when facts are current: tools, libraries, services). Each li has an id that
+       .cite links point to, a real link, and a version or date. Timeless topics can delete this. -->
+  <section class="sources col" data-slot="sources">
+    <h2>Sources</h2>
+    <ol>
+      <li id="src-1"><a href="https://example.com/docs">SOURCE TITLE</a>, VERSION OR DATE</li>
+    </ol>
+  </section>
+
+</main>
+
+<script src="explainer:player.js"></script>
+<script>
+(function () {
+  // Content as data. Every number a caption shows comes from code (compute), never typed by hand.
+  var PARTS = [
+    { name: "First part", note: "What it does." },
+    { name: "Second part", note: "What it does." },
+    { name: "Third part", note: "What it does." }
+  ];
+  var cards = [];
+
+  // The reader's choice produces the next steps with real logic, so captions stay true for every choice.
+  function outcome(pick) {
+    return [
+      { scene: "choose", say: "You picked " + PARTS[pick].name + ". OUTCOME: what happens because of that.", set: { picked: pick } },
+      { scene: "parts", say: "Back to the parts: {count} of them, and the one you picked matters most.", set: { focus: pick } }
+    ];
+  }
+
+  var api = Explainer.scene("#main", {
+    title: "TITLE for screen readers",
+    initial: { focus: -1, picked: -1 },
+    steps: [
+      { scene: "parts", say: "These are the {count} parts. STATE what is true now, not how it moves." },
+      { scene: "parts", say: "This one does the work.", set: { focus: 0 } },
+      { scene: "choose", say: "Your turn: pick one.", wait: true }
+    ],
+    compute: function (s) { return { count: PARTS.length }; },
+    // every outcome a choice can add, so the player reserves room for them up front
+    branches: function () { return PARTS.map(function (p, i) { return outcome(i); }); },
+    scenes: {
+      parts: {
+        setup: function (el, api) {
+          var box = el.querySelector("#cards");
+          PARTS.forEach(function (p) {
+            var c = api.h("article", { class: "card" }, box);
+            api.h("h3", { text: p.name }, c);
+            api.h("p", { text: p.note }, c);
+            cards.push(c);
+          });
+        },
+        draw: function (s) {
+          cards.forEach(function (c, i) {
+            c.classList.toggle("on", i === s.focus);
+            c.classList.toggle("dim", s.focus >= 0 && i !== s.focus);
+          });
+        }
+      },
+      choose: {
+        setup: function (el, api) {
+          var box = el.querySelector("#choices");
+          PARTS.forEach(function (p, i) {
+            var b = api.h("button", { type: "button", text: p.name }, box);
+            b.addEventListener("click", function () { api.branch(outcome(i)); });
+          });
+        }
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>

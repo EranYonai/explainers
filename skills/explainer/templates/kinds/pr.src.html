@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TITLE: what this change does, as a question</title>
+<meta name="description" content="One sentence: what changes for whoever uses this code.">
+<!-- Build: node <skill>/scripts/build.mjs <slug>.src.html -o <slug>.html   (inlines the player and theme) -->
+<link rel="stylesheet" href="explainer:player.css">
+<link rel="stylesheet" href="explainer:theme/transit">
+<style>
+  /* Page-specific styles only. Theme tokens, never hard-coded colors. */
+  .path{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:10px}
+  .stop{border:var(--border-width,1px) solid var(--line);border-radius:var(--radius,8px);background:var(--paper);padding:10px 12px;transition:opacity .3s}
+  .stop h3{font-size:1rem;margin:0 0 4px}
+  .stop p{font-size:.9rem;color:var(--muted)}
+  .stop.on{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--hl)}
+  .stop.changed h3::after{content:" \2731 changed";font-family:var(--font-mono);font-size:.72rem;color:var(--accent)}
+  .stop.dim{opacity:.4}
+  .result{margin-top:12px;font-family:var(--font-mono);font-size:.9rem;min-height:1.5em}
+  .choices{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+</style>
+</head>
+<!-- Starter: PULL REQUEST. What a change does and why, shown as the same request on the old and the new path.
+     Read the diff first; draw the brief from it. No internal names, hosts or customers: teach the pattern.
+     Page parts keep a fixed order (data-slot). Delete what you do not need, never reorder. -->
+<body data-kind="pr">
+<main>
+  <header class="masthead col" data-slot="masthead">
+    <span class="kind">Pull request</span>
+    <button type="button" data-theme-toggle>Day / Night</button>
+  </header>
+
+  <header class="col stack" data-slot="intro">
+    <h1 class="hook">HEADLINE: what goes wrong today that this change fixes?</h1>
+    <p class="dek">HOOK: one or two sentences on the situation the reader already knows.</p>
+    <p class="meta">BRANCH-NAME · DATE · 3 min read</p>
+  </header>
+
+  <!-- summary: the four facts a reviewer wants first. One line each. -->
+  <dl class="tldr col" data-slot="summary">
+    <dt>What</dt><dd>ONE LINE: what the change does.</dd>
+    <dt>Why</dt><dd>ONE LINE: the problem it solves.</dd>
+    <dt>Risk</dt><dd>ONE LINE: what could break, and for whom.</dd>
+    <dt>How to test</dt><dd>ONE LINE: the command or the click path.</dd>
+  </dl>
+
+  <!-- scene: the same request on the old path, then the new one; the reader picks a path to replay. -->
+  <section class="wide" data-slot="scene">
+    <figure class="scene" id="main">
+      <div class="stage">
+        <section data-scene="before" data-title="Before this change">
+          <div class="path" data-path="before"></div>
+          <p class="result" data-result="before"></p>
+        </section>
+        <section data-scene="after" data-title="After this change">
+          <div class="path" data-path="after"></div>
+          <p class="result" data-result="after"></p>
+        </section>
+        <section data-scene="try" data-title="Your turn">
+          <p>Send one more request. Which path should it take?</p>
+          <div class="choices" id="choices" role="group" aria-label="Pick a path"></div>
+        </section>
+      </div>
+    </figure>
+  </section>
+
+  <section class="col stack" data-slot="payoff">
+    <p class="payoff">PAYOFF: the change in one sentence, with the part that matters <mark>marked</mark>.</p>
+  </section>
+
+  <section class="prose col" data-slot="prose">
+    <h2>What changed</h2>
+    <p>ONE SHORT PARAGRAPH: the files or modules touched, in plain words.</p>
+  </section>
+
+  <section class="prose col" data-slot="prose">
+    <h2>What to review</h2>
+    <ul>
+      <li>THE ONE PLACE a reviewer should read closely, and why.</li>
+      <li>WHAT IS NOT IN this change, so nobody looks for it.</li>
+    </ul>
+  </section>
+
+  <nav class="next col" data-slot="next" aria-label="Next">
+    <a href="https://example.com/pull/1">Open the pull request</a>
+  </nav>
+</main>
+
+<script src="explainer:player.js"></script>
+<script>
+(function () {
+  // Content as data. The old and the new path share stops; `changed` marks the one this PR touches.
+  // `cost` is whatever the change improves (ms, retries, queries); captions compute totals from it.
+  var PATHS = {
+    before: [
+      { name: "Request in", note: "What arrives.", cost: 1 },
+      { name: "OLD STEP", note: "What it did before.", cost: 6, changed: true },
+      { name: "Response", note: "What goes back.", cost: 1 }
+    ],
+    after: [
+      { name: "Request in", note: "What arrives.", cost: 1 },
+      { name: "NEW STEP", note: "What it does now.", cost: 2, changed: true },
+      { name: "Response", note: "What goes back.", cost: 1 }
+    ]
+  };
+  var UNIT = "ms";
+  var views = {};
+
+  function total(side, upto) {
+    return PATHS[side].slice(0, upto + 1).reduce(function (a, s) { return a + s.cost; }, 0);
+  }
+
+  function walk(side) {
+    return PATHS[side].map(function (s, i) {
+      return { scene: side, say: (i === 0 ? "On the " + (side === "before" ? "old" : "new") + " path: " : "") + s.name + ". {spent} so far.", set: { side: side, at: i } };
+    });
+  }
+
+  function makeScene(side) {
+    return {
+      setup: function (el, api) {
+        var box = el.querySelector("[data-path]");
+        views[side] = { stops: PATHS[side].map(function (s) {
+          var c = api.h("article", { class: "stop" + (s.changed ? " changed" : "") }, box);
+          api.h("h3", { text: s.name }, c);
+          api.h("p", { text: s.note }, c);
+          return c;
+        }), result: el.querySelector("[data-result]") };
+      },
+      draw: function (s) {
+        var v = views[side], here = s.side === side ? s.at : -1;
+        v.stops.forEach(function (c, i) { c.classList.toggle("on", i === here); c.classList.toggle("dim", here >= 0 && i > here); });
+        v.result.textContent = here >= 0 ? "total: " + total(side, here) + " " + UNIT : "";
+      }
+    };
+  }
+
+  var api = Explainer.scene("#main", {
+    title: "The same request before and after this change",
+    initial: { side: "before", at: -1 },
+    steps: [
+      { scene: "before", say: "Today a request passes {stops} stops. One of them is what this change replaces.", set: { side: "before", at: -1 } }
+    ].concat(walk("before"), walk("after"), [
+      { scene: "after", say: "Same request, same answer: {saved} {unit} less on the new path.", set: { side: "after", at: PATHS.after.length - 1 } },
+      { scene: "try", say: "Your turn: send one more request down either path.", wait: true }
+    ]),
+    compute: function (s) {
+      var side = s.side || "before";
+      return {
+        stops: PATHS.before.length, unit: UNIT,
+        spent: s.at >= 0 ? total(side, s.at) + " " + UNIT : "nothing",
+        saved: total("before", PATHS.before.length - 1) - total("after", PATHS.after.length - 1)
+      };
+    },
+    branches: function () { return [walk("before"), walk("after")]; },
+    scenes: {
+      before: makeScene("before"),
+      after: makeScene("after"),
+      try: {
+        setup: function (el, api) {
+          var box = el.querySelector("#choices");
+          [["before", "Old path"], ["after", "New path"]].forEach(function (c) {
+            var b = api.h("button", { type: "button", text: c[1] }, box);
+            b.addEventListener("click", function () { api.branch(walk(c[0])); });
+          });
+        }
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>

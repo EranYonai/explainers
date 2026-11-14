@@ -45,7 +45,17 @@ Rules that keep it readable for someone who knows nothing yet:
 
 ## 3. Build
 
-1. Copy `templates/page.src.html` to the output folder as `<slug>.src.html`.
+1. Copy a starter to the output folder as `<slug>.src.html`. Each is a working page with the right parts
+   already kept; replace the placeholders, keep the parts you need, delete the rest, never reorder them.
+
+   | Starter (`templates/kinds/`) | For |
+   |---|---|
+   | `concept.src.html` | how something works (the default) |
+   | `pr.src.html` | a pull request: summary for reviewers, the old and new path side by side |
+   | `incident.src.html` | an incident review: timeline, the path the failure took, where to stop it |
+   | `onboarding.src.html` | a newcomer's first look at a system, with a glossary and a link to the next part |
+
+   `templates/page.src.html` has every part with a comment saying what goes there, for anything else.
 2. Pick a theme by topic (change the `explainer:theme/<name>` link):
 
    | Theme | Fits |
@@ -64,21 +74,28 @@ Rules that keep it readable for someone who knows nothing yet:
    - **Random is seeded:** `api.rng(seed)`. Same seed, same page.
    - **Theme tokens only:** `var(--ink)`, `var(--accent)`, ... Never hard-code a color.
    - **Phone first:** 390 px wide with no sideways scroll; text in SVG at least 12 px on a phone.
+   - **Steady controls:** the player reserves the tallest step's height, so never set a height on `.stage`
+     or `.caption`. Lists that grow go in `api.well(el)`. Reader choices list their outcomes in `branches`.
    - **Captions:** one or two sentences, under 200 characters, plain words.
-   - **Current tech:** for tools, libraries and services, check facts against primary sources and list them
-     in a Sources section. Timeless topics (algorithms, concepts) need none.
+   - **Current tech:** for tools, libraries and services, check facts against primary sources, list them in
+     the Sources part (`<li id="src-1">` with a link and a version or date) and cite them in prose with
+     `<a class="cite" href="#src-1">[1]</a>`. Timeless topics (algorithms, concepts) need none.
 4. Build: `node <skill>/scripts/build.mjs <slug>.src.html -o <slug>.html` writes one self-contained file.
 
 The player owns these class names, so do not reuse them for your own elements: `scene`, `stage`, `caption`,
 `stepno`, `controls`, `prev`, `next`, `play`, `playgroup`, `speed-now`, `speed-menu`, `speed-opts`, `dots`,
-`sec`, `deck`, `on`, `done`. Layout helpers you may use: `col` (reading column), `wide` (scene width),
-`stack` (vertical gap), `hook`, `payoff`, `note`, `choices` and `pick` (rows of reader buttons).
+`dock`, `well`, `measuring`, `sec`, `deck`, `on`, `done`. Page parts (use them only for their part):
+`masthead`, `kind`, `dek`, `meta`, `tldr`, `prose`, `glossary`, `sources`, `cite`. Layout helpers you may use:
+`col` (reading column), `wide` (scene width), `stack` (vertical gap), `hook`, `payoff`, `note`, `choices`
+and `pick` (rows of reader buttons).
 
 ## 4. Check once, fix once
 
 Run `node <skill>/scripts/check.mjs <slug>.html` (add `--sheet <path.png>` to choose where the contact sheet goes). It walks every step at phone and desktop width and
-prints PASS or FAIL with a short list (JS errors, missing caption values, sideways scroll, content wider
-than its scene), plus a contact sheet image of every step. Look at the contact sheet. Fix with targeted
+prints PASS or FAIL with a short list (JS errors, missing caption values, controls that move, sideways
+scroll, content wider than its scene, missing page parts, broken citations), plus a contact sheet image of
+every step. It clicks `.choices button` to play the reader; if your reader buttons use other classes, add
+`--click "<selector>"`. Look at the contact sheet. Fix with targeted
 edits, rebuild, re-run once. See `references/checks.md` for what it cannot catch and you must eyeball.
 If it prints SKIP, Playwright is not installed; say so and open the page yourself if you can.
 

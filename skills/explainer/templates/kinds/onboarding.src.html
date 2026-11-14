@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TITLE: what a newcomer asks on day one, as a question</title>
+<meta name="description" content="One sentence: what the newcomer can do after this page.">
+<!-- Build: node <skill>/scripts/build.mjs <slug>.src.html -o <slug>.html   (inlines the player and theme) -->
+<link rel="stylesheet" href="explainer:player.css">
+<link rel="stylesheet" href="explainer:theme/inkwell">
+<style>
+  /* Page-specific styles only. Theme tokens, never hard-coded colors. */
+  .map{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:10px}
+  .node{border:var(--border-width,1px) solid var(--line);border-radius:var(--radius,8px);background:var(--paper);padding:10px 12px;transition:opacity .3s}
+  .node h3{font-size:1rem;margin:0 0 4px}
+  .node p{font-size:.9rem;color:var(--muted)}
+  .node.on{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--hl)}
+  .node.dim{opacity:.4}
+  .node .hop{font-family:var(--font-mono);font-size:.75rem;color:var(--accent);min-height:1.2em;display:block}
+  .choices{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+</style>
+</head>
+<!-- Starter: ONBOARDING. One system, one part per step, then the newcomer tries a route through it.
+     One topic per page: a series is several pages linked with the "next" part.
+     Page parts keep a fixed order (data-slot). Delete what you do not need, never reorder. -->
+<body data-kind="onboarding">
+<main>
+  <header class="masthead col" data-slot="masthead">
+    <span class="kind">Onboarding · part 1 of N</span>
+    <button type="button" data-theme-toggle>Day / Night</button>
+  </header>
+
+  <header class="col stack" data-slot="intro">
+    <h1 class="hook">HEADLINE: what happens when YOU DO THE FIRST TASK?</h1>
+    <p class="dek">HOOK: what the newcomer already knows, in one or two sentences.</p>
+    <p class="meta">5 min read</p>
+  </header>
+
+  <dl class="tldr col" data-slot="summary">
+    <dt>You will learn</dt><dd>ONE LINE: the idea that should click.</dd>
+    <dt>You need</dt><dd>ONE LINE: what to know or have before reading.</dd>
+  </dl>
+
+  <section class="wide" data-slot="scene">
+    <figure class="scene" id="main">
+      <div class="stage">
+        <section data-scene="map" data-title="The parts">
+          <div class="map" id="map"></div>
+        </section>
+        <section data-scene="route" data-title="Try a route">
+          <p>Where does your first task start?</p>
+          <div class="choices" id="choices" role="group" aria-label="Pick a starting part"></div>
+        </section>
+      </div>
+    </figure>
+  </section>
+
+  <section class="col stack" data-slot="payoff">
+    <p class="payoff">PAYOFF: the one sentence a newcomer <mark>should repeat</mark>.</p>
+  </section>
+
+  <section class="prose col" data-slot="prose">
+    <h2>Try it yourself</h2>
+    <ol>
+      <li>FIRST THING to run or open.</li>
+      <li>WHAT YOU SHOULD SEE.</li>
+    </ol>
+  </section>
+
+  <section class="col stack" data-slot="glossary">
+    <h2>Words on this page</h2>
+    <dl class="glossary">
+      <dt>TERM</dt><dd>One plain sentence.</dd>
+    </dl>
+  </section>
+
+  <section class="sources col" data-slot="sources">
+    <h2>Sources</h2>
+    <ol>
+      <li id="src-1"><a href="https://example.com/docs">THE TEAM DOCS OR RUNBOOK</a>, DATE</li>
+    </ol>
+  </section>
+
+  <nav class="next col" data-slot="next" aria-label="Next">
+    <a href="https://example.com/part-2">Next: PART 2 TITLE</a>
+  </nav>
+</main>
+
+<script src="explainer:player.js"></script>
+<script>
+(function () {
+  // Content as data: the parts of the system, in the order work flows through them.
+  var PARTS = [
+    { name: "FIRST PART", note: "What it does, in plain words." },
+    { name: "SECOND PART", note: "What it does." },
+    { name: "THIRD PART", note: "What it does." },
+    { name: "LAST PART", note: "Where the result ends up." }
+  ];
+  var nodes = [];
+
+  // The newcomer picks a start; the route is computed from it, so captions stay true for any pick.
+  function route(from) {
+    var hops = PARTS.length - 1 - from;
+    return PARTS.slice(from).map(function (p, k) {
+      return { scene: "map", say: k === 0 ? "Your task starts at " + p.name + ". " + hops + " more " + (hops === 1 ? "stop" : "stops") + " to go."
+          : p.name + ": " + p.note, set: { at: from + k, from: from } };
+    });
+  }
+
+  var api = Explainer.scene("#main", {
+    title: "The parts of the system, and a route through them",
+    initial: { at: -1, from: -1 },
+    steps: [{ scene: "map", say: "{count} parts. Work flows from left to right." }]
+      .concat(PARTS.map(function (p, i) { return { scene: "map", say: p.name + ": " + p.note, set: { at: i } }; }))
+      .concat([{ scene: "route", say: "Your turn: pick where your first task starts.", wait: true }]),
+    compute: function () { return { count: PARTS.length }; },
+    // every outcome a choice can add, so the player reserves room for them up front
+    branches: function () { return PARTS.map(function (p, i) { return route(i); }); },
+    scenes: {
+      map: {
+        setup: function (el, api) {
+          var box = el.querySelector("#map");
+          PARTS.forEach(function (p) {
+            var c = api.h("article", { class: "node" }, box);
+            api.h("span", { class: "hop" }, c);
+            api.h("h3", { text: p.name }, c);
+            api.h("p", { text: p.note }, c);
+            nodes.push(c);
+          });
+        },
+        draw: function (s) {
+          nodes.forEach(function (c, i) {
+            c.classList.toggle("on", i === s.at);
+            c.classList.toggle("dim", s.from >= 0 && i < s.from);
+            c.querySelector(".hop").textContent = s.from >= 0 && i >= s.from && i <= s.at ? "stop " + (i - s.from + 1) : "";
+          });
+        }
+      },
+      route: {
+        setup: function (el, api) {
+          var box = el.querySelector("#choices");
+          PARTS.forEach(function (p, i) {
+            var b = api.h("button", { type: "button", text: p.name }, box);
+            b.addEventListener("click", function () { api.branch(route(i)); });
+          });
+        }
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -9,8 +9,15 @@ walks every step of every scene, and prints PASS or FAIL.
 - A caption asking for `{name}` that neither `compute()` nor the state provides (shown as `[?name]`).
 - `draw()` or `setup()` throwing at any step.
 - Sideways scroll on the page, and any element wider than its scene, at any step.
+- Controls that move between steps, with the reason (stage, caption or controls row changed height). It also
+  clicks the reader buttons (`--click "<selector>"`, default `.choices button`) and walks the steps they add,
+  so a choice that grows the page is caught too. Pass your own selector when your buttons have other classes.
+- A page or theme style overriding the stage or caption height the player reserves.
+- Page parts: missing `intro` (with `h1.hook` and `p.dek`), `scene` or `payoff`; parts out of order; more than
+  one `h1`; a `.cite` link pointing at no source; a source without a link.
 - Requests to anything other than Google Fonts.
-- Captions over 200 characters (a note, not a failure).
+- Notes, not failures: captions over 200 characters, a stage taller than 60% of a phone screen, more than
+  400 words outside the scene, outside links with no Sources part.
 
 It writes a contact sheet (`<page>.sheet.png`): every step at phone width in one image. Look at it once.
 
@@ -18,7 +25,7 @@ It writes a contact sheet (`<page>.sheet.png`): every step at phone width in one
 
 - Labels overlapping or clipped, especially at the ends of a row and on the phone.
 - A caption that contradicts the picture ("three wait" while two are drawn).
-- Height jumps between steps that would make the controls move under the reader's thumb.
+- A short section in a tall stage: lots of empty space on a phone. Move content between sections to even them out.
 - A step where nothing visibly changes.
 - Color carrying meaning alone: good and bad also need a glyph or a word.
 

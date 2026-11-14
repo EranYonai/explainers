@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="explainer:player.css">
 <link rel="stylesheet" href="explainer:theme/transit">
 <style>
-  #main .stage{min-height:470px}
+
   svg.map{display:block;width:100%;height:auto;max-width:560px;margin:0 auto}
   .trk{fill:none;stroke:var(--line-1,var(--accent));stroke-width:7;stroke-linecap:round;transition:opacity .4s}
   .trk.two{stroke:var(--line-2,var(--good))}
@@ -23,24 +23,23 @@
   .train{fill:var(--accent);stroke:var(--paper);stroke-width:3;transition:transform .5s}
   .state{margin:10px auto 0;max-width:560px;font:14px var(--font-mono)}
   .state h3{font:700 13px var(--font-display);text-transform:uppercase;letter-spacing:.05em;margin:0 0 4px;color:var(--muted)}
-  .state ol{margin:0;padding-left:1.6em;display:grid;gap:3px}
+  .state ol{margin:0;padding-left:2.4em;display:grid;gap:3px;align-content:start;--well-h:7.2em}
   .state li.new{background:color-mix(in srgb,var(--hl) 40%,transparent)}
   .saved{font:600 13px var(--font-mono);color:var(--muted);margin:8px auto 0;max-width:560px;min-height:1.4em}
   .choices{display:flex;flex-wrap:wrap;gap:8px;margin:10px auto 0;max-width:560px}
   .choices button{font-size:15px;padding:8px 12px;cursor:pointer}
   .choices button[disabled]{opacity:.4;cursor:default}
-  .sources{font-size:15px}
 </style>
 </head>
 <body>
 <main>
-  <header class="col stack">
+  <header class="col stack" data-slot="intro">
     <h1 class="hook">Why did LLM apps move from chains to graphs?</h1>
-    <p>Early LLM apps were built as a straight line of steps. Today's agents are built as maps with loops in them.
+    <p class="dek">Early LLM apps were built as a straight line of steps. Today's agents are built as maps with loops in them.
       Something forced that change. Ride the line to see what.</p>
   </header>
 
-  <section class="wide">
+  <section class="wide" data-slot="scene">
     <figure class="scene" id="main">
       <div class="stage">
         <section data-scene="chain" data-title="The chain">
@@ -56,17 +55,25 @@
     </figure>
   </section>
 
-  <section class="col stack">
+  <section class="col stack" data-slot="payoff">
     <p class="payoff">A chain can only go forward. Agents loop, branch and wait, so <mark>the route became a graph</mark>.</p>
-    <p>A straight chain is still right for a fixed job like "summarise this". LangGraph is for when the model, a tool result or a person decides the next stop.
-      LangChain's <code>create_agent</code> builds the standard loop above on top of LangGraph for you.</p>
+  </section>
+
+  <section class="prose col" data-slot="prose">
+    <h2>Which one to use</h2>
+    <p>A straight chain is still right for a fixed job like "summarise this". LangGraph is for when the model, a tool result or a person decides the next stop <a class="cite" href="#src-1">[1]</a>.
+      Saving the state at every stop is what lets a run pause for a person and resume later <a class="cite" href="#src-2">[2]</a> <a class="cite" href="#src-3">[3]</a>.
+      LangChain's <code>create_agent</code> builds the standard loop above on top of LangGraph for you <a class="cite" href="#src-4">[4]</a>.</p>
+  </section>
+
+  <section class="sources col" data-slot="sources">
     <h2>Sources</h2>
-    <ul class="sources">
-      <li><a href="https://docs.langchain.com/oss/python/langgraph/graph-api">LangGraph docs: Graph API</a></li>
-      <li><a href="https://docs.langchain.com/oss/python/langgraph/persistence">LangGraph docs: Persistence</a></li>
-      <li><a href="https://docs.langchain.com/oss/python/langgraph/interrupts">LangGraph docs: Interrupts</a></li>
-      <li><a href="https://docs.langchain.com/oss/python/releases/langchain-v1">LangChain v1 release notes</a></li>
-    </ul>
+    <ol>
+      <li id="src-1"><a href="https://docs.langchain.com/oss/python/langgraph/graph-api">LangGraph docs: Graph API</a></li>
+      <li id="src-2"><a href="https://docs.langchain.com/oss/python/langgraph/persistence">LangGraph docs: Persistence</a></li>
+      <li id="src-3"><a href="https://docs.langchain.com/oss/python/langgraph/interrupts">LangGraph docs: Interrupts</a></li>
+      <li id="src-4"><a href="https://docs.langchain.com/oss/python/releases/langchain-v1">LangChain v1 release notes</a></li>
+    </ol>
   </section>
 </main>
 
@@ -160,7 +167,7 @@
             api.svg("text", { class: "name", x: G[k][0], y: k === "tools" ? G[k][1] + 44 : G[k][1] - 28 }, g).textContent = k;
           });
           el.gtrain = api.svg("circle", { class: "train", r: 8, cx: 0, cy: 0 }, g);
-          msgsEl = sec.querySelector("#msgs"); savedEl = sec.querySelector("#saved");
+          msgsEl = api.well(sec.querySelector("#msgs")); savedEl = sec.querySelector("#saved");
           var pick = sec.querySelector("#pick");
           [["Ask for a tool", true], ["Answer the user", false]].forEach(function (c) {
             var b = api.h("button", { type: "button", text: c[0] }, pick);

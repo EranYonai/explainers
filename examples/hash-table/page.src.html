@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="explainer:player.css">
 <link rel="stylesheet" href="explainer:theme/inkwell">
 <style>
-  #main .stage{min-height:560px}
+
   .sum{font-family:var(--font-mono);font-size:15px;min-height:3.2em;margin:0 0 12px;line-height:1.6}
   .sum b{background:var(--hl);color:var(--hl-ink);padding:0 4px;border-radius:3px}
   .rows{display:grid;gap:4px}
@@ -33,12 +33,12 @@
 </head>
 <body>
 <main>
-  <header class="col stack">
+  <header class="col stack" data-slot="intro">
     <h1 class="hook">You ask for <code>users["dana"]</code>. How does it come back without searching?</h1>
-    <p>With ten keys or ten million, a dictionary answers in about the same time. Here is how, with numbers small enough to check by hand.</p>
+    <p class="dek">With ten keys or ten million, a dictionary answers in about the same time. Here is how, with numbers small enough to check by hand.</p>
   </header>
 
-  <section class="wide">
+  <section class="wide" data-slot="scene">
     <figure class="scene" id="main">
       <div class="stage">
         <section data-scene="list" data-title="A plain list">
@@ -55,8 +55,12 @@
     </figure>
   </section>
 
-  <section class="col stack">
+  <section class="col stack" data-slot="payoff">
     <p class="payoff">The key's own letters say <mark>which box to open</mark>.</p>
+  </section>
+
+  <section class="prose col" data-slot="prose">
+    <h2>In real dictionaries</h2>
     <p>Real hash functions mix each letter with its position, so <code>cat</code> and <code>act</code> no longer collide. Python's
       <code>dict</code> and Java's <code>HashMap</code> both grow their tables before the lines get long.</p>
   </section>

@@ -24,12 +24,19 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
   font-size:calc(clamp(2rem,1.4rem + 3.4vw,3.6rem) * var(--display-scale,1));margin:8px 0}
 .note{color:var(--muted);font-size:.9rem}
 
-/* scene frame: stage, caption, controls */
-.scene{margin:0;background:var(--surface);border:var(--border-width,1px) solid var(--line);border-radius:calc(var(--radius,8px) + 6px);overflow:hidden;box-shadow:var(--shadow,none)}
-.scene .stage{padding:16px 20px 0;min-width:0}
+/* scene frame: stage, caption, controls.
+   Steady layout: the player measures every step and sets --stage-h and --caption-h to the tallest, so the
+   controls never move. Pages and themes must not set height, min-height or display on .stage, .caption,
+   .controls or [data-scene]; put content that grows in a .well instead. */
+.scene{margin:0;background:var(--surface);border:var(--border-width,1px) solid var(--line);border-radius:calc(var(--radius,8px) + 6px);overflow:hidden;overflow:clip;box-shadow:var(--shadow,none)}
+.scene .stage{padding:16px 20px 0;min-width:0;min-height:var(--stage-h,0)}
+.scene.measuring .stage,.scene.measuring .caption{min-height:0!important}
+.scene.measuring *{transition:none!important}
+.dock{background:var(--surface)}
+.well{height:var(--well-h,9.5em);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
 .scene .stage svg{display:block;width:100%;height:auto;max-width:100%}
 .scene svg text{font-family:var(--font-mono);fill:var(--ink)}
-.caption{padding:12px 20px 0;min-height:4.9em;font-family:var(--caption-font,var(--font-body));font-weight:400;font-size:clamp(1.05rem,1rem + .3vw,1.2rem);line-height:1.42;text-wrap:balance}
+.caption{padding:12px 20px 0;min-height:var(--caption-h,4.9em);font-family:var(--caption-font,var(--font-body));font-weight:400;font-size:clamp(1.05rem,1rem + .3vw,1.2rem);line-height:1.42;text-wrap:balance}
 .caption .stepno{display:block;font-family:var(--font-mono);font-weight:400;font-size:.74rem;color:var(--muted);margin-bottom:4px}
 .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 20px 18px}
 .controls button,.pick button,.choices button{font:inherit;font-size:.92rem;padding:9px 15px;min-height:44px;border-radius:var(--radius,8px);
@@ -38,14 +45,16 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
 .controls button.primary{background:var(--accent);color:var(--accent-ink,#fff);border-color:var(--accent)}
 .pick button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
 .controls button:disabled{opacity:.45;cursor:default}
-.dots{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto}
+.controls .dots{display:flex;flex:1 1 100%;order:9;flex-wrap:nowrap;align-items:center;gap:6px;height:8px;margin-top:2px;overflow:hidden}
 .dots i{width:8px;height:8px;border-radius:50%;background:var(--line);display:block}
 .dots i.on{background:var(--accent)}
 .pick{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:12px 20px 0}
 @media (max-width:600px){
   .scene .stage{padding:12px 12px 0}
-  .caption{padding:12px 16px 0;min-height:6.4em}
+  .caption{padding:12px 16px 0;min-height:var(--caption-h,6.4em)}
   .controls,.pick{padding-left:16px;padding-right:16px}
+  /* the dock sticks to the bottom of the screen while the scene is taller than the screen */
+  .scene .dock{position:sticky;bottom:0;z-index:2;border-top:var(--border-width,1px) solid color-mix(in srgb,var(--line) 70%,transparent)}
 }
 
 /* shared drawing classes for SVG stages */
@@ -56,14 +65,16 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
 .scene .stage *{transition:fill .35s,stroke .35s,opacity .35s,transform .45s cubic-bezier(.3,.7,.2,1)}
 .reduce-motion *,.reduce-motion *::before,.reduce-motion *::after{transition:none!important;animation:none!important}
 
-/* deck mode: one stepper, several sections, only the active one shown */
-.scene.deck [data-scene]{display:none}
-.scene.deck [data-scene].on{display:block;animation:pagein .35s ease both}
+/* deck mode: one stepper, several sections, only the active one shown. All sections share one grid cell,
+   so the stage is as tall as the tallest section and switching sections moves nothing. */
+.scene.deck .stage{display:grid;grid-template-columns:minmax(0,1fr);align-content:start}
+.scene.deck [data-scene]{grid-area:1/1;min-width:0;visibility:hidden}
+.scene.deck [data-scene].on{visibility:visible;animation:pagein .35s ease both}
 @keyframes pagein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .scene .sec{display:flex;align-items:baseline;gap:10px;padding:12px 20px 6px;border-bottom:var(--border-width,1px) solid var(--line)}
 .scene .sec .no{font-family:var(--font-mono);font-size:.68rem;color:var(--muted);white-space:nowrap}
 .scene .sec .ttl{font-family:var(--font-display);font-weight:var(--display-weight,700);text-transform:var(--display-transform,none);font-size:1.15rem;line-height:1.1}
-.dots.many{flex:1 1 100%;order:9;gap:2px;margin:4px 0 0;flex-wrap:nowrap}
+.controls .dots.many{gap:2px}
 .dots.many i{flex:1;width:auto;height:5px;border-radius:1px}
 .dots i.done{background:color-mix(in srgb,var(--accent) 45%,var(--line))}
 [data-theme-toggle]{font:inherit;font-size:.8rem;padding:6px 10px;min-height:36px;border:var(--border-width,1px) solid var(--line);border-radius:var(--radius,8px);background:transparent;color:var(--ink);cursor:pointer}
@@ -87,3 +98,31 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
 @media (max-width:520px){
   .speed-opts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
 }
+
+/* page parts (slots). Order is fixed: masthead, intro (h1.hook, p.dek, p.meta), summary, scene, payoff, prose,
+   glossary, sources, next. Every part but the scene sits in the reading column (.col). */
+.masthead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.masthead .kind{font-family:var(--font-mono);font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink)}
+.dek{font-size:calc(1.12em * var(--dek-scale,1));line-height:1.5;max-width:60ch}
+.meta{font-family:var(--font-mono);font-size:.78rem;color:var(--muted)}
+.tldr{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:8px 16px;margin:0;padding:14px 16px;
+  background:var(--tldr-bg,var(--surface));border:var(--border-width,1px) solid var(--line);border-radius:var(--radius,8px)}
+.tldr dt{font-family:var(--font-mono);font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding-top:.2em}
+.tldr dd{margin:0}
+@media (max-width:420px){ .tldr{grid-template-columns:minmax(0,1fr);gap:2px} .tldr dd+dt{margin-top:10px} }
+.prose{display:grid;gap:12px}
+.prose h2,.sources h2,.glossary-wrap h2{margin-top:4px}
+.prose ul,.prose ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
+.glossary{display:grid;gap:10px;margin:0}
+.glossary dt{font-weight:700}
+.glossary dd{margin:2px 0 0;color:var(--ink)}
+.cite{font-family:var(--font-mono);font-size:.78em;text-decoration:none;color:var(--cite-color,var(--accent));vertical-align:.08em;white-space:nowrap}
+.cite:hover{text-decoration:underline}
+.sources{display:grid;gap:10px}
+.sources ol,.sources ul{margin:0;padding-left:1.4em;display:grid;gap:6px;font-size:.92rem}
+.sources li:target{background:color-mix(in srgb,var(--hl) 35%,transparent);border-radius:3px}
+.sources p{color:var(--muted);font-size:.86rem}
+nav.next{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+nav.next a{display:inline-flex;align-items:center;min-height:44px;padding:9px 15px;border:var(--border-width,1px) solid var(--line);
+  border-radius:var(--radius,8px);text-decoration:none;color:var(--ink);background:var(--surface)}
+nav.next a:hover{border-color:var(--accent)}
