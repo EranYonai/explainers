@@ -16,7 +16,7 @@ import { fileURLToPath } from "node:url";
 
 const SKILL = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const THEMES = join(SKILL, "themes");
-const TEMPLATES = join(SKILL, "templates");
+const PLAYER = join(SKILL, "player");
 
 function usage(msg) {
   if (msg) console.error(msg);
@@ -70,9 +70,9 @@ for (const [name, re] of [["a theme link (href=\"explainer:theme/<name>\")", /hr
 }
 html = html.replace(/<link[^>]*href="explainer:theme\/([\w-]+)"[^>]*>/g, (_, name) => themeBlock(themeOverride || name));
 html = html.replace(/<link[^>]*href="explainer:player\.css"[^>]*>/g, () =>
-  "<style>\n" + readFileSync(join(TEMPLATES, "player.css"), "utf8").trim() + "\n</style>");
+  "<style>\n" + readFileSync(join(PLAYER, "player.css"), "utf8").trim() + "\n</style>");
 html = html.replace(/<script[^>]*src="explainer:player\.js"[^>]*>\s*<\/script>/g, () =>
-  "<script>\n" + readFileSync(join(TEMPLATES, "player.js"), "utf8").trim().replace(/<\/script/gi, "<\\/script") + "\n</script>");
+  "<script>\n" + readFileSync(join(PLAYER, "player.js"), "utf8").trim().replace(/<\/script/gi, "<\\/script") + "\n</script>");
 
 // Only href and src values count, so prose that mentions a placeholder by name is fine.
 const left = [...html.matchAll(/(?:href|src)="(explainer:[^"]*)"/g)].map((m) => m[1]);

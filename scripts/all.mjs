@@ -21,8 +21,7 @@ for (const d of readdirSync(join(ROOT, "examples")).sort()) {
   const src = join(ROOT, "examples", d, "page.src.html");
   if (existsSync(src)) pages.push({ name: "examples/" + d, src, out: join(ROOT, "examples", d, "index.html") });
 }
-pages.push({ name: "starter page.src.html", src: join(SKILL, "templates", "page.src.html"), out: join(OUT, "starters", "page.html") });
-const kinds = join(SKILL, "templates", "kinds");
+const kinds = join(SKILL, "starters");
 for (const f of readdirSync(kinds).filter((f) => f.endsWith(".src.html")).sort()) {
   pages.push({ name: "starter " + f, src: join(kinds, f), out: join(OUT, "starters", f.replace(".src.html", ".html")) });
 }

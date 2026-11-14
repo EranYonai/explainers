@@ -45,17 +45,30 @@ Rules that keep it readable for someone who knows nothing yet:
 
 ## 3. Build
 
-1. Copy a starter to the output folder as `<slug>.src.html`. Each is a working page with the right parts
-   already kept; replace the placeholders, keep the parts you need, delete the rest, never reorder them.
+1. Copy a starter to the output folder as `<slug>.src.html`. Each is a working page; replace the
+   placeholders, keep the parts you need, delete the rest, never reorder them.
 
-   | Starter (`templates/kinds/`) | For |
+   | Starter (`starters/`) | For |
    |---|---|
-   | `concept.src.html` | how something works (the default) |
+   | `concept.src.html` | how something works (the default, and for anything else): has every part, each with a comment |
    | `pr.src.html` | a pull request: summary for reviewers, the old and new path side by side |
    | `incident.src.html` | an incident review: timeline, the path the failure took, where to stop it |
    | `onboarding.src.html` | a newcomer's first look at a system, with a glossary and a link to the next part |
 
-   `templates/page.src.html` has every part with a comment saying what goes there, for anything else.
+   Page parts are marked with `data-slot` and keep this order. The check fails on a missing required part,
+   on parts out of order, and on any other `data-slot` name.
+
+   | `data-slot` | Required | What goes there |
+   |---|---|---|
+   | `masthead` | no | `.kind` (what kind of page this is) and a `<button data-theme-toggle>` |
+   | `intro` | yes | the hook as `h1.hook`, a short `p.dek`, optional `p.meta` (reading time, checked-against date) |
+   | `summary` | no | `dl.tldr`: key facts as label and value |
+   | `scene` | yes | the `figure` the player drives, inside `section.wide` |
+   | `payoff` | yes | `p.payoff`: one sentence that answers the hook |
+   | `prose` | no, up to 3 | short `section.prose` blocks |
+   | `glossary` | no | `dl.glossary`: only the terms the page uses |
+   | `sources` | when facts are current | `section.sources` with an `ol` of linked sources |
+   | `next` | no | a `nav` of links: the PR, the runbook, the next part |
 2. Pick a theme by topic (change the `explainer:theme/<name>` link):
 
    | Theme | Fits |
@@ -65,13 +78,13 @@ Rules that keep it readable for someone who knows nothing yet:
    | `transit` | flows and architectures, request paths, state machines, routes |
    | `gruvbox`, `kanagawa`, `one-half`, `dracula`, `rose-pine` | editor palettes: same layout, the reader's favorite colors |
 
-3. Write the content with the player (`templates/player.js` documents the API at the top;
+3. Write the content with the player (`player/player.js` documents the API at the top;
    `references/scene-patterns.md` has the patterns). Rules:
    - **States, not animations.** Steps use `set` (carries forward) and `mark` (this step only);
      `draw(state)` makes the page match. CSS transitions do the motion.
    - **Numbers come from code.** Any number in a caption is `{name}` filled by `compute(state)`,
      or produced by a function that runs the real logic (a search, a count, a simulation). Never type a result.
-   - **Random is seeded:** `api.rng(seed)`. Same seed, same page.
+   - **Random is seeded:** `api.rng(seed)`, never `Math.random`. Same seed, same page.
    - **Theme tokens only:** `var(--ink)`, `var(--accent)`, ... Never hard-code a color.
    - **Phone first:** 390 px wide with no sideways scroll; text in SVG at least 12 px on a phone.
    - **Steady controls:** the player reserves the tallest step's height, so never set a height on `.stage`
@@ -82,20 +95,26 @@ Rules that keep it readable for someone who knows nothing yet:
      `<a class="cite" href="#src-1">[1]</a>`. Timeless topics (algorithms, concepts) need none.
 4. Build: `node <skill>/scripts/build.mjs <slug>.src.html -o <slug>.html` writes one self-contained file.
 
-The player owns these class names, so do not reuse them for your own elements: `scene`, `stage`, `caption`,
-`stepno`, `controls`, `prev`, `next`, `play`, `playgroup`, `speed-now`, `speed-menu`, `speed-opts`, `dots`,
-`dock`, `well`, `measuring`, `sec`, `deck`, `on`, `done`. Page parts (use them only for their part):
-`masthead`, `kind`, `dek`, `meta`, `tldr`, `prose`, `glossary`, `sources`, `cite`. Layout helpers you may use:
-`col` (reading column), `wide` (scene width), `stack` (vertical gap), `hook`, `payoff`, `note`, `choices`
-and `pick` (rows of reader buttons).
+Class names, in three groups:
+- **The player's own.** It puts these on the elements it builds, so never use them for yours or write rules
+  for them: `scene`, `stage`, `caption`, `stepno`, `controls`, `prev`, `next`, `play`, `playgroup`,
+  `speed-now`, `speed-menu`, `speed-opts`, `dots`, `dock`, `measuring`, `sec`, `deck`. It also toggles `on`
+  and `done` on its dots and deck sections, so never write a bare `.on` or `.done` rule; highlight your own
+  elements with `.lit`. `well` is added by `api.well(el)`.
+- **Page parts.** Use them only for their part: `masthead`, `kind`, `dek`, `meta`, `tldr`, `prose`,
+  `glossary`, `sources`, `cite`.
+- **Helpers you may use:** `col` (reading column), `wide` (scene width), `stack` (vertical gap), `hook`,
+  `payoff`, `note` (small muted text), `choices` (a row of reader buttons; set `aria-pressed` on the picked
+  one), and `cards` with `card` (a grid of boxes with an `h3` and a `p`; `.lit` highlights one, `.dim` fades
+  the rest, `--card-min` sets the column width).
 
 ## 4. Check once, fix once
 
 Run `node <skill>/scripts/check.mjs <slug>.html` (add `--sheet <path.png>` to choose where the contact sheet goes). It walks every step at phone and desktop width and
 prints PASS or FAIL with a short list (JS errors, missing caption values, controls that move, sideways
 scroll, content wider than its scene, missing page parts, broken citations), plus a contact sheet image of
-every step. It clicks `.choices button` to play the reader; if your reader buttons use other classes, add
-`--click "<selector>"`. Look at the contact sheet. Fix with targeted
+every step. It clicks `.choices button` to play the reader, and adds a note when a step waits for the reader
+but no button matched; if your reader buttons use other classes, add `--click "<selector>"`. Look at the contact sheet. Fix with targeted
 edits, rebuild, re-run once. See `references/checks.md` for what it cannot catch and you must eyeball.
 If it prints SKIP, Playwright is not installed; say so and open the page yourself if you can.
 

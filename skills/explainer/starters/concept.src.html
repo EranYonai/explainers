@@ -11,17 +11,13 @@
 <style>
   /* Page-specific styles only. Use theme tokens: --paper --surface --ink --muted --line --accent --hl --good --bad,
      --font-display --font-body --font-mono. Never hard-code colors, so every theme and dark mode work. */
-  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:10px}
-  .card{border:var(--border-width,1px) solid var(--line);border-radius:var(--radius,8px);background:var(--paper);padding:12px;transition:opacity .3s}
-  .card.dim{opacity:.35}
-  .card.on{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--hl)}
-  .choices{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 </style>
 </head>
-<!-- Page parts, in a fixed order. Each has a data-slot name. Keep the ones you need, delete the rest,
-     never reorder them. Required: intro (h1.hook + p.dek), scene, payoff. Sources when facts are current.
-     Starters for common kinds, with the right parts already kept: templates/kinds/*.src.html -->
-<body data-kind="concept">
+<!-- Starter: CONCEPT. How something works: hook, one mechanism scene, payoff, where it shows up.
+     It has every page part, each with a comment saying what goes there. Parts keep a fixed order (data-slot):
+     keep the ones you need, delete the rest, never reorder them. Required: intro (h1.hook + p.dek), scene,
+     payoff. Sources when facts are current (tools, libraries, services); delete it for timeless topics. -->
+<body>
 <main>
   <!-- masthead (optional): what kind of page this is, and the day/night toggle. -->
   <header class="masthead col" data-slot="masthead">
@@ -89,7 +85,7 @@
   </section>
 
   <!-- next (optional): where to go after this page. -->
-  <nav class="next col" data-slot="next" aria-label="Next">
+  <nav class="col" data-slot="next" aria-label="Next">
     <a href="https://example.com">NEXT: the PR, the runbook, the next part</a>
   </nav>
 </main>
@@ -108,8 +104,8 @@
   // The reader's choice produces the next steps with real logic, so captions stay true for every choice.
   function outcome(pick) {
     return [
-      { scene: "choose", say: "You picked " + PARTS[pick].name + ". OUTCOME: what happens because of that.", set: { picked: pick } },
-      { scene: "parts", say: "Back to the parts: {count} of them, and the one you picked matters most.", set: { focus: pick } }
+      { scene: "parts", say: "You picked " + PARTS[pick].name + ". OUTCOME: what happens because of that.", set: { picked: pick, focus: pick } },
+      { scene: "parts", say: "{count} parts, and the one you picked matters most." }
     ];
   }
 
@@ -137,7 +133,7 @@
         },
         draw: function (s) {
           cards.forEach(function (c, i) {
-            c.classList.toggle("on", i === s.focus);
+            c.classList.toggle("lit", i === s.focus);
             c.classList.toggle("dim", s.focus >= 0 && i !== s.focus);
           });
         }

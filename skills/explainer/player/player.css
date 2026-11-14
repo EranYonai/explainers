@@ -1,4 +1,4 @@
-/* explainer player v0: page base and scene chrome. Colors and fonts come from a theme file (themes/*.css). */
+/* explainer player: page base, scene chrome and a few layout helpers. Colors and fonts come from a theme file (themes/*.css). */
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--paper);background-image:var(--texture,none);background-size:var(--texture-size,auto);color:var(--ink);
@@ -39,29 +39,33 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
 .caption{padding:12px 20px 0;min-height:var(--caption-h,4.9em);font-family:var(--caption-font,var(--font-body));font-weight:400;font-size:clamp(1.05rem,1rem + .3vw,1.2rem);line-height:1.42;text-wrap:balance}
 .caption .stepno{display:block;font-family:var(--font-mono);font-weight:400;font-size:.74rem;color:var(--muted);margin-bottom:4px}
 .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 20px 18px}
-.controls button,.pick button,.choices button{font:inherit;font-size:.92rem;padding:9px 15px;min-height:44px;border-radius:var(--radius,8px);
+.controls button,.choices button{font:inherit;font-size:.92rem;padding:9px 15px;min-height:44px;border-radius:var(--radius,8px);
   border:var(--border-width,1px) solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
-.controls button:hover,.pick button:hover,.choices button:hover{border-color:var(--accent)}
+.controls button:hover,.choices button:hover{border-color:var(--accent)}
 .controls button.primary{background:var(--accent);color:var(--accent-ink,#fff);border-color:var(--accent)}
-.pick button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.choices button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.choices button:disabled{opacity:.45;cursor:default}
 .controls button:disabled{opacity:.45;cursor:default}
 .controls .dots{display:flex;flex:1 1 100%;order:9;flex-wrap:nowrap;align-items:center;gap:6px;height:8px;margin-top:2px;overflow:hidden}
 .dots i{width:8px;height:8px;border-radius:50%;background:var(--line);display:block}
 .dots i.on{background:var(--accent)}
-.pick{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:12px 20px 0}
 @media (max-width:600px){
   .scene .stage{padding:12px 12px 0}
   .caption{padding:12px 16px 0;min-height:var(--caption-h,6.4em)}
-  .controls,.pick{padding-left:16px;padding-right:16px}
+  .controls{padding-left:16px;padding-right:16px}
   /* the dock sticks to the bottom of the screen while the scene is taller than the screen */
   .scene .dock{position:sticky;bottom:0;z-index:2;border-top:var(--border-width,1px) solid color-mix(in srgb,var(--line) 70%,transparent)}
 }
 
-/* shared drawing classes for SVG stages */
-.rough{filter:url(#rough)}
-.ink{stroke:var(--ink);fill:none;stroke-width:var(--stroke-width,2);stroke-linecap:var(--linecap,round);stroke-linejoin:round}
-.fill-surface{fill:var(--surface)} .fill-accent{fill:var(--accent)} .fill-hl{fill:var(--hl)} .fill-good{fill:var(--good)} .fill-bad{fill:var(--bad)} .fill-line{fill:var(--line)}
-.muted{fill:var(--muted);color:var(--muted)}
+/* layout helpers a page may use: .choices (a row of reader buttons; aria-pressed marks the picked one),
+   .cards + .card (a grid of boxes; .lit highlights one, .dim fades the rest; --card-min sets the column width) */
+.choices{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,var(--card-min,160px)),1fr));gap:10px}
+.card{border:var(--border-width,1px) solid var(--line);border-radius:var(--radius,8px);background:var(--paper);padding:10px 12px;transition:opacity .3s,border-color .3s}
+.card h3{font-size:1rem;margin:0 0 4px}
+.card p{font-size:.9rem;color:var(--muted)}
+.card.lit{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--hl)}
+.card.dim{opacity:.4}
 .scene .stage *{transition:fill .35s,stroke .35s,opacity .35s,transform .45s cubic-bezier(.3,.7,.2,1)}
 .reduce-motion *,.reduce-motion *::before,.reduce-motion *::after{transition:none!important;animation:none!important}
 
@@ -122,7 +126,7 @@ mark{background:var(--hl);color:var(--hl-ink,#111);padding:0 .12em;border-radius
 .sources ol,.sources ul{margin:0;padding-left:1.4em;display:grid;gap:6px;font-size:.92rem}
 .sources li:target{background:color-mix(in srgb,var(--hl) 35%,transparent);border-radius:3px}
 .sources p{color:var(--muted);font-size:.86rem}
-nav.next{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-nav.next a{display:inline-flex;align-items:center;min-height:44px;padding:9px 15px;border:var(--border-width,1px) solid var(--line);
+nav[data-slot="next"]{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+nav[data-slot="next"] a{display:inline-flex;align-items:center;min-height:44px;padding:9px 15px;border:var(--border-width,1px) solid var(--line);
   border-radius:var(--radius,8px);text-decoration:none;color:var(--ink);background:var(--surface)}
-nav.next a:hover{border-color:var(--accent)}
+nav[data-slot="next"] a:hover{border-color:var(--accent)}

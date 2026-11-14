@@ -13,11 +13,14 @@ walks every step of every scene, and prints PASS or FAIL.
   clicks the reader buttons (`--click "<selector>"`, default `.choices button`) and walks the steps they add,
   so a choice that grows the page is caught too. Pass your own selector when your buttons have other classes.
 - A page or theme style overriding the stage or caption height the player reserves.
-- Page parts: missing `intro` (with `h1.hook` and `p.dek`), `scene` or `payoff`; parts out of order; more than
-  one `h1`; a `.cite` link pointing at no source; a source without a link.
+- Page parts (`data-slot`, see SKILL.md): missing `intro` (with `h1.hook` and `p.dek`), `scene` or `payoff`;
+  parts out of order; an unknown `data-slot` name; more than one `h1`; a `.cite` link pointing at no source; a
+  source without a link.
+- A page built without a theme.
 - Requests to anything other than Google Fonts.
 - Notes, not failures: captions over 200 characters, a stage taller than 60% of a phone screen, more than
-  400 words outside the scene, outside links with no Sources part.
+  400 words outside the scene, outside links with no Sources part, and a step that waits for the reader
+  when no button matched the click selector (so the reader's path was not checked).
 
 It writes a contact sheet (`<page>.sheet.png`): every step at phone width in one image. Look at it once.
 

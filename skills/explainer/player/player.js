@@ -1,4 +1,4 @@
-/* explainer player v0
+/* explainer player
  * One shared stepper for every explainer: Back / Next / Play, captions, dots, keys, reduced motion.
  * A scene is data plus two small functions:
  *
@@ -17,7 +17,8 @@
  * Deck mode (one stepper drives several sections, like a manual): put <section data-scene="loop" data-title="The loop">
  * blocks inside the figure, give each step `scene: "loop"`, and pass per-section code as
  * `scenes: { loop: { setup(sectionEl, api), draw(state, api) } }`. Only the active section is shown.
- * A step with `wait: true` stops Play there, because the reader has something to do.
+ * A step with `wait: true` stops Play there, because the reader has something to do. Play holds each step
+ * for a time based on its caption length; `hold: <ms>` on a step overrides that.
  *
  * State at step i = initial, then every step's `set` from 0..i merged in order, then step i's `mark`.
  * `set` carries forward; `mark` is true for one step only (highlights, "look here", a probe).
@@ -73,7 +74,7 @@
     return e;
   }
 
-  // Seeded random numbers (mulberry32): same seed, same sequence, so captions and videos stay stable.
+  // Seeded random numbers (mulberry32): same seed, same sequence, so captions stay true on every load.
   function rng(seed) {
     var a = seed >>> 0;
     return function () {
@@ -94,23 +95,10 @@
     return String(s || "").split(/\s+/).filter(Boolean).length;
   }
 
-  // Hand-drawn wobble: one shared SVG filter, strength from the theme's --sketch token (0 = off).
-  var roughDone = false;
-  function ensureRough() {
-    if (roughDone) return;
-    roughDone = true;
-    var scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sketch")) || 0;
-    var defs = svg("svg", { width: 0, height: 0, "aria-hidden": "true", style: "position:absolute" }, document.body);
-    var f = svg("filter", { id: "rough", x: "-5%", y: "-5%", width: "110%", height: "110%" }, svg("defs", {}, defs));
-    svg("feTurbulence", { type: "fractalNoise", baseFrequency: "0.035", numOctaves: 2, seed: 7, result: "n" }, f);
-    svg("feDisplacementMap", { in: "SourceGraphic", in2: "n", scale: scale, xChannelSelector: "R", yChannelSelector: "G" }, f);
-  }
-
   function scene(target, opts) {
     var fig = typeof target === "string" ? document.querySelector(target) : target;
     var name = fig && (fig.id || opts.title) || "scene";
     if (!fig) { report(String(target), "element not found"); return null; }
-    ensureRough();
 
     fig.classList.add("scene");
     if (!fig.hasAttribute("tabindex")) fig.setAttribute("tabindex", "0");
@@ -176,14 +164,11 @@
       get state() { return state; },
       get step() { return steps[idx]; },
       get scene() { return steps[idx] && steps[idx].scene; },
-      sections: sections,
       go: function (i) { stop(); show(i, true); },
       next: function () { stop(); step(1); },
       prev: function () { stop(); step(-1); },
       play: function () { if (!timer) toggle(); },
       stop: stop,
-      get speed() { return speed; },
-      setSpeed: setSpeed,
       // Replace the steps, e.g. after the reader picks an input and real code generates a new trace.
       setSteps: function (s, at) { steps = s || []; buildDots(); stop(); reserve(false); show(at || 0, true); },
       // Keep steps up to the current one, replace everything after it, and move on: a reader's choice
@@ -191,16 +176,14 @@
       branch: function (s) { steps = steps.slice(0, idx + 1).concat(s || []); buildDots(); stop(); reserve(false); show(idx + 1, true); },
       // Jump to the first step that matches, e.g. api.goWhere(function (s) { return s.scene === "panel"; }).
       goWhere: function (pred) { for (var i = 0; i < steps.length; i++) if (pred(steps[i], i)) { stop(); show(i, true); return i; } return -1; },
-      redraw: function () { show(idx, false); },
       // Measure every step again and reserve the tallest (grow only). Use after async content changes size.
       reserve: function () { reserve(false); },
       // A box that grows with the steps: keep it at a fixed height and its newest row in view.
       well: function (el) { return well(el); },
-      get layout() { return { stage: reserved.stage, caption: reserved.caption, dots: dots.classList.contains("many") ? "bar" : "dots" }; },
+      // The heights the player reserved, in px (the check script reads these).
+      get layout() { return { stage: reserved.stage, caption: reserved.caption }; },
       // Replace the caption until the next step, e.g. after the reader clicks something inside a scene.
       say: function (text) { setCaption(text); },
-      stateAt: stateAt,
-      captionAt: function (i) { return fill(steps[i] && steps[i].say, stateAt(i), true); },
       svg: svg, h: h, rng: rng
     };
 
@@ -412,5 +395,5 @@
     r.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
   });
 
-  window.Explainer = { scene: scene, svg: svg, h: h, rng: rng, fmt: fmt, reduce: reduce, version: VERSION };
+  window.Explainer = { scene: scene, svg: svg, h: h, rng: rng, reduce: reduce, version: VERSION };
 })();

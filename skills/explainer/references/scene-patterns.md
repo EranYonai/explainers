@@ -34,12 +34,17 @@ var api = Explainer.scene("#main", {
 - Anything that grows with the steps (a chat, a log, a message list) goes in a well:
   `api.well(listEl)` gives it a fixed height (`--well-h`, default 9.5em) and keeps the newest row in view.
 - `api.say(text)` must fit the reserved caption: keep it no longer than the longest step caption.
+- Reader buttons go in a `.choices` row. Once the reader has picked, set `aria-pressed` on the pick, and keep
+  the buttons out of the steps the choice adds (or disable them), so a second click cannot stack outcomes.
 - `api.rng(seed)` for anything random. `api.h(tag, attrs, parent)` and `api.svg(...)` build elements.
 - `<button data-theme-toggle>` anywhere on the page flips light and dark.
 
 ## Patterns
 
-**Stations (a process or loop).** An `<ol>` of steps; `draw` adds `.on` to `state.k`. Pair it with a
+**Cards (the parts of a system, the stops on a path).** A `.cards` grid of `.card` boxes, each an `h3` and a
+`p`; `draw` toggles `.lit` on the one in focus and `.dim` on the rest. All four starters use it.
+
+**Stations (a process or loop).** An `<ol>` of steps; `draw` adds `.lit` to `state.k`. Pair it with a
 "tape" panel that fills as the process runs: rows with `data-at`, hidden while `at > k`.
 
 **Chat (an interview, an agent, a support thread).** Bubbles in a column, inside a well. State is how many are visible;

@@ -37,7 +37,7 @@ Make an explainer of how a database index speeds up a query.
 Explain this PR visually for the team.
 ```
 
-You get `<slug>.html`, a single file with no server and no build step. Open it in a browser, send it in a chat, or drop it on any static host.
+You get `<slug>.html`, one self-contained file that needs no server. Open it in a browser, send it in a chat, or drop it on any static host.
 
 The agent checks its own page before handing it over. It walks every step at phone and desktop width and fixes what breaks.
 
@@ -46,12 +46,17 @@ The agent checks its own page before handing it over. It walks every step at pho
 The skill writes a source page that references the shared player and a theme by placeholder, then inlines them:
 
 ```bash
-node skills/explainer/scripts/build.mjs page.src.html -o page.html   # one self-contained file
-node skills/explainer/scripts/check.mjs page.html                    # walks every step, prints PASS or FAIL
+node skills/explainer/scripts/build.mjs my-topic.src.html            # writes my-topic.html beside it
+node skills/explainer/scripts/build.mjs my-topic.src.html --theme transit -o transit.html
+node skills/explainer/scripts/check.mjs my-topic.html                # walks every step, prints PASS or FAIL
 ```
 
-Start from [`templates/page.src.html`](skills/explainer/templates/page.src.html). The player API is documented at
-the top of [`player.js`](skills/explainer/templates/player.js).
+Start from a [starter](skills/explainer/starters): `concept`, `pr`, `incident` or `onboarding`.
+[SKILL.md](skills/explainer/SKILL.md) is the contract the agent follows, and the player API is documented at the
+top of [`player.js`](skills/explainer/player/player.js). The check needs Playwright (`npm install` in this repo).
+
+Working on this repo: `npm run build` rebuilds every example and starter, and `npm run check` also checks them.
+CI runs the check on every pull request.
 
 ## Principles
 
@@ -59,14 +64,17 @@ the top of [`player.js`](skills/explainer/templates/player.js).
 2. **The agent interviews before it draws.** Short, and skippable for day-to-day asks.
 3. **Scenes describe states, not animations.** Each step says what is true; the player animates the change.
 4. **Numbers come from code.** Every number on screen is computed by a function in the page, never typed by hand.
-5. **Random things are seeded,** so captions can quote results and a video renders the same every time.
+5. **Random things are seeded,** so captions can quote results and the page is the same on every load.
 6. **Readable cold.** One topic per page, a picture from the first step, and no word the reader hasn't been given.
 
 ## Layout
 
 ```
-skills/explainer/      the skill: SKILL.md, player (templates/), themes, build and check scripts
-examples/              explainers made with the skill or its drafts
+skills/explainer/      the skill: SKILL.md, references/, player/, starters/, themes/, scripts/ (build, check)
+examples/              explainers made with the skill or its drafts, each a page.src.html and its built index.html
+scripts/               repo tooling: build and check every example and starter
+docs/media/            the README animation
+docs/design-base-page.md  design notes for the page parts and steady controls
 docs/themes/           gallery of 25 themes and the generator (the skill ships 8)
 docs/findings/         field notes from the first drafts
 runs.csv               a log of explainers made with the skill

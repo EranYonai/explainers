@@ -14,21 +14,15 @@
   .log li{display:grid;grid-template-columns:5.5em minmax(0,1fr);gap:8px}
   .log time{color:var(--muted)}
   .log li.new{background:color-mix(in srgb,var(--hl) 35%,transparent)}
-  .path{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:10px}
-  .part{border:var(--border-width,1px) solid var(--line);border-radius:var(--radius,8px);background:var(--paper);padding:10px 12px;transition:opacity .3s,border-color .3s}
-  .part h3{font-size:1rem;margin:0 0 4px}
-  .part p{font-size:.9rem;color:var(--muted)}
-  .part.on{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--hl)}
-  .part.bad{border-color:var(--bad)}
-  .part.bad h3::after{content:" \2715 failed here";font-family:var(--font-mono);font-size:.72rem;color:var(--bad)}
-  .part.saved h3::after{content:" \2713 caught here";font-family:var(--font-mono);font-size:.72rem;color:var(--good)}
-  .choices{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .card.bad{border-color:var(--bad)}
+  .card.bad h3::after{content:" \2715 failed here";font-family:var(--font-mono);font-size:.72rem;color:var(--bad)}
+  .card.saved h3::after{content:" \2713 caught here";font-family:var(--font-mono);font-size:.72rem;color:var(--good)}
 </style>
 </head>
 <!-- Starter: INCIDENT REVIEW. What happened, on a timeline, then the path the failure took, then the reader
      picks where to stop it. Blameless and generic: no hosts, customers, names or ticket ids.
      Page parts keep a fixed order (data-slot). Delete what you do not need, never reorder. -->
-<body data-kind="incident">
+<body>
 <main>
   <header class="masthead col" data-slot="masthead">
     <span class="kind">Incident review</span>
@@ -56,7 +50,7 @@
           <ol class="log" id="log"></ol>
         </section>
         <section data-scene="path" data-title="The path it took">
-          <div class="path" id="path"></div>
+          <div class="cards" id="path"></div>
         </section>
         <section data-scene="stop" data-title="Your turn">
           <p>Where would you stop it?</p>
@@ -93,18 +87,20 @@
 <script src="explainer:player.js"></script>
 <script>
 (function () {
-  // Content as data. Times are minutes from the first event; durations in captions come from them.
+  // Content as data. Times are minutes from the first event; `alert` marks when someone was paged.
+  // Durations in captions come from them.
   var EVENTS = [
     { t: 0, text: "A CHANGE ships." },
     { t: 4, text: "THE FIRST SYMPTOM shows up." },
-    { t: 11, text: "AN ALERT fires." },
+    { t: 11, text: "AN ALERT fires.", alert: true },
     { t: 23, text: "The change is rolled back." },
     { t: 31, text: "Everything is back to normal." }
   ];
-  // The path the failure took, in order. `fails` marks where it broke; `guard` is what each stop could check.
+  // The path the failure took, in order. `fails` marks where it broke; `guard` is what each stop could check;
+  // `added` marks the guards the fix put in place.
   var PARTS = [
-    { name: "Change", note: "Where it started.", guard: "A test before merge" },
-    { name: "Rollout", note: "How it spread.", guard: "A slower rollout" },
+    { name: "Change", note: "Where it started.", guard: "A test before merge", added: true },
+    { name: "Rollout", note: "How it spread.", guard: "A slower rollout", added: true },
     { name: "SERVICE", note: "Where it broke.", guard: "A limit in the service", fails: true },
     { name: "Users", note: "Who saw it.", guard: "Nothing: too late" }
   ];
@@ -134,7 +130,8 @@
       { scene: "stop", say: "Your turn: pick the stop where you would catch it.", wait: true }
     ]),
     compute: function (s) {
-      return { minutes: EVENTS[EVENTS.length - 1].t - EVENTS[0].t, detect: EVENTS[2].t - EVENTS[0].t, guards: 2 };
+      return { minutes: EVENTS[EVENTS.length - 1].t - EVENTS[0].t, detect: EVENTS.find(function (e) { return e.alert; }).t - EVENTS[0].t,
+        guards: PARTS.filter(function (p) { return p.added; }).length };
     },
     // every outcome a choice can add, so the player reserves room for them up front
     branches: function () { return PARTS.map(function (p, i) { return outcome(i); }); },
@@ -160,7 +157,7 @@
         setup: function (el, api) {
           var box = el.querySelector("#path");
           PARTS.forEach(function (p) {
-            var c = api.h("article", { class: "part" }, box);
+            var c = api.h("article", { class: "card" }, box);
             api.h("h3", { text: p.name }, c);
             api.h("p", { text: p.note }, c);
             parts.push(c);
@@ -169,7 +166,7 @@
         draw: function (s) {
           parts.forEach(function (c, i) {
             var saved = s.picked >= 0 && s.picked <= FAIL && i === s.picked;
-            c.classList.toggle("on", i === s.at);
+            c.classList.toggle("lit", i === s.at);
             c.classList.toggle("saved", saved);
             c.classList.toggle("bad", i === FAIL && !(s.picked >= 0 && s.picked <= FAIL) && s.at >= FAIL);
           });

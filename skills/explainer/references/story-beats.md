@@ -35,4 +35,4 @@ Below it, at most two sentences on where this matters in practice, and a Sources
 ## Length
 
 A good explainer reads in 3 to 6 minutes: 150 to 400 words of prose outside the scene, one scene (a deck of
-3 to 7 sections), 10 to 25 steps in total.
+2 to 5 sections), 10 to 25 steps in total.
