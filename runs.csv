@@ -1,1 +1,2 @@
 date,topic,models,tokens,tool_calls,minutes,fix_passes,output_kb,notes
+2026-11-14,How an explainer gets made,claude-fable-5-2,,9,5,2,46.3,skill end-to-end test; inkwell; interview answers rebuild steps via setSteps

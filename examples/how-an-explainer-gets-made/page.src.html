@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What you get from one sentence</title>
+<meta name="description" content="Watch an explainer page get built piece by piece: a question, a picture that changes, a choice for the reader, and a one-line answer.">
+<link rel="stylesheet" href="explainer:player.css">
+<link rel="stylesheet" href="explainer:theme/inkwell">
+<style>
+  #main .stage{min-height:640px}
+  .phone{width:min(300px,100%);margin:4px auto 0;border:2px solid var(--ink);border-radius:26px;background:var(--surface);padding:16px 14px 18px;box-sizing:border-box;display:grid;gap:10px}
+  .phone .bar{width:60px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 2px}
+  .piece{transition:opacity .35s,max-height .45s,box-shadow .35s;overflow:hidden;max-height:240px;border-radius:var(--radius,6px)}
+  .piece.off{opacity:0;max-height:0;margin:0;padding:0}
+  .piece.new{box-shadow:0 0 0 3px var(--hl)}
+  .ask{justify-self:end;max-width:88%;background:var(--accent);color:var(--accent-ink);border-radius:14px 14px 4px 14px;padding:8px 12px;font-size:15px}
+  .mhook{font:var(--display-weight,700) calc(20px * var(--display-scale,1))/1.15 var(--font-display);margin:0}
+  .mpic svg{display:block;width:100%;height:auto}
+  .mpic .client{fill:var(--paper);stroke:var(--ink)}
+  .mpic .srv{stroke:var(--ink);transition:fill .4s}
+  .mpic .req{stroke:var(--accent);stroke-width:2;transition:opacity .3s}
+  .mpic text{font:600 12px var(--font-mono);fill:var(--ink)}
+  .mcap{font-size:14px;margin:0;padding:2px 6px;color:var(--ink)}
+  .mctl{display:flex;gap:6px;justify-content:center;font:600 12px var(--font-mono);color:var(--muted)}
+  .mctl span{border:1px solid var(--line);border-radius:999px;padding:2px 10px}
+  .mpick{display:flex;flex-wrap:wrap;gap:6px}
+  .mpick button{font:inherit;font-size:14px;border:var(--border-width,1px) solid var(--accent);border-radius:var(--radius,6px);background:var(--paper);color:var(--ink);padding:6px 10px;cursor:pointer;flex:1 1 auto}
+  .mpick button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+  .mpay{font-weight:600;font-size:15px;margin:0;border-top:1px dashed var(--line);padding-top:8px}
+  .mpay mark{background:var(--hl);color:var(--hl-ink)}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:10px;margin-top:8px}
+  .tile{border:var(--border-width,1px) solid var(--line);border-radius:var(--radius,8px);background:var(--paper);padding:12px;transition:opacity .35s,box-shadow .35s}
+  .tile b{display:block;font:var(--display-weight,700) calc(30px * var(--display-scale,1))/1 var(--font-display)}
+  .tile span{color:var(--muted);font-size:14px}
+  .tile.off{opacity:.15}
+  .tile.new{box-shadow:inset 4px 0 0 var(--hl)}
+  ol.you{margin:18px 0 0;padding-left:1.4em;display:grid;gap:6px;transition:opacity .35s}
+  ol.you.off{opacity:0}
+</style>
+</head>
+<body>
+<main>
+  <header class="col stack">
+    <h1 class="hook">You type one sentence. What comes back?</h1>
+    <p>You ask Claude to explain something. A few minutes later you get one web page that anyone can open on a phone.
+      Below, that page builds itself one piece at a time. Press Next.</p>
+  </header>
+
+  <section class="wide">
+    <figure class="scene" id="main">
+      <div class="stage">
+        <section data-scene="page" data-title="The page">
+          <div class="phone" aria-label="A small phone showing the explainer as it is built">
+            <div class="bar"></div>
+            <div class="piece ask" id="p-ask">Make an explainer: why do retries turn a short outage into a long one?</div>
+            <p class="piece mhook" id="p-hook">A server stalls for one second. Why is it down for ten minutes?</p>
+            <div class="piece mpic" id="p-pic"></div>
+            <p class="piece mcap" id="p-cap"></p>
+            <div class="piece mctl" id="p-ctl"><span>&#8249; Back</span><span>Next &#8250;</span></div>
+            <div class="piece mpick" id="p-pick" role="group" aria-label="How should clients retry?"></div>
+            <p class="piece mpay" id="p-pay">Retrying at once <mark>multiplies the load</mark>; waiting first lets the server recover.</p>
+          </div>
+        </section>
+        <section data-scene="worth" data-title="Your time">
+          <p><b>Is it worth your time?</b> Here is one real run of the skill, from start to finished file.</p>
+          <div class="tiles" id="tiles"></div>
+          <ol class="you" id="you">
+            <li>You write one sentence, and answer up to four short questions if it asks.</li>
+            <li>You wait while it builds and checks the page.</li>
+            <li>You open the file on your phone and say what is unclear.</li>
+          </ol>
+        </section>
+      </div>
+    </figure>
+  </section>
+
+  <section class="col stack">
+    <p class="payoff">An explainer is a question, a picture that <mark>changes with every step</mark>, one choice for the reader, and a one-line answer.</p>
+    <p>It is worth it when a picture beats a paragraph: how a system behaves, why a bug happened, what a change does.
+      It is not worth it for a fact that fits in one sentence.</p>
+    <p>To try it, install the skill from <a href="https://github.com/EranYonai/explainers">github.com/EranYonai/explainers</a>
+      and ask for "an explainer of" whatever you want to teach.</p>
+  </section>
+</main>
+
+<script src="explainer:player.js"></script>
+<script>
+(function () {
+  // The mini explainer inside the phone runs real numbers: requests per second against what the server can take.
+  var BASE = 100, CAP = 200, RETRIES = 3, SPREAD = 4;
+  function load(mode) {
+    if (mode === "calm") return BASE;
+    if (mode === "storm") return BASE * (1 + RETRIES);          // every client sends again at once, three times
+    if (mode === "backoff") return BASE + Math.round(BASE * RETRIES / SPREAD); // the same retries, spread over 4 seconds
+    return 0;
+  }
+  // One real run of the skill, copied from runs.csv in the repo.
+  var RUN = { minutes: 5, fixes: 2, kb: 46.3, tools: 9 };
+  var TILES = [
+    { k: "minutes", label: "minutes from request to file" },
+    { k: "fixes", label: "rounds where it checked its own page and fixed it" },
+    { k: "kb", label: "KB: one file, no server, works offline" }
+  ];
+
+  var ORDER = ["ask", "hook", "pic", "cap", "ctl", "pick", "pay"];
+  var CAPS = {
+    calm: "Clients send {calm} requests a second. The server handles up to {cap}.",
+    stall: "The server stalls. Every request waits, then fails.",
+    storm: "Each client retries 3 times at once: {storm} a second. Still too many.",
+    backoff: "Clients wait before retrying: {backoff} a second. Under {cap}, so it recovers."
+  };
+  var CHOICES = [
+    { id: "now", text: "Retry right away", mode: "storm" },
+    { id: "wait", text: "Wait, then retry", mode: "backoff" }
+  ];
+  var el = {}, reqs = [], srv, srvText, buttons = [], tiles = [], you;
+
+  function after(pick, auto) {
+    var c = CHOICES[pick];
+    var who = auto ? "Say the reader picks “" + c.text + "”." : "You picked “" + c.text + "”.";
+    return [
+      { scene: "page", say: who + " The picture answers with the result of that choice: {now} requests a second against {cap}.", set: { mode: c.mode, picked: pick } },
+      { scene: "page", say: "Last comes one sentence that answers the opening question, so the reader can repeat it to someone.", set: { show: 7 }, mark: { fresh: "pay" } },
+      { scene: "worth", say: "That run took {minutes} minutes and {fixes} rounds of self-checking.", set: { tiles: 2 } },
+      { scene: "worth", say: "What you get is one {kb} KB file. Send it in a chat, or drop it on any web host.", set: { tiles: 3 } },
+      { scene: "worth", say: "Your part is three small things: ask, wait, then read it on your phone and say what is unclear.", set: { you: true } }
+    ];
+  }
+
+  var api = Explainer.scene("#main", {
+    title: "An explainer page being built piece by piece",
+    initial: { show: 1, mode: "calm", picked: -1, tiles: 0, you: false },
+    steps: [
+      { scene: "page", say: "It starts with your sentence. If it is vague, the skill asks up to four short questions first." },
+      { scene: "page", say: "First on the page: a question the reader cannot answer yet. It gives them a reason to keep going.", set: { show: 2 }, mark: { fresh: "hook" } },
+      { scene: "page", say: "Next, a picture: clients on the left, one server on the right. Everything after this happens in the picture.", set: { show: 3 }, mark: { fresh: "pic" } },
+      { scene: "page", say: "Under the picture, one short line says what is true right now. Here: {calm} requests a second, room for {cap}.", set: { show: 4 }, mark: { fresh: "cap" } },
+      { scene: "page", say: "Back and Next buttons let the reader go at their own pace. Each step shows one new thing: the server stalls.", set: { show: 5, mode: "stall" }, mark: { fresh: "ctl" } },
+      { scene: "page", say: "Then a choice. The reader decides how clients retry, and the page shows what follows. Try one in the phone.", set: { show: 6 }, mark: { fresh: "pick" }, wait: true }
+    ].concat(after(0, true)),
+    compute: function (s) {
+      return { calm: load("calm"), cap: CAP, storm: load("storm"), backoff: load("backoff"), now: load(s.mode),
+               minutes: RUN.minutes, fixes: RUN.fixes, kb: RUN.kb };
+    },
+    scenes: {
+      page: {
+        setup: function (sec, api) {
+          ORDER.forEach(function (k) { el[k] = sec.querySelector("#p-" + k); });
+          var g = api.svg("svg", { viewBox: "0 0 260 120", role: "img", "aria-label": "Three clients sending requests to one server" }, el.pic);
+          [25, 60, 95].forEach(function (y, i) {
+            for (var r = 0; r < 1 + RETRIES; r++) {
+              reqs.push({ line: api.svg("line", { class: "req", x1: 42, y1: y + (r - 1.5) * 3, x2: 168, y2: 60 + (r - 1.5) * 3 + (i - 1) * 8 }, g), n: r });
+            }
+            api.svg("circle", { class: "client", cx: 28, cy: y, r: 13, "stroke-width": 2 }, g);
+          });
+          srv = api.svg("rect", { class: "srv", x: 170, y: 30, width: 76, height: 60, rx: 6, "stroke-width": 2 }, g);
+          srvText = api.svg("text", { x: 208, y: 65, "text-anchor": "middle" }, g);
+          CHOICES.forEach(function (c, i) {
+            var b = api.h("button", { type: "button", text: c.text, "aria-pressed": "false" }, el.pick);
+            b.addEventListener("click", function () {
+              api.goWhere(function (st) { return st.wait; });
+              api.branch(after(i, false));
+            });
+            buttons.push(b);
+          });
+        },
+        draw: function (s) {
+          ORDER.forEach(function (k, i) {
+            el[k].classList.toggle("off", i >= s.show);
+            el[k].classList.toggle("new", s.fresh === k);
+          });
+          var n = s.mode === "storm" ? 1 + RETRIES : s.mode === "backoff" ? 2 : 1;
+          reqs.forEach(function (r) { r.line.style.opacity = (s.mode === "stall" ? r.n < 1 : r.n < n) ? 1 : 0; });
+          var l = load(s.mode), over = s.mode === "stall" || l > CAP;
+          srv.style.fill = over ? "var(--bad)" : s.mode === "backoff" ? "var(--good)" : "var(--paper)";
+          srvText.textContent = s.mode === "stall" ? "stalled" : l + "/s";
+          srvText.style.fill = over || s.mode === "backoff" ? "var(--accent-ink)" : "var(--ink)";
+          var txt = CAPS[s.mode].replace(/\{(\w+)\}/g, function (_, k) { return k === "cap" ? CAP : load(k); });
+          el.cap.textContent = txt;
+          buttons.forEach(function (b, i) { b.setAttribute("aria-pressed", String(i === s.picked)); });
+        }
+      },
+      worth: {
+        setup: function (sec, api) {
+          var box = sec.querySelector("#tiles");
+          TILES.forEach(function (t) {
+            var d = api.h("div", { class: "tile" }, box);
+            api.h("b", { text: String(RUN[t.k]) }, d);
+            api.h("span", { text: t.label }, d);
+            tiles.push(d);
+          });
+          you = sec.querySelector("#you");
+        },
+        draw: function (s) {
+          tiles.forEach(function (t, i) {
+            t.classList.toggle("off", i >= s.tiles);
+            t.classList.toggle("new", i === s.tiles - 1 || (s.tiles === 2 && i === 0));
+          });
+          you.classList.toggle("off", !s.you);
+        }
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>
