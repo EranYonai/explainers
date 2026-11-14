@@ -2,8 +2,7 @@
 
 A skill for Claude Code and Pi that turns a topic into an interactive HTML explainer you can share as a link.
 
-You ask "make an explainer of how git bisect finds a bad commit", or of a PR, an incident or an onboarding
-topic. The agent asks a few short questions, then writes one self-contained page: prose, step-through scenes
+You ask for an explainer of a concept, a PR, an incident or an onboarding topic. The agent asks a few short questions, then writes one self-contained page: prose, step-through scenes
 (Back / Next / Play), captions that carry the teaching, and something the reader controls, like picking an
 input, dragging a slider or approving a step.
 
@@ -26,19 +25,6 @@ Pi:
 ```bash
 pi install git:github.com/EranYonai/explainers
 ```
-
-## Examples
-
-Self-contained HTML, open in a browser. The first three set the reference style: scenes made of HTML
-(chat, cards, panels), one stepper driving them, and the reader taking part.
-
-| Explainer | What the reader does |
-|---|---|
-| [What is an AI coding harness?](examples/ai-harness/index.html) | Plays the permission check and approves or denies tool calls. Built on the shared player ([source](examples/ai-harness/page.src.html)) |
-| [LangChain and LangGraph, explained](examples/langgraph/index.html) | Chooses the route at a graph junction |
-| [How an explainer gets made](examples/how-an-explainer-gets-made/index.html) | Watches the process: interview, beats, storyboard, self-check |
-| [Hash tables and collisions](examples/hash-table/index.html) | Steps through hashing, chaining, resizing and probing |
-| [Why a flaky test lies](examples/flaky-test/index.html) | Drags timing sliders over 200 seeded runs |
 
 ## Building a page
 
@@ -66,7 +52,7 @@ the top of [`player.js`](skills/explainer/templates/player.js).
 
 ```
 skills/explainer/      the skill: SKILL.md, player (templates/), themes, build and check scripts
-examples/              finished explainers
+examples/              explainers made with the skill or its drafts
 docs/themes/           gallery of 25 themes and the generator (3 ship with the skill)
 docs/findings/         field notes from the first drafts
 runs.csv               cost of every explainer made with the skill
