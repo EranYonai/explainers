@@ -11,11 +11,6 @@ no voice, no video. Built from a shared player, so you write only content and a 
 
 Paths below are relative to this skill's folder (`<skill>`).
 
-## Budget
-
-Aim for: under 10 tool calls, under 5 minutes, at most 1 fix pass. Do not read the examples unless stuck;
-this file plus `references/scene-patterns.md` is enough.
-
 ## 1. Brief (one message, or none)
 
 If the request already says who it is for and what should click (a PR, an incident, a precise topic),
@@ -74,6 +69,4 @@ If it prints SKIP, Playwright is not installed; say so and open the page yoursel
 
 ## 5. Hand over
 
-Give the path to `<slug>.html`, one line on the reader action, and the cost: tool calls, minutes and
-fix passes. If a `runs.csv` exists in the working folder, append a row:
-`date,topic,models,tokens,tool_calls,minutes,fix_passes,output_kb,notes`.
+Give the path to `<slug>.html` and one line on what the reader does on the page.
