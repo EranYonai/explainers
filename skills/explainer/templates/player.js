@@ -85,8 +85,9 @@
     };
   }
 
+  // Numbers: at most two decimals, and thousands separators only from 10,000 up, so a year stays "2024".
   function fmt(v) {
-    return typeof v === "number" ? v.toLocaleString("en-US", { maximumFractionDigits: 2 }) : String(v);
+    return typeof v === "number" ? v.toLocaleString("en-US", { maximumFractionDigits: 2, useGrouping: Math.abs(v) >= 10000 }) : String(v);
   }
 
   function words(s) {
