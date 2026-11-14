@@ -17,5 +17,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Build and check every example and starter
         run: npm run check
-      - name: Committed example pages match a fresh build
-        run: git diff --exit-code -- examples
+      - name: Regenerate the theme gallery and the themes the skill ships
+        run: python3 -B docs/themes/build.py
+      - name: Committed pages and themes match a fresh build
+        run: git diff --exit-code -- examples docs/themes skills/explainer/themes

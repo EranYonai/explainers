@@ -1,14 +1,15 @@
 {
   "name": "explainers",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
-  "description": "Turn a topic into an interactive, silent, mobile-first HTML explainer. A skill for Claude Code and Pi.",
+  "description": "Turn a topic, a pull request, an incident or an onboarding subject into an interactive, silent, mobile-first HTML explainer.",
   "keywords": [
     "pi-package",
     "claude-code-plugin",
     "explainer",
     "teaching",
-    "html"
+    "html",
+    "documentation"
   ],
   "license": "Apache-2.0",
   "author": "Eran Yonai",

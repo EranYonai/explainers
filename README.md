@@ -73,10 +73,9 @@ CI runs the check on every pull request.
 skills/explainer/      the skill: SKILL.md, references/, player/, starters/, themes/, scripts/ (build, check)
 examples/              explainers made with the skill or its drafts, each a page.src.html and its built index.html
 scripts/               repo tooling: build and check every example and starter
-docs/media/            the README animation
-docs/design-base-page.md  design notes for the page parts and steady controls
+docs/decisions.md      why the skill works the way it does
 docs/themes/           gallery of 25 themes and the generator (the skill ships 8)
-docs/findings/         field notes from the first drafts
+docs/media/            the README animation
 runs.csv               a log of explainers made with the skill
 ```
 

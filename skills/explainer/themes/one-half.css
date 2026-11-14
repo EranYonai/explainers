@@ -7,7 +7,6 @@
    File: onehalf/vim/colors/onehalfdark.vim, onehalf/vim/colors/onehalflight.vim
    License: MIT (LICENSE.txt, Copyright (c) 2019 Son A. Pham)
    Mode: light and dark
-   --sketch is the feDisplacementMap scale for hand-drawn wobble (0 = off).
 */
 :root {
   --font-display: "Space Grotesk","Segoe UI",sans-serif;
@@ -15,7 +14,6 @@
   --font-mono: "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
   --radius: 6px;
   --stroke-width: 2.4;
-  --sketch: 0;
   --texture: none;
   --display-scale: 1.1;
   --display-weight: 600;
@@ -23,7 +21,6 @@
   --display-tracking: -.01em;
   --border-width: 1.5px;
   --linecap: round;
-  --node-rx: 6px;
   --paper: #f0f0f0;
   --surface: #fafafa;
   --ink: #383a42;

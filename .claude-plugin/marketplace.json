@@ -1,14 +1,16 @@
 {
   "name": "explainers",
-  "owner": { "name": "Eran Yonai" },
+  "owner": {
+    "name": "Eran Yonai"
+  },
   "metadata": {
-    "description": "explainers: interactive HTML explainers made by your coding agent."
+    "description": "Interactive HTML explainers made by your coding agent."
   },
   "plugins": [
     {
       "name": "explainers",
       "source": "./",
-      "description": "Turn a topic into an interactive, silent, mobile-first HTML explainer."
+      "description": "Turn a topic, a pull request, an incident or an onboarding subject into an interactive, silent, mobile-first HTML explainer."
     }
   ]
 }
