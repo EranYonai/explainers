@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How an explainer gets made</title>
+<meta name="description" content="An explainer is built in a fixed order: a short interview, story beats, scenes as states, real code for every number, one self-check. Drawing comes late.">
+<link rel="stylesheet" href="explainer:player.css">
+<link rel="stylesheet" href="explainer:theme/inkwell">
+<style>
+  #main .stage{min-height:470px}
+  .tag{display:inline-block;font:600 12px/1.3 var(--font-mono);border:1px solid var(--line);border-radius:999px;padding:2px 8px;color:var(--muted)}
+  .tag.pen{border-color:var(--accent);color:var(--accent)}
+  .myth{border:1px dashed var(--line);border-radius:var(--radius,8px);padding:8px 12px;margin:0 0 10px;color:var(--muted);transition:opacity .3s}
+  .myth.out{text-decoration:line-through;opacity:.5}
+  .myth.gone{display:none}
+  ol.stations{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+  ol.stations li{border:var(--border-width,1px) solid var(--line);border-radius:var(--radius,8px);background:var(--paper);padding:8px 12px;transition:opacity .3s,border-color .3s}
+  ol.stations li b{font-family:var(--font-display)}
+  ol.stations li span.note{display:block;color:var(--muted);font-size:14px}
+  ol.stations li.on{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--hl)}
+  ol.stations li.dim{opacity:.4}
+  .q{border:0;margin:0 0 10px;padding:0;min-width:0}
+  .q legend{font-weight:600;padding:0;margin-bottom:4px}
+  .opts{display:flex;flex-wrap:wrap;gap:6px}
+  .opts button,.choices button{font:inherit;font-size:14px;text-align:left;border:var(--border-width,1px) solid var(--line);border-radius:var(--radius,8px);background:var(--paper);color:var(--ink);padding:6px 10px;cursor:pointer;max-width:100%}
+  .opts button[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--hl);font-weight:600}
+  .opts button[aria-pressed="true"]::before{content:"\2713  "}
+  .briefline{border-top:1px dashed var(--line);padding-top:8px;margin:8px 0 0}
+  .briefline.off{visibility:hidden}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:8px}
+  .card{border:var(--border-width,1px) solid var(--line);border-radius:var(--radius,8px);background:var(--paper);padding:8px 12px;transition:opacity .3s,border-color .3s;min-width:0}
+  .card h3{margin:0 0 2px;font:600 13px/1.3 var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .card p{margin:0;font-size:15px}
+  .card.dim{opacity:.4}
+  .card.on{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--hl)}
+  .frames{grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr))}
+  pre.code{margin:0 0 10px;font:12px/1.45 var(--font-mono);white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid var(--line);border-radius:var(--radius,8px);background:var(--paper);padding:8px 10px;color:var(--ink)}
+  .readout{font-family:var(--font-mono);font-size:14px;margin:0}
+  .readout.off{color:var(--muted)}
+  .shelf{display:grid;gap:12px;justify-items:center;margin:26px 0 8px}
+  .shelf .row{display:flex;gap:8px}
+  .slot{min-width:64px;text-align:center;border:2px solid var(--ink);border-radius:var(--radius,8px);background:var(--paper);padding:14px 8px;font:600 16px var(--font-mono);transition:all .4s}
+  .slot.new{border-color:var(--accent);box-shadow:inset 0 -4px 0 var(--hl)}
+  .slot.leaving{border-style:dashed}
+  .chip{font:600 14px var(--font-mono);padding:6px 10px;border:1px dashed var(--line);border-radius:999px;transition:opacity .4s}
+  .chip.gone{opacity:0}
+  .chip.outc{color:var(--bad);text-decoration:line-through}
+  .axis{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);max-width:300px;margin:0 auto}
+  .draft{border:var(--border-width,1px) solid var(--line);border-radius:var(--radius,8px);background:var(--paper);padding:10px 12px;margin:0 0 8px}
+  .draft small{display:block;color:var(--muted);font:12px var(--font-mono)}
+  .draft.on{border-color:var(--accent)}
+  .choices{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+  .verdict{font:600 15px var(--font-mono);margin:8px 0 0;min-height:3em}
+  .verdict.fail{color:var(--bad)} .verdict.pass{color:var(--good)}
+</style>
+</head>
+<body>
+<main>
+  <header class="col stack">
+    <h1 class="hook">An AI can draw anything in seconds. So why is drawing not where an explainer starts?</h1>
+    <p>You have seen explainers: a picture you step through, with a caption under it. It is natural to assume
+       someone began with a sketch and animated it. Follow one small topic, <em>Why does a cache forget things?</em>,
+       through the real order of work. You give the answers; the plan below changes to match.</p>
+  </header>
+
+  <section class="wide">
+    <figure class="scene" id="main">
+      <div class="stage">
+        <section data-scene="order" data-title="The order of work">
+          <p class="myth" id="myth">Assumed first step: open a canvas and start drawing.</p>
+          <ol class="stations" id="stations"></ol>
+        </section>
+        <section data-scene="interview" data-title="Station: the interview">
+          <div id="questions"></div>
+          <p class="briefline" id="briefline"></p>
+        </section>
+        <section data-scene="beats" data-title="Station: the story beats">
+          <div class="cards" id="beats"></div>
+        </section>
+        <section data-scene="board" data-title="Station: scenes as states">
+          <div class="cards frames" id="frames"></div>
+        </section>
+        <section data-scene="numbers" data-title="Station: real code for numbers">
+          <pre class="code" id="code"></pre>
+          <p class="readout" id="readout"></p>
+        </section>
+        <section data-scene="drawn" data-title="Now the drawing">
+          <div class="shelf" id="shelf"></div>
+          <div class="axis"><span>&larr; used longest ago</span><span>used last &rarr;</span></div>
+        </section>
+        <section data-scene="check" data-title="Station: the self-check">
+          <div class="draft" id="draftTyped"><small>Draft A, number typed by hand</small><span></span></div>
+          <div class="draft" id="draftCode"><small>Draft B, number filled from the code</small><span></span></div>
+          <div class="choices" id="checks"></div>
+          <p class="verdict" id="verdict"></p>
+        </section>
+      </div>
+    </figure>
+  </section>
+
+  <section class="col stack">
+    <p class="payoff">Drawing comes late because by then <mark>everything it shows is already decided</mark>.</p>
+    <p>The interview fixes who it is for, the beats fix the story, the states fix each frame, the code fixes each
+       number, and the check catches what drifted. Start with the canvas and you decide all of that by accident.</p>
+  </section>
+</main>
+
+<script src="explainer:player.js"></script>
+<script>
+(function () {
+  // ---- The small topic: a cache that forgets the least recently used item. Real logic, run for every number.
+  function lru(requests, capacity) {
+    var cache = [];              // used longest ago first
+    return requests.map(function (key) {
+      var at = cache.indexOf(key), out = null;
+      if (at >= 0) cache.splice(at, 1);
+      else if (cache.length === capacity) out = cache.shift();
+      cache.push(key);
+      return { key: key, hit: at >= 0, out: out, after: cache.slice() };
+    });
+  }
+  // The wrong idea, as code: forget the oldest item added, reads do not count.
+  function fifo(requests, capacity) {
+    var cache = [];
+    return requests.map(function (key) {
+      var hit = cache.indexOf(key) >= 0, out = null;
+      if (!hit) { if (cache.length === capacity) out = cache.shift(); cache.push(key); }
+      return { key: key, hit: hit, out: out, after: cache.slice() };
+    });
+  }
+  var CAPACITY = 3, PATTERN = [0, 1, 2, 0, 3, 4];
+
+  // ---- The process, as data.
+  var STATIONS = [
+    { name: "Interview", note: "Who reads it, what should click, which wrong idea breaks." },
+    { name: "Story beats", note: "Hook, setup, mechanism, payoff: written as plain lines." },
+    { name: "Scenes as states", note: "Each frame says what is true now.", draws: true },
+    { name: "Real code for every number", note: "Captions ask the code; nobody types a result." },
+    { name: "One self-check", note: "Walk every step once, fix once." }
+  ];
+  var QUESTIONS = [
+    { key: "who", ask: "Who reads it?", options: [
+      { label: "New programmers", noun: "new programmers", items: ["cat", "dog", "owl", "fox", "bee"],
+        setup: "A cache is a small shelf for things you fetched lately." },
+      { label: "Backend engineers", noun: "backend engineers", items: ["u1", "u2", "u3", "u4", "u5"],
+        setup: "You put a cache in front of a slow database." } ] },
+    { key: "click", ask: "What should click?", options: [
+      { label: "It forgets what was used longest ago", idea: "a full cache forgets what was used longest ago",
+        hook: "The cache is full and one more item arrives. Which one goes?",
+        payoff: "A full cache forgets the item used longest ago." },
+      { label: "A full cache must forget something", idea: "a cache has fixed room, so it must forget",
+        hook: "Why would a cache ever forget what you gave it?",
+        payoff: "A cache has fixed room, so each new item pushes out the one used longest ago." } ] },
+    { key: "wrong", ask: "Which wrong idea should break?", options: [
+      { label: "It forgets the oldest item added", not: "not the oldest item added" },
+      { label: "It forgets at random", not: "not a random one" } ] }
+  ];
+  var BEATS = ["Hook", "Setup", "Mechanism", "Payoff"];
+  var answers = { who: 0, click: 0, wrong: 0 };
+
+  // Everything the captions and drawings show, derived from the reader's answers.
+  function derive(s) {
+    var who = QUESTIONS[0].options[s.who], click = QUESTIONS[1].options[s.click], wrong = QUESTIONS[2].options[s.wrong];
+    var reqs = PATTERN.map(function (i) { return who.items[i]; });
+    var frames = lru(reqs, CAPACITY), naive = fifo(reqs, CAPACITY);
+    var ev = frames.findIndex(function (f) { return f.out; });
+    var count = function (list, fn) { return list.filter(fn).length; };
+    var isOut = function (f) { return f.out; };
+    return {
+      who: who, click: click, wrong: wrong, frames: frames, ev: ev,
+      reader: who.noun, brief: "For " + who.noun + ": " + click.idea + ", " + wrong.not + ".",
+      count: STATIONS.length, drawAt: STATIONS.findIndex(function (x) { return x.draws; }) + 1,
+      nq: QUESTIONS.length, nbeats: BEATS.length, nsteps: reqs.length, cap: CAPACITY,
+      evFrame: ev + 1, newItem: frames[ev].key, victim: frames[ev].out,
+      wrongVictim: s.wrong === 0 ? naive[ev].out : "any of the " + CAPACITY,
+      hits: count(frames, function (f) { return f.hit; }), misses: count(frames, function (f) { return !f.hit; }),
+      evictions: count(frames, isOut),
+      typed: count(lru(reqs.slice(0, -1), CAPACITY), isOut), oldN: reqs.length - 1,
+      loc: lru.toString().split("\n").length
+    };
+  }
+
+  function checkOutcome(which) {
+    return [
+      which === "typed"
+        ? { scene: "check", say: "FAIL. Draft A says {typed}, the code says {evictions}. The check caught a wrong number before any reader did.", set: { checked: "typed" } }
+        : { scene: "check", say: "PASS. Draft B asks the code and shows {evictions}. Nothing was typed, so nothing can drift. Now try Draft A.", set: { checked: "code" } },
+      { scene: "order", say: "{count} stations, in order. For {reader}, drawing began at station {drawAt}, and by then it was the easy part.", set: { k: STATIONS.length, mythOut: true } }
+    ];
+  }
+
+  function buildSteps(a) {
+    var fifoIdea = a.wrong === 0;
+    return [
+      { scene: "order", say: "Most people picture the first step as a sketch or an animation. That is the wrong end to start from.", set: { who: a.who, click: a.click, wrong: a.wrong } },
+      { scene: "order", say: "The order is fixed: {count} stations. Drawing begins at station {drawAt}, after the brief and the beats exist.", set: { mythOut: true, k: -2 } },
+      { scene: "interview", say: "Station 1 is a short interview about the cache topic. Tap an answer to each of the {nq} questions, then press Next.", set: { k: 0 }, wait: true },
+      { scene: "interview", say: "Your answers fold into a one-line brief. Everything after this is built from that line.", set: { briefShown: true } },
+      { scene: "beats", say: "Station 2: {nbeats} beats, written as plain lines. The hook is a question {reader} cannot answer yet.", set: { k: 1, beat: 0 } },
+      { scene: "beats", say: "The setup starts from what {reader} already know.", set: { beat: 1 } },
+      { scene: "beats", say: "The mechanism is a list of true statements. This one needs {nsteps} requests to a cache with room for {cap}.", set: { beat: 2 } },
+      { scene: "beats", say: "The payoff answers the hook in one sentence. Note what exists so far: only words. No picture yet.", set: { beat: 3 } },
+      { scene: "board", say: "Station 3: each frame states what is true now, not how things move. {nsteps} requests make {nsteps} frames.", set: { k: 2, frame: -1 } },
+      { scene: "board", say: "Frame {evFrame}: the cache is full and {newItem} arrives. Something has to go.", set: { frame: "ev" } },
+      { scene: "board", say: fifoIdea
+          ? "The wrong idea says {wrongVictim} goes: it was added first. The frame cannot say yet. Nobody has run it."
+          : "The wrong idea says {wrongVictim} could go, by chance. The frame cannot say yet. Nobody has run it." },
+      { scene: "numbers", say: "Station 4: real code for every number. A {loc}-line cache gets the {nsteps} requests.", set: { k: 3 } },
+      { scene: "numbers", say: fifoIdea
+          ? "The code forgets {victim}, not {wrongVictim}: {wrongVictim} was read again in between, so it stays."
+          : "The code forgets {victim}: the item used longest ago. Same requests, same answer, every run. No chance in it.", set: { ran: true } },
+      { scene: "board", say: "The frames fill in from the run: {hits} hit, {misses} misses, {evictions} items forgotten. Captions read these, nobody types them." },
+      { scene: "drawn", say: "Only now does the AI draw. This is frame {evFrame} just before {newItem} lands: nothing left to decide.", set: { k: 2, drawn: 0 } },
+      { scene: "drawn", say: "{victim} leaves, {newItem} takes the last slot. Two states; a CSS transition does the motion between them.", set: { drawn: 1 } },
+      { scene: "check", say: "Station 5: one self-check. Draft A was typed when the story had {oldN} requests; it now has {nsteps}. Pick a draft to check.", set: { k: 4 }, wait: true }
+    ].concat(checkOutcome("typed"));
+  }
+
+  var el = {};
+  var api = Explainer.scene("#main", {
+    title: "How an explainer gets made, following a small cache topic through five stations",
+    initial: { who: 0, click: 0, wrong: 0, k: -1, mythOut: false, briefShown: false, beat: -1, frame: -1, ran: false, drawn: 0, checked: "" },
+    steps: buildSteps(answers),
+    compute: derive,
+    scenes: {
+      order: {
+        setup: function (sec, api) {
+          el.myth = sec.querySelector("#myth");
+          el.stations = STATIONS.map(function (st, i) {
+            var li = api.h("li", {}, sec.querySelector("#stations"));
+            api.h("b", { text: (i + 1) + ". " + st.name + " " }, li);
+            if (st.draws) api.h("span", { class: "tag pen", text: "✎ drawing begins here" }, li);
+            api.h("span", { class: "note", text: st.note }, li);
+            return li;
+          });
+        },
+        draw: function (s) {
+          el.myth.classList.toggle("out", !!s.mythOut);
+          el.myth.classList.toggle("gone", s.k >= STATIONS.length);
+          el.stations.forEach(function (li, i) {
+            li.classList.toggle("on", s.k >= STATIONS.length || (s.k === -2 && !!STATIONS[i].draws));
+            li.classList.toggle("dim", s.k === -1);
+          });
+        }
+      },
+      interview: {
+        setup: function (sec, api) {
+          el.brief = sec.querySelector("#briefline");
+          el.opts = QUESTIONS.map(function (q) {
+            var fs = api.h("fieldset", { class: "q" }, sec.querySelector("#questions"));
+            api.h("legend", { text: q.ask }, fs);
+            var row = api.h("div", { class: "opts" }, fs);
+            return q.options.map(function (o, i) {
+              var b = api.h("button", { type: "button", text: o.label }, row);
+              b.addEventListener("click", function () {
+                answers[q.key] = i;
+                api.setSteps(buildSteps(answers), api.index);   // same place, new story after it
+              });
+              return b;
+            });
+          });
+        },
+        draw: function (s) {
+          QUESTIONS.forEach(function (q, qi) {
+            el.opts[qi].forEach(function (b, i) { b.setAttribute("aria-pressed", String(s[q.key] === i)); });
+          });
+          el.brief.textContent = "Brief: " + derive(s).brief;
+          el.brief.classList.toggle("off", !s.briefShown);
+        }
+      },
+      beats: {
+        setup: function (sec, api) {
+          el.beats = BEATS.map(function (name) {
+            var c = api.h("article", { class: "card" }, sec.querySelector("#beats"));
+            api.h("h3", { text: name }, c);
+            return { card: c, p: api.h("p", {}, c) };
+          });
+        },
+        draw: function (s) {
+          var d = derive(s);
+          var lines = [d.click.hook, d.who.setup,
+            d.nsteps + " requests to a cache with room for " + d.cap + ". Break: “" + d.wrong.label.toLowerCase() + "”.",
+            d.click.payoff];
+          el.beats.forEach(function (b, i) {
+            b.p.textContent = lines[i];
+            b.card.classList.toggle("on", i === s.beat);
+            b.card.classList.toggle("dim", i > s.beat);
+          });
+        }
+      },
+      board: {
+        setup: function (sec, api) {
+          el.frames = PATTERN.map(function (_, i) {
+            var c = api.h("article", { class: "card" }, sec.querySelector("#frames"));
+            api.h("h3", { text: "Frame " + (i + 1) }, c);
+            return { card: c, p: api.h("p", {}, c) };
+          });
+        },
+        draw: function (s) {
+          var d = derive(s);
+          d.frames.forEach(function (f, i) {
+            var full = i >= d.cap && !f.hit;   // the storyboard knows the cache is full; only a run knows who goes
+            var text = f.key + " is asked for. ";
+            if (!s.ran) text += full ? "Cache is full: ? goes." : (i < d.cap ? "There is room." : "Is it there?");
+            else text += f.hit ? "Hit: it is there." : (f.out ? "Miss: " + f.out + " goes." : "Miss: stored.");
+            el.frames[i].p.textContent = text;
+            el.frames[i].card.classList.toggle("on", s.frame === "ev" && i === d.ev);
+          });
+        }
+      },
+      numbers: {
+        setup: function (sec) {
+          el.readout = sec.querySelector("#readout");
+          sec.querySelector("#code").textContent = lru.toString();
+        },
+        draw: function (s) {
+          var d = derive(s);
+          el.readout.classList.toggle("off", !s.ran);
+          el.readout.textContent = s.ran
+            ? "ran ✓  first forgotten: " + d.victim + " · hits: " + d.hits + " · misses: " + d.misses + " · forgotten: " + d.evictions
+            : "not run yet";
+        }
+      },
+      drawn: {
+        setup: function (sec, api) {
+          var shelf = sec.querySelector("#shelf");
+          el.inChip = api.h("span", { class: "chip" }, shelf);
+          var row = api.h("div", { class: "row" }, shelf);
+          el.slots = [];
+          for (var i = 0; i < CAPACITY; i++) el.slots.push(api.h("div", { class: "slot" }, row));
+          el.outChip = api.h("span", { class: "chip outc" }, shelf);
+        },
+        draw: function (s) {
+          var d = derive(s), before = d.frames[d.ev - 1].after, after = d.frames[d.ev].after;
+          var now = s.drawn ? after : before;
+          el.slots.forEach(function (slot, i) {
+            slot.textContent = now[i];
+            slot.classList.toggle("new", !!s.drawn && now[i] === d.newItem);
+            slot.classList.toggle("leaving", !s.drawn && now[i] === d.victim);
+          });
+          el.outChip.textContent = d.victim + " ✗ forgotten";
+          el.outChip.classList.toggle("gone", !s.drawn);
+          el.inChip.textContent = d.newItem + " arrives";
+          el.inChip.classList.toggle("gone", !!s.drawn);
+        }
+      },
+      check: {
+        setup: function (sec, api) {
+          el.dTyped = sec.querySelector("#draftTyped"); el.dCode = sec.querySelector("#draftCode");
+          el.verdict = sec.querySelector("#verdict");
+          [["typed", "Check draft A"], ["code", "Check draft B"]].forEach(function (c) {
+            var b = api.h("button", { type: "button", text: c[1] }, sec.querySelector("#checks"));
+            b.addEventListener("click", function () {
+              api.goWhere(function (st) { return st.scene === "check" && st.wait; });
+              api.branch(checkOutcome(c[0]));
+            });
+          });
+        },
+        draw: function (s) {
+          var d = derive(s);
+          el.dTyped.querySelector("span").textContent = "“The cache forgets " + d.typed + " item" + (d.typed === 1 ? "" : "s") + " along the way.”";
+          el.dCode.querySelector("span").textContent = "“The cache forgets {evictions} items along the way.”";
+          el.dTyped.classList.toggle("on", s.checked === "typed");
+          el.dCode.classList.toggle("on", s.checked === "code");
+          var v = el.verdict; v.className = "verdict";
+          if (s.checked === "typed") { v.classList.add("fail"); v.textContent = "✗ FAIL  caption says " + d.typed + ", code says " + d.evictions; }
+          else if (s.checked === "code") { v.classList.add("pass"); v.textContent = "✓ PASS  caption shows " + d.evictions + ", code says " + d.evictions; }
+          else v.textContent = "Not checked yet.";
+        }
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>
