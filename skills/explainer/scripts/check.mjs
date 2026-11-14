@@ -4,7 +4,7 @@
 //   node check.mjs page.html [--sheet contact-sheet.png] [--click "<selector>"]
 //
 // Renders the page at phone width (390 px, light) and desktop width (1100 px, dark), walks every step of
-// every scene, then plays the reader: clicks the reader buttons (--click, default ".choices button") and
+// every scene, then plays the reader: clicks the reader buttons (--click, default ".choices button, .pick button") and
 // walks the steps they produce. Reports:
 //   - JS errors and console errors
 //   - player errors: captions asking for a {value} that compute() does not provide, draw() failures
@@ -15,7 +15,8 @@
 //     citations (.cite pointing nowhere), sources without a link
 //   - captions longer than 200 characters, a stage taller than 60% of a phone screen, more than
 //     400 words outside the scene, outside links with no Sources (notes, not failures)
-//   - external requests other than Google Fonts
+//   - external requests other than Google Fonts, and a page built without a theme
+//   - a step that waits for the reader while no reader button was found to click (a note)
 // and writes a contact sheet: every step of every scene at phone width, in one image.
 // Exit code: 0 pass, 1 fail, 3 skipped (Playwright not installed).
 import { createRequire } from "node:module";
@@ -29,7 +30,7 @@ if (!page || !existsSync(page)) {
   console.error('usage: node check.mjs <page.html> [--sheet out.png] [--click "<selector>"]');
   process.exit(2);
 }
-const clickSel = args.includes("--click") ? args[args.indexOf("--click") + 1] : ".choices button";
+const clickSel = args.includes("--click") ? args[args.indexOf("--click") + 1] : ".choices button, .pick button";
 // The page parts, in their fixed order. Required ones must be present.
 const SLOTS = ["masthead", "intro", "summary", "scene", "payoff", "prose", "glossary", "sources", "next"];
 const REQUIRED = ["intro", "scene", "payoff"];
@@ -123,7 +124,7 @@ async function walk(browser, width, scheme, capture) {
   const p = await ctx.newPage();
   const tag = width + "px " + scheme;
   p.on("pageerror", (e) => problems.push(tag + "  JS error: " + e.message));
-  p.on("console", (m) => { if (m.type() === "error") problems.push(tag + "  console: " + m.text().slice(0, 160)); });
+  p.on("console", (m) => { if (m.type() === "error" && !m.text().startsWith("[explainer]")) problems.push(tag + "  console: " + m.text().slice(0, 160)); });
   p.on("request", (r) => {
     const u = r.url();
     if (!/^(file:|data:|about:|blob:)/.test(u) && !/fonts\.(googleapis|gstatic)\.com/.test(u)) problems.push(tag + "  external request: " + u.slice(0, 100));
@@ -138,6 +139,7 @@ async function walk(browser, width, scheme, capture) {
   let steps = 0;
   for (let s = 0; s < count; s++) {
     const n = await p.evaluate((s) => window.__explainer.scenes[s].api.count, s);
+    let waits = false, sceneName = "scene " + (s + 1);
     for (let i = 0; i < n; i++) {
       const r = await p.evaluate(async ([s, i]) => {
         const { name, api } = window.__explainer.scenes[s];
@@ -146,7 +148,7 @@ async function walk(browser, width, scheme, capture) {
         const fig = api.el, fr = fig.getBoundingClientRect();
         let wide = null;
         for (const el of fig.querySelectorAll("*")) {
-          if (el.closest(".dots") || getComputedStyle(el).display === "none") continue;
+          if (el.closest(".controls .dots") || getComputedStyle(el).display === "none") continue;
           const b = el.getBoundingClientRect();
           if (b.width && (b.right > fr.right + 1 || b.left < fr.left - 1)) {
             // allow children of horizontally scrollable boxes
@@ -157,17 +159,20 @@ async function walk(browser, width, scheme, capture) {
         }
         const cap = fig.querySelector(".caption");
         const text = cap ? cap.textContent.replace(/^step \d+ of \d+/, "") : "";
-        return { name, scroll: document.documentElement.scrollWidth - innerWidth, wide, len: text.length, scene: api.scene, lay: window.__layoutOf(api) };
+        return { name, scroll: document.documentElement.scrollWidth - innerWidth, wide, len: text.length, scene: api.scene, lay: window.__layoutOf(api), waits: !!(api.step && api.step.wait) };
       }, [s, i]);
       const where = tag + "  " + r.name + " step " + (i + 1);
+      waits = waits || r.waits;
+      sceneName = r.name;
       if (r.scroll > 0) problems.push(where + ": page scrolls sideways by " + r.scroll + "px");
       if (r.wide) problems.push(where + ": content wider than the scene (" + r.wide + ")");
       if (r.len > 200) notes.push(where + ": caption is " + r.len + " characters; aim for under 200");
       track(tag, r.name, "step " + (i + 1), r.lay);
       if (capture && width === 390 && r.lay.reserved > 0.6 * 844 && i === 0) notes.push(where + ": the stage is " + r.lay.reserved + "px tall, over 60% of a phone screen");
       if (capture) {
-        const el = await p.$(`#${await p.evaluate((s) => window.__explainer.scenes[s].api.el.id || "", s)}`);
-        const buf = el ? await el.screenshot() : await p.screenshot();
+        const el = await p.evaluateHandle((s) => window.__explainer.scenes[s].api.el, s);
+        const buf = await el.asElement().screenshot();
+        await el.dispose();
         shots.push({ label: r.name + " " + (i + 1) + "/" + n, b64: buf.toString("base64") });
       }
       steps++;
@@ -192,12 +197,17 @@ async function walk(browser, width, scheme, capture) {
         api.go(0);
         return out;
       }, [s, clickSel]);
-      for (const x of r) track(tag, (await p.evaluate((s) => window.__explainer.scenes[s].name, s)), x.at, x.lay);
+      for (const x of r) track(tag, sceneName, x.at, x.lay);
       if (r.some((x) => x.clicked)) clicked++;
+      else if (waits) notes.push(sceneName + ": a step waits for the reader, but no button matched '" + clickSel + "', so the reader's path was not checked. Pass --click \"<selector>\".");
     }
     await p.evaluate((s) => window.__explainer.scenes[s].api.go(0), s);
   }
-  if (capture) pageChecks(await p.evaluate(() => window.__pageFacts()));
+  if (capture) {
+    pageChecks(await p.evaluate(() => window.__pageFacts()));
+    const themed = await p.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--paper").trim() !== "");
+    if (!themed) problems.push("no theme: the page defines no --paper color. Add <link rel=\"stylesheet\" href=\"explainer:theme/<name>\"> and rebuild.");
+  }
   const errs = await p.evaluate(() => window.__explainer.errors.slice());
   [...new Set(errs)].forEach((e) => problems.push(tag + "  player: " + e));
   await ctx.close();
@@ -206,7 +216,9 @@ async function walk(browser, width, scheme, capture) {
 
 const browser = await pw.chromium.launch();
 const t0 = Date.now();
-const steps = await walk(browser, 390, "light", true);
+let steps = 0;
+try {
+steps = await walk(browser, 390, "light", true);
 await walk(browser, 1100, "dark", false);
 
 if (shots.length) {
@@ -219,7 +231,11 @@ if (shots.length) {
   await p.screenshot({ path: sheet, fullPage: true });
   await ctx.close();
 }
-await browser.close();
+} catch (e) {
+  problems.push("the check itself stopped early: " + String(e && e.message || e).split("\n")[0]);
+} finally {
+  await browser.close();
+}
 
 const uniq = [...new Set(problems)];
 console.log((uniq.length ? "FAIL" : "PASS") + "  " + basename(page) + ": " + steps + " steps checked at 390px light and 1100px dark" + (clicked ? ", plus the reader's choices," : "") + " in " + ((Date.now() - t0) / 1000).toFixed(1) + "s");
